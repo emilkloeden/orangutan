@@ -1,0 +1,16 @@
+{
+  "name": "orangutan",
+  "type": "module",
+  "version": "0.0.1",
+  "description": "A typescript implementation of Thorsten Ball's&lt;a href=\"https://monkeylang.org/>Monkey&lt;/a>",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@types/node": "^22.7.5"
+  }
+}
