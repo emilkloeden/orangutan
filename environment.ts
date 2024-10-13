@@ -16,8 +16,11 @@ export default class Environment {
         return null
     }
 
-    set = (name: string, val: objects.Objects): objects.Objects => {
-        this.store[name] = val
+    set = (name: string, val: objects.Objects | null): objects.Objects | null => {
+        if (val !== null) {
+            // TODO: THIS REALLY SHOULD THROW!!!
+            this.store[name] = val
+        }
         return val;
     }
 

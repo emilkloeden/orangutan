@@ -63,7 +63,7 @@ export class ReturnStatement implements Statement {
 
 }
 export class WhileStatement implements Statement {
-    public condition!: Expression
+    public condition!: Expression | null
     public body!: Expression
     
     constructor(private token: Token) {} 
@@ -169,14 +169,14 @@ export class StringLiteral implements Expression {
 
 }
 export class FunctionLiteral implements Expression {
-    public parameters: Identifier[]
+    public parameters: Identifier[] | null
     public body!: BlockStatement;
     constructor(private token: Token) {
         this.parameters = []
     } 
     // TODO: Triple check this
     toString() {
-        return `${this.tokenLiteral()}(${(this.parameters.map(p => p.toString()).join(", "))}) {${this.body.toString()}}`
+        return `${this.tokenLiteral()}(${(this.parameters?.map(p => p.toString()).join(", "))}) {${this.body.toString()}}`
 
     } tokenLiteral() {
         return this.token.literal
@@ -184,12 +184,12 @@ export class FunctionLiteral implements Expression {
 
 }
 export class ArrayLiteral implements Expression {
-    public elements: Expression[]
+    public elements: (Expression|null)[] | null
     constructor(private token: Token) {
         this.elements = [];
     } 
     toString() {
-        return `[${this.elements.map(e => e.toString()).join(", ")}]`
+        return `[${this.elements?.map(e => e?.toString()).join(", ")}]`
     } 
     tokenLiteral() {
         return this.token.literal
@@ -199,16 +199,14 @@ export class ArrayLiteral implements Expression {
 export type HashKey = Record<string, string>
 
 export class HashLiteral implements Expression {
-    pairs: Record<HashKey, HashPair>
+    pairs: Map<Expression | null, Expression | null>
     constructor(private token: Token) {
-        this.pairs = {}
+        this.pairs = new Map();
     }
 
     toString() {
-        const pairs = []
-        for (const [key, val] of Object.entries(this.pairs)) {
-            pairs.push(`${key.toString()}:${val.toString()}`)
-        }
+        const pairs = Array.from(this.pairs.entries()).map(([key, val]) => `${key?.toString()}:${val?.toString()}`)
+        
         return `{{${pairs.join(", ")}}}`
 
     } tokenLiteral() {
@@ -229,12 +227,12 @@ export class PrefixExpression implements Expression {
 }
 
 export class InfixExpression implements Expression {
-    public right!: Expression
+    public right!: Expression | null
     
-    constructor(private token: Token, public operator: string, public left: Expression) {}
+    constructor(private token: Token, public operator: string, public left: Expression | null) {}
 
     toString() {
-        return `(${this.left.toString()} ${this.operator} ${this.right.toString()})`
+        return `(${this.left?.toString()} ${this.operator} ${this.right?.toString()})`
     } 
     tokenLiteral() {
         return this.token.literal
@@ -242,14 +240,14 @@ export class InfixExpression implements Expression {
 }
 
 export class IfExpression implements Expression {
-    public condition!: Expression
+    public condition!: Expression | null
     public consequence!: BlockStatement
     public alternative!: BlockStatement
 
     constructor(private token: Token) {}
 
     toString() {
-        let out = `"if${this.condition.toString()} {{ ${this.consequence.toString()} }}`
+        let out = `"if${this.condition?.toString()} {{ ${this.consequence.toString()} }}`
         if (this.alternative != null) {
             out += `else ${this.alternative.toString()}`
         }
@@ -262,15 +260,15 @@ export class IfExpression implements Expression {
 }
 
 export class CallExpression implements Expression {
-    public arguments: Expression[]
+    public arguments: (null | Expression)[] | null
 
-    constructor(private token: Token, public fn: Expression) {
+    constructor(private token: Token, public fn: Expression | null) {
         this.arguments = []
     }
 
     toString() {
-        const args = this.arguments.map(arg => arg.toString());
-        return `${this.fn.toString()}(${args.join(', ')})`
+        const args = this.arguments?.map(arg => arg?.toString());
+        return `${this.fn?.toString()}(${args?.join(', ')})`
 
     } 
     
@@ -280,14 +278,14 @@ export class CallExpression implements Expression {
 }
 
 export class IndexExpression implements Expression {
-    constructor(private token: Token, public left: Expression, public index: Expression) {} 
+    constructor(private token: Token, public left: Expression | null, public index: Expression | null) {} 
     
     toString() {
         // TODO: Check definition
         if (this.index == null) {
-            return `(${this.left.toString()}[null])`
+            return `(${this.left?.toString()}[null])`
         }
-        return `${this.left.toString()}[${this.index.toString()}])`
+        return `${this.left?.toString()}[${this.index.toString()}])`
     } 
     tokenLiteral() {
         return this.token.literal

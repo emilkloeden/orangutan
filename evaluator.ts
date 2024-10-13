@@ -4,7 +4,10 @@ import * as objects from "./objects.ts"
 import {ObjectType} from "./objects.ts"
 import BUILTINS from "./builtins.ts"
 
-const evaluate = (node: ast.Node, env: Environment): objects.Objects | null => {
+const evaluate = (node: ast.Node | null, env: Environment): objects.Objects | null => {
+    if (node === null) {
+        return newError(`node is null`)
+    }
     if (node instanceof ast.Program) {
         return evaluateProgram(node, env)
     } else if (node instanceof ast.ExpressionStatement) {
@@ -141,8 +144,9 @@ const evaluateWhileStatement = (stmt: ast.WhileStatement, env: Environment) => {
     return null;
 }
 
-const evaluateExpressions = (expressions: ast.Expression[], env: Environment): (objects.Objects| null)[] => {
+const evaluateExpressions = (expressions: (ast.Expression | null)[] | null, env: Environment): (objects.Objects| null)[] => {
     const result: (objects.Objects | null)[] = []
+    if (expressions === null) { return []}
     for (const expression of expressions) {
         const evaluated = evaluate(expression, env)
         if (isError(evaluated)) {
@@ -153,17 +157,17 @@ const evaluateExpressions = (expressions: ast.Expression[], env: Environment): (
     return result
 }
 
-const evaluateHashLiteral = (node: ast.HashLiteral, env: Environment): objects.Objects => {
-    let pairs: Record<objects.HashKey, objects.HashPair> = {}
+const evaluateHashLiteral = (node: ast.HashLiteral, env: Environment): objects.Objects | null => {
+    const pairs: Map<objects.HashKey, objects.HashPair> = new Map();
 
-    for (const [keyNode, valueNode] of Object.entries(node.pairs)) {
+    for (const [keyNode, valueNode] of node.pairs) {
         const key = evaluate(keyNode, env)
         if (isError(key)) {
             return key
         }
 
-        if (!(key instanceof objects.Hashable)) {
-            return newError(`unusable as hash key: ${key.objectType()}`)
+        if (!isHashable(key)) {
+            return newError(`unusable as hash key: ${key?.objectType()}`)
         }
 
         const value = evaluate(valueNode, env)
@@ -172,12 +176,15 @@ const evaluateHashLiteral = (node: ast.HashLiteral, env: Environment): objects.O
         }
 
         const hashed = key.hashKey()
-        pairs[hashed] = new objects.HashPair(key, value)
+        pairs.set(hashed, new objects.HashPair(key, value))
     }
     return new objects.Hash(pairs)
 }
 
-const evaluatePrefixExpression = (operator: string, right: objects.Objects): objects.Objects  => {
+const evaluatePrefixExpression = (operator: string, right: objects.Objects | null): objects.Objects  => {
+    if (right === null) {
+        return newError('evaluatePrefixExpression has a null right object')
+    }
     if (operator === "!") {
         return evaluateBangOperatorExpression(right)
     }
@@ -192,16 +199,20 @@ const evaluatePrefixExpression = (operator: string, right: objects.Objects): obj
 }
 
 const evaluateInfixExpression = (
-    operator: string, left: objects.Objects, right: objects.Objects
-): objects.Objects => {
-    
+    operator: string, left: objects.Objects | null, right: objects.Objects | null
+): objects.Objects | null => {
+    if (left === null || right === null) {
+        return newError('Issue with infixExpression')
+    }
     if (left.objectType() === right.objectType() && left.objectType() === ObjectType.INTEGER_OBJ) {
         return evaluateIntegerInfixExpression(operator, left as objects.Integer, right as objects.Integer)
     } else if (left.objectType() === right.objectType() && left.objectType() === ObjectType.STRING_OBJ) {
         return evaluateStringInfixExpression(operator, left as objects.String, right as objects.String)
-    } else if (left.objectType() === right.objectType() && left.objectType() === ObjectType.ARRAY_OBJ) {
-        return evaluateArrayInfixExpression(operator, left as objects.Array, right as objects.Array)
-    } else if (operator === "==") {
+    } 
+    // else if (left.objectType() === right.objectType() && left.objectType() === ObjectType.ARRAY_OBJ) {
+    //     return evaluateArrayInfixExpression(operator, left as objects.Array, right as objects.Array)
+    // } 
+    else if (operator === "==") {
         return nativeBoolToBooleanObject(left === right)
     } else if (operator === "!=") {
         return nativeBoolToBooleanObject(left !== right)
@@ -225,7 +236,7 @@ const evaluateInfixExpression = (
 
 const evaluateIfExpression = (
     expression: ast.IfExpression, env: Environment
-): objects.Objects => {
+): objects.Objects | null => {
     const condition = evaluate(expression.condition, env)
     if (isError(condition)) {
         return condition
@@ -260,8 +271,13 @@ const evaluateIdentifier = (
 }
 
 const evaluateIndexExpression = (
-    left: objects.Objects, index: objects.Objects
-): objects.Objects => {
+    left: objects.Objects | null, index: objects.Objects | null
+): objects.Objects | null => {
+    if (left === null) {
+        return newError(`left object is null`)
+    } else if (index === null) {
+        return newError(`index object is null`)
+    }
     if (
         left.objectType() === ObjectType.ARRAY_OBJ
         && index.objectType() === ObjectType.INTEGER_OBJ
@@ -350,7 +366,7 @@ const evaluateStringInfixExpression = (
 
 const evaluateArrayIndexExpression = (
     array: objects.Array, index: objects.Integer
-): objects.Objects => {
+): objects.Objects | null => {
     const idx = index.value
 
     if (idx < 0 || idx > array.elements.length - 1) {
@@ -362,17 +378,20 @@ const evaluateArrayIndexExpression = (
 
 const evaluateHashIndexExpression = (
     hashObj: objects.Objects, index: objects.Objects
-): objects.Objects => {
-    if (!(index instanceof objects.Hashable)) {
+): objects.Objects | null => {
+    if (!isHashable(index)) {
         return newError(`unusable as hash key: ${index.objectType()}`)
     }
+    if (hashObj.objectType() !== ObjectType.HASH_OBJ) {
+        return newError(`hashObj not a Hash Obj: ${hashObj.objectType()}`)
+    }
 
-    const pair = hashObj.pairs[index.hashKey()]
+    const pair = (hashObj as objects.Hash).pairs.get(index.hashKey())
     if (pair === null) {
         return new objects.Null()
     }
 
-    return pair.value
+    return pair?.value ?? null
 }
 
 // HELPERS TODO: Convert from python
@@ -394,7 +413,7 @@ const nativeBoolToBooleanObject= (input_: boolean): objects.Boolean => {
     return new objects.Boolean(input_)
 }
 
-const isTruthy = (obj: objects.Objects): boolean => {
+const isTruthy = (obj: objects.Objects | null): boolean => {
     if (obj === new objects.Null()) {
         return false
     }
@@ -405,9 +424,14 @@ const isTruthy = (obj: objects.Objects): boolean => {
         return false
     }
     return true
-} 
+}
 
-const applyFunction = (fn: objects.Objects, args: objects.Objects[]): objects.Objects => {
+// Helper function to check if an object is "Hashable"
+const isHashable = (obj: any): obj is objects.Hashable => {
+    return obj !== null && typeof obj.hashKey === 'function';
+};
+
+const applyFunction = (fn: objects.Objects | null, args: (objects.Objects | null)[]): objects.Objects | null => {
     if (fn instanceof objects.Function) {
         const extendedEnv = extendFunctionEnv(fn, args)
         if (extendedEnv instanceof objects.Error) {
@@ -423,25 +447,25 @@ const applyFunction = (fn: objects.Objects, args: objects.Objects[]): objects.Ob
     } else if (fn instanceof objects.BuiltIn) {
         return fn.fn(...args)
     }
-    return newError(`not a function ${fn.objectType()}`)
+    return newError(`not a function ${fn!.objectType()}`)
 }
 
-const extendFunctionEnv = (fn: objects.Function, args: objects.Objects[]): Environment | objects.Error => {
+const extendFunctionEnv = (fn: objects.Function, args: (objects.Objects | null)[]): Environment | objects.Error => {
     const env = new Environment({}, fn.env)
 
-    for (let i = 0; i < fn.parameters.length; i++) {
+    for (let i = 0; i < (fn.parameters?.length ?? 0) ; i++) {
         try {
-            env.set(fn.parameters[i].value, args[i])
+            env.set(fn.parameters![i].value, args[i])
         }
         catch {
-            return new objects.Error(`${fn.parameters[i].value} not supplied`)
+            return new objects.Error(`${fn.parameters![i].value} not supplied`)
         }
     }
     return env
 
 
 } 
-const unwrapReturnValue = (obj: objects.Objects): objects.Objects => {
+const unwrapReturnValue = (obj: objects.Objects): objects.Objects | null => {
     if (obj instanceof objects.ReturnValue) {
         return obj.value
     }

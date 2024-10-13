@@ -38,7 +38,7 @@ export default class Parser {
     private currentToken: Token
     private peekToken: Token
     private prefixParseFns: Record<string, () => ast.Expression | null >
-    private infixParseFns: Record<string, (left: ast.Expression) => ast.Expression | null >
+    private infixParseFns: Record<string, (left: ast.Expression | null) => ast.Expression | null >
     
     constructor(private lexer: Lexer, private currentDir: string) {
         this.errors = []
@@ -213,11 +213,11 @@ export default class Parser {
             return null
         }
         let leftExp = prefix()
-        // TODO: Introduced code, probable error zone
-        if (leftExp === null) {
-            return null;
-        }
-        // END: Introduced code, probable error zone
+        // // TODO: Introduced code, probable error zone
+        // if (leftExp === null) {
+        //     return null;
+        // }
+        // // END: Introduced code, probable error zone
         
         while (
             !this.peekTokenIs(TokenType.SEMICOLON)
@@ -273,7 +273,7 @@ export default class Parser {
         return expression
     }
 
-    parseInfixExpression = (left: ast.Expression): ast.Expression => {
+    parseInfixExpression = (left: ast.Expression | null): ast.Expression | null => {
         const expression = new ast.InfixExpression(
             this.currentToken, this.currentToken.literal, left
         )
@@ -283,7 +283,7 @@ export default class Parser {
         return expression
     }
 
-    parseGroupedExpression = (): ast.Expression => {
+    parseGroupedExpression = (): ast.Expression | null => {
         this.nextToken()
         const expression = this.parseExpression(Precedence.LOWEST)
 
@@ -294,7 +294,7 @@ export default class Parser {
         return expression
     }
 
-    parseIfExpression = (): ast.Expression => {
+    parseIfExpression = (): ast.Expression | null => {
         const expression = new ast.IfExpression(this.currentToken)
         if (!this.expectPeek(TokenType.LPAREN)) {
             return null
@@ -325,7 +325,7 @@ export default class Parser {
         return expression
     }
 
-    parseFunctionLiteral = (): ast.FunctionLiteral => {
+    parseFunctionLiteral = (): ast.FunctionLiteral | null => {
         const lit = new ast.FunctionLiteral(this.currentToken)
 
         if (!this.expectPeek(TokenType.LPAREN)) {
@@ -343,7 +343,7 @@ export default class Parser {
         return lit
     }
 
-    parseFunctionParameters = (): ast.Identifier[] => {
+    parseFunctionParameters = (): ast.Identifier[] | null => {
         const identifiers: ast.Identifier[] = []
 
         if (this.peekTokenIs(TokenType.RPAREN)) {
@@ -367,13 +367,13 @@ export default class Parser {
         }
         return identifiers
     }
-    parseCallExpression = (fn: ast.Expression): ast.Expression => {
+    parseCallExpression = (fn: ast.Expression | null): ast.Expression | null => {
         const exp = new ast.CallExpression(this.currentToken, fn)
         exp.arguments = this.parseExpressionList(TokenType.RPAREN)
         return exp
     }
 
-    parseIndexExpression = (left: ast.Expression): ast.Expression => {
+    parseIndexExpression = (left: ast.Expression | null): ast.Expression | null => {
         this.nextToken()
         const index = this.parseExpression(Precedence.LOWEST)
         const exp = new ast.IndexExpression(this.currentToken, left, index)
@@ -383,13 +383,13 @@ export default class Parser {
         }
         return exp
     }
-    parseSelectorExpression = (exp: ast.Expression): ast.Expression => {
+    parseSelectorExpression = (exp: ast.Expression | null): ast.Expression | null => {
         this.expectPeek(TokenType.IDENT)
         const index = new ast.StringLiteral(this.currentToken, this.currentToken.literal)
         return new ast.IndexExpression(this.currentToken, exp, index)
     }
 
-    parseHashLiteral = ():ast.Expression => {
+    parseHashLiteral = ():ast.Expression | null => {
         const lit = new ast.HashLiteral(this.currentToken)
 
         while (!this.peekTokenIs(TokenType.RBRACE)) {
@@ -403,7 +403,7 @@ export default class Parser {
             this.nextToken()
             const value = this.parseExpression(Precedence.LOWEST)
 
-            lit.pairs[key] = value
+            lit.pairs.set(key, value)
 
             if (!this.peekTokenIs(TokenType.RBRACE) && !this.expectPeek(
                 TokenType.COMMA
@@ -422,7 +422,7 @@ export default class Parser {
         return this.currentToken.tokenType == tokenType
     }
 
-    currentPrecedence: Precedence = ()  => {
+    currentPrecedence = () : Precedence => {
         return precedences[this.currentToken.tokenType] || Precedence.LOWEST
     }
 
@@ -454,8 +454,8 @@ export default class Parser {
         this.errors.push(`No prefix parse function for ${tokenType} found.`)
     }
 
-    parseExpressionList = (endTokenType: TokenType): ast.Expression[] => {
-        const expressions: ast.Expression[] = []
+    parseExpressionList = (endTokenType: TokenType): (ast.Expression | null)[] | null => {
+        const expressions: (ast.Expression | null)[] = []
 
         if (this.peekTokenIs(endTokenType)) {
             this.nextToken()

@@ -61,8 +61,11 @@ export class String implements Objects, Hashable {
     hashKey = () => {
         const hash = crypto.createHmac('sha256', this.value).digest('hex');
         return new HashKey(this.objectType(), hash);
+        // return hash;
       }
 }
+
+// export type HashKey = string;
 
 export class HashKey {
     // TODO: Confirm value type, monkey uses uint64 but, we're using a hash .hexdigest()?
@@ -70,16 +73,16 @@ export class HashKey {
 
 }
 export class HashPair {
-    constructor(public key: Objects, public value: Objects) {}
+    constructor(public key: Objects | null, public value: Objects | null) {}
 
 }
 
 export class Hash implements Objects {
-    constructor(private pairs: Record<HashKey, HashPair>) {}
+    constructor(public pairs: Map<HashKey, HashPair>) {}
 
     objectType = () => ObjectType.HASH_OBJ
     toString = () => {
-        const str = Object.values(this.pairs).map(({key, value}, {key: Object, value: Object}) => `${key.toString()}: ${value.toString()}`).join(", ")
+        const str = Object.values(this.pairs).map(({key, value}) => `${key.toString()}: ${value.toString()}`).join(", ")
         return "{" + str + "}"
     }
 }
@@ -91,9 +94,9 @@ export class Null implements Objects {
 }
 
 export class ReturnValue implements Objects {
-    constructor(public value: Objects) {}
+    constructor(public value: Objects | null) {}
     objectType = () => ObjectType.RETURN_VALUE_OBJ
-    toString = () => this.value.toString()
+    toString = () => this.value?.toString() ?? "null"
 }
 
 export class Error implements Objects {
@@ -104,16 +107,16 @@ export class Error implements Objects {
 }
 
 export class Function implements Objects {
-    constructor(public parameters: ast.Identifier[], public body: ast.BlockStatement, public env: Environment) {}
+    constructor(public parameters: ast.Identifier[] | null, public body: ast.BlockStatement, public env: Environment) {}
     objectType = () => ObjectType.FUNCTION_OBJ
     toString = () => {
-        const paramsString = this.parameters.map(p => p.toString()).join(', ')
+        const paramsString = this.parameters?.map(p => p.toString()).join(', ')
         const bodyString = this.body.toString()
         return `fn(${paramsString}) {\n${bodyString}\n}`
     }
 }
 
-type BuiltinFunction = (args: Objects[]) => Objects;
+type BuiltinFunction = (...args: (Objects | null)[]) => Objects;
 
 export class BuiltIn implements Objects{
     // TODO: Confirm signature
@@ -123,7 +126,7 @@ export class BuiltIn implements Objects{
 }
 
 export class Array implements Objects {
-    constructor(public elements: Objects[]) {}
+    constructor(public elements: (Objects | null)[]) {}
     objectType = () => ObjectType.ARRAY_OBJ
-    toString = () => "[" + this.elements.map(e => e.toString()).join(', ') + "]";
+    toString = () => "[" + this.elements.map(e => e?.toString() ?? "null").join(', ') + "]";
 }
