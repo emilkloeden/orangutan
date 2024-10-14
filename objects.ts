@@ -71,6 +71,10 @@ export class HashKey {
     // TODO: Confirm value type, monkey uses uint64 but, we're using a hash .hexdigest()?
     constructor(public objectType: ObjectType, public value: string) {}
 
+    toString = () => {
+        return `${this.objectType}:${this.value}`
+    }
+
 }
 export class HashPair {
     constructor(public key: Objects | null, public value: Objects | null) {}
@@ -78,11 +82,11 @@ export class HashPair {
 }
 
 export class Hash implements Objects {
-    constructor(public pairs: Map<HashKey, HashPair>) {}
+    constructor(public pairs: Map<string, HashPair>) {}
 
     objectType = () => ObjectType.HASH_OBJ
     toString = () => {
-        const str = Object.values(this.pairs).map(({key, value}) => `${key.toString()}: ${value.toString()}`).join(", ")
+        const str = Array.from(this.pairs.values()).map(({key, value}) => `${key?.objectType() == ObjectType.STRING_OBJ ? '"' + key?.toString() + '"' : key?.toString()}: ${value?.objectType() === ObjectType.STRING_OBJ ? '"' + value?.toString() + '"' : value?.toString()}`).join(", ")
         return "{" + str + "}"
     }
 }
@@ -125,7 +129,7 @@ export class BuiltIn implements Objects{
     toString = () => "builtin function"
 }
 
-export class Array implements Objects {
+export class ArrayObj implements Objects {
     constructor(public elements: (Objects | null)[]) {}
     objectType = () => ObjectType.ARRAY_OBJ
     toString = () => "[" + this.elements.map(e => e?.toString() ?? "null").join(', ') + "]";

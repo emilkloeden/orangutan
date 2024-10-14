@@ -112,7 +112,7 @@ export default class Lexer {
             tok = new Token(TokenType.LBRACKET, this.ch)
         } else if (this.ch == "]") {
             tok = new Token(TokenType.RBRACKET, this.ch)
-        } else if (this.ch == " {") {
+        } else if (this.ch == ":") {
             tok = new Token(TokenType.COLON, this.ch)
         } else if (this.ch == ".") {
             tok = new Token(TokenType.PERIOD, this.ch)

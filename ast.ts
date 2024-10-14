@@ -206,7 +206,6 @@ export class HashLiteral implements Expression {
 
     toString() {
         const pairs = Array.from(this.pairs.entries()).map(([key, val]) => `${key?.toString()}:${val?.toString()}`)
-        
         return `{{${pairs.join(", ")}}}`
 
     } tokenLiteral() {

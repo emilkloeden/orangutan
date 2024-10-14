@@ -1,11 +1,12 @@
 
 import Environment from "./environment.ts";
-import evaluate from "./evaluator.ts";
+import evaluate, { isError } from "./evaluator.ts";
 import Lexer from "./lexer.ts";
 import Parser from "./parser.ts";
 import * as path from "https://deno.land/std/path/mod.ts";
 
 import { parseArgs } from "jsr:@std/cli/parse-args";
+import * as objects from "./objects.ts";
 
 type Error = unknown;
 
@@ -31,7 +32,11 @@ async function script(filePath: string) {
   const l = new Lexer(text);
   const parser  = new Parser(l, dir)
   const env = new Environment({});
-  evaluate(parser.parseProgram(), env)
+  const evaluated = evaluate(parser.parseProgram(), env)
+  if (isError(evaluated)) {
+    console.error((evaluated as objects.Error)?.message)
+  }
+  
 }
 
 function repl() {

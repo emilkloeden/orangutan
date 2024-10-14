@@ -15,5 +15,14 @@ let dbl = fn(arg) { arg * 2 }
 puts(dbl(4))
 let out = map(dbl, in)
 puts(out)
-let outa = filter(isOdd, in)
-puts(outa)
+let out = filter(isOdd, in)
+puts(out)
+let out = filter(fn(n) { n % 2 == 0}, out)
+puts(out) 
+let a = 2;
+let a = {"name": 1 };
+puts(a)
+puts(a["name"])
+let a = {1: "world"}
+puts(a)
+puts(a[1])

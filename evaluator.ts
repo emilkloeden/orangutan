@@ -35,7 +35,7 @@ const evaluate = (node: ast.Node | null, env: Environment): objects.Objects | nu
         if (elements.length === 1 && isError(elements[0])) {
             return elements[0]
         }
-        return new objects.Array(elements)
+        return new objects.ArrayObj(elements)
     } else if (node instanceof ast.HashLiteral) {
         return evaluateHashLiteral(node, env)
     } else if (node instanceof ast.Boolean) {
@@ -159,7 +159,7 @@ const evaluateExpressions = (expressions: (ast.Expression | null)[] | null, env:
 }
 
 const evaluateHashLiteral = (node: ast.HashLiteral, env: Environment): objects.Objects | null => {
-    const pairs: Map<objects.HashKey, objects.HashPair> = new Map();
+    const pairs: Map<string, objects.HashPair> = new Map();
 
     for (const [keyNode, valueNode] of node.pairs) {
         const key = evaluate(keyNode, env)
@@ -176,7 +176,7 @@ const evaluateHashLiteral = (node: ast.HashLiteral, env: Environment): objects.O
             return value
         }
 
-        const hashed = key.hashKey()
+        const hashed = key.hashKey().toString()
         pairs.set(hashed, new objects.HashPair(key, value))
     }
     return new objects.Hash(pairs)
@@ -283,7 +283,7 @@ const evaluateIndexExpression = (
         left.objectType() === ObjectType.ARRAY_OBJ
         && index.objectType() === ObjectType.INTEGER_OBJ
     ) {
-        return evaluateArrayIndexExpression(left as objects.Array, index as objects.Integer)
+        return evaluateArrayIndexExpression(left as objects.ArrayObj, index as objects.Integer)
     } else if (left.objectType() === ObjectType.HASH_OBJ) {
         return evaluateHashIndexExpression(left, index)
     }
@@ -366,7 +366,7 @@ const evaluateStringInfixExpression = (
 }
 
 const evaluateArrayIndexExpression = (
-    array: objects.Array, index: objects.Integer
+    array: objects.ArrayObj, index: objects.Integer
 ): objects.Objects | null => {
     const idx = index.value
 
@@ -387,17 +387,16 @@ const evaluateHashIndexExpression = (
         return newError(`hashObj not a Hash Obj: ${hashObj.objectType()}`)
     }
 
-    const pair = (hashObj as objects.Hash).pairs.get(index.hashKey())
+    const pair = (hashObj as objects.Hash).pairs.get(index.hashKey().toString())
     if (pair === null) {
         return new objects.Null()
     }
-
     return pair?.value ?? null
 }
 
 // HELPERS TODO: Convert from python
  
-const isError = (obj: objects.Objects | null): boolean => {
+export const isError = (obj: objects.Objects | null): boolean => {
     if (obj !== null) {
         return obj.objectType() === ObjectType.ERROR_OBJ
     }
@@ -405,7 +404,7 @@ const isError = (obj: objects.Objects | null): boolean => {
 
 
 } 
-const newError = (message: string): objects.Error => {
+export const newError = (message: string): objects.Error => {
     return new objects.Error(message)
 
 

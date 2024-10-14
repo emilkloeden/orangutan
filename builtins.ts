@@ -38,7 +38,7 @@ const lenFn = (
     return gotHostNull();
   }
   if (arg.objectType() === objects.ObjectType.ARRAY_OBJ) {
-    return new objects.Integer((arg as objects.Array).elements.length);
+    return new objects.Integer((arg as objects.ArrayObj).elements.length);
   } else if (arg.objectType() === objects.ObjectType.STRING_OBJ) {
     return new objects.Integer((arg as objects.String).value.length);
   }
@@ -48,7 +48,7 @@ const lenFn = (
 
 const appendFn = (
   ...args: (objects.Objects | null)[]
-): objects.Array | objects.Error => {
+): objects.ArrayObj | objects.Error => {
   if (args.length !== 2) {
     return wrongNumberOfArgs(args.length, 2);
   }
@@ -58,8 +58,8 @@ const appendFn = (
     return gotHostNull();
   }
   if (arr.objectType() === objects.ObjectType.ARRAY_OBJ) {
-    const intermediate = [...(arr as objects.Array).elements, el];
-    return new objects.Array(intermediate);
+    const intermediate = [...(arr as objects.ArrayObj).elements, el];
+    return new objects.ArrayObj(intermediate);
   }
 
   return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.ARRAY_OBJ);
@@ -67,7 +67,7 @@ const appendFn = (
 
 const prependFn = (
   ...args: (objects.Objects | null)[]
-): objects.Array | objects.Error => {
+): objects.ArrayObj | objects.Error => {
   if (args.length !== 2) {
     return wrongNumberOfArgs(args.length, 2);
   }
@@ -77,8 +77,8 @@ const prependFn = (
     return gotHostNull();
   }
   if (arr.objectType() === objects.ObjectType.ARRAY_OBJ) {
-    const intermediate = [el, ...(arr as objects.Array).elements];
-    return new objects.Array(intermediate);
+    const intermediate = [el, ...(arr as objects.ArrayObj).elements];
+    return new objects.ArrayObj(intermediate);
   }
 
   return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.ARRAY_OBJ);
@@ -86,7 +86,7 @@ const prependFn = (
 
 const mapFn = (
   ...args: (objects.Objects | null)[]
-): objects.Array | objects.Error => {
+): objects.ArrayObj | objects.Error => {
   if (args.length !== 2) {
     return wrongNumberOfArgs(args.length, 2);
   }
@@ -104,17 +104,17 @@ const mapFn = (
     return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.ARRAY_OBJ);
   }
   if (arr.objectType() === objects.ObjectType.ARRAY_OBJ) {
-    return new objects.Array(
-      (arr as objects.Array).elements.map((el) => applyFunction(fn, [el]))
+    return new objects.ArrayObj(
+      (arr as objects.ArrayObj).elements.map((el) => applyFunction(fn, [el]))
     );
   }
   // TODO: This is technically unreachable
-  return new objects.Array([]);
+  return new objects.ArrayObj([]);
 };
 
 const filterFn = (
   ...args: (objects.Objects | null)[]
-): objects.Array | objects.Error => {
+): objects.ArrayObj | objects.Error => {
   if (args.length !== 2) {
     return wrongNumberOfArgs(args.length, 2);
   }
@@ -132,14 +132,14 @@ const filterFn = (
     return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.ARRAY_OBJ);
   }
   if (arr.objectType() === objects.ObjectType.ARRAY_OBJ) {
-    return new objects.Array(
-      (arr as objects.Array).elements.filter((el) => {
+    return new objects.ArrayObj(
+      (arr as objects.ArrayObj).elements.filter((el) => {
         return isTruthy(applyFunction(fn, [el]));
       })
     );
   }
   // TODO: This is technically unreachable
-  return new objects.Array([]);
+  return new objects.ArrayObj([]);
 };
 
 const wrongTypeOfArgument = (
