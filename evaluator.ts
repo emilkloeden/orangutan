@@ -414,12 +414,7 @@ const nativeBoolToBooleanObject= (input_: boolean): objects.Boolean => {
     return new objects.Boolean(input_)
 }
 
-const isTruthy = (obj: objects.Objects | null): boolean => {
-    console.log(`---isTruthy:  === new objects.Null()`, obj == new objects.Null())
-    console.log(`---isTruthy: isTrue(obj)`, isTrue(obj))
-    console.log(`---isTruthy: isFalse(obj)`, isFalse(obj))
-    console.log('obj.objectType()', obj?.objectType())
-    console.log('obj.value', (obj as objects.Boolean)?.value)
+export const isTruthy = (obj: objects.Objects | null): boolean => {
     if (obj == new objects.Null()) {
         return false
     }
@@ -440,7 +435,7 @@ const isHashable = (obj: any): obj is objects.Hashable => {
     return obj !== null && typeof obj.hashKey === 'function';
 };
 
-const applyFunction = (fn: objects.Objects | null, args: (objects.Objects | null)[]): objects.Objects | null => {
+export const applyFunction = (fn: objects.Objects | null, args: (objects.Objects | null)[]): objects.Objects | null => {
     if (fn instanceof objects.Function) {
         const extendedEnv = extendFunctionEnv(fn, args)
         if (extendedEnv instanceof objects.Error) {

@@ -1,25 +1,19 @@
 let x = 1;
 puts(x + 2, "Hello");
 
-let map = fn(f, args) {
-    let out = []
-    let i = 0;
-    puts("len(args)", len(args))
-    while (i < len(args)) {
-        puts("i in while loop", i)
-        let val =  f(args[i])
-        puts("val", val)
-        puts("out", out)
-        out[i] = val
-        let i = i + 1;
-        
-        puts("i at end while loop", i)
-    }
-    out
-}
+let arr = [2];
+let arr = append(arr, 3);
+puts("arr", arr)
+let arr = prepend(arr, 1);
+puts("arr", arr)
+
+
 
 let in = [1, 2, 3] 
+let isOdd = fn(arg) { arg % 2 == 1}
 let dbl = fn(arg) { arg * 2 }
 puts(dbl(4))
 let out = map(dbl, in)
 puts(out)
+let outa = filter(isOdd, in)
+puts(outa)
