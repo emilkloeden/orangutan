@@ -2,8 +2,9 @@ import { assertEquals } from "https://deno.land/std@0.224.0/assert/assert_equals
 import  Lexer  from "../lexer.ts";
 import  Parser  from "../parser.ts";
 import  evaluate  from "../evaluator.ts";
-import { Integer } from "../objects.ts";
+import * as objects from "../objects.ts";
 import Environment from "../environment.ts";
+import { Integer } from "../objects.ts";
 
 Deno.test("TestEvalIntegerExpression", () => {
   const tests = [
@@ -15,21 +16,66 @@ Deno.test("TestEvalIntegerExpression", () => {
     { input: "2 * 2 * 2 * 2 * 2", expected: 32 },
   ];
 
-  tests.forEach((tt) => {
-    const evaluated = testEval(tt.input);
-    assertIntegerObject(evaluated, tt.expected);
+  tests.forEach((tt, iteration) => {
+    const evaluated = testEval<objects.Integer>(tt.input);
+    assertIntegerObject(evaluated, tt.expected, iteration);
   });
 });
 
+Deno.test("TestEvalIfExpression", () => {
+  const tests = [
+    { input: "let x = 1; if(x==1) { 2 };", expected: 2 },
+    { input: "let x = 1; if(x==0) { 2 } else { 3 };", expected: 3 },
+    { input: "if(true) { 2 };", expected: 2 },
+    { input: "if(false) { 2 } else { 3 };", expected: 3 },
+  ];
+
+  tests.forEach((tt, iteration) => {
+    const evaluated = testEval(tt.input);
+    assertIntegerObject(evaluated as Integer, tt.expected, iteration);
+  });
+
+});
+
+// Deno.test("TestEvalWhileStatement", () => {
+//   const tests = [
+//     { input: "let x = 1; while(x < 3) { x = x + 1 }; x", expected: 2 },
+//   ];
+
+//   tests.forEach((tt, iteration) => {
+//     const evaluated = testEval(tt.input);
+//     assertIntegerObject(evaluated as Integer, tt.expected, iteration);
+//   });
+
+// });
+
+Deno.test("Test reassignment", () => {
+  const tests = [
+    { input: "let x = 1; let x = x + 1; x", expected: 2 },
+  ];
+
+  tests.forEach((tt, iteration) => {
+    const evaluated = testEval(tt.input);
+    assertIntegerObject(evaluated as Integer, tt.expected, iteration);
+  });
+
+});
+
+Deno.test("Test evaluation to null", () => {
+  const evaluated = testEval<objects.Null>("let x = if(false) { 2 }; x")
+  assertEquals(evaluated.value, null, ` Expected integer evaluation mismatch`);
+
+})
+
 // Helper functions
-function testEval(input: string): Integer {
+function testEval<T>(input: string): T {
   const lexer = new Lexer(input);
   const parser = new Parser(lexer, "");
   const program = parser.parseProgram();
   const env = new Environment({})  
-  return evaluate(program, env) as Integer;
+  return evaluate(program, env) as T;
 }
 
-function assertIntegerObject(obj: Integer, expected: number) {
-  assertEquals(obj.value, expected, "Expected integer evaluation mismatch");
+function assertIntegerObject(obj: Integer, expected: number, iteration: number) {
+  assertEquals(obj.value, expected, `Test iteration # ${iteration} failed. Expected integer evaluation mismatch`);
 }

@@ -127,6 +127,7 @@ const evaluateBlockStatement = (
 }
 
 const evaluateWhileStatement = (stmt: ast.WhileStatement, env: Environment) => {
+    console.debug('Hi there')
     while (true) {
         const evaluated = evaluate(stmt.condition, env)
         if (isError(evaluated) || evaluated === null) {
@@ -244,8 +245,8 @@ const evaluateIfExpression = (
     if (isTruthy(condition)){
         return evaluate(expression.consequence, env)
     }
-    // TODO: Confirm !== usage
-    if (expression.alternative !== null) {
+    // If no else block, alternative is undefined (not null)
+    if (expression.alternative !== undefined) {
         return evaluate(expression.alternative, env)
     }
     return new objects.Null()
@@ -414,17 +415,25 @@ const nativeBoolToBooleanObject= (input_: boolean): objects.Boolean => {
 }
 
 const isTruthy = (obj: objects.Objects | null): boolean => {
-    if (obj === new objects.Null()) {
+    console.log(`---isTruthy:  === new objects.Null()`, obj == new objects.Null())
+    console.log(`---isTruthy: isTrue(obj)`, isTrue(obj))
+    console.log(`---isTruthy: isFalse(obj)`, isFalse(obj))
+    console.log('obj.objectType()', obj?.objectType())
+    console.log('obj.value', (obj as objects.Boolean)?.value)
+    if (obj == new objects.Null()) {
         return false
     }
-    else if (obj === new objects.Boolean(true)) {
+    else if (isTrue(obj)) {
         return true
     }
-    else if (obj === new objects.Boolean(false)) {
+    else if (isFalse(obj)) {
         return false
     }
     return true
 }
+
+const isTrue = (obj:objects.Objects | null) => obj?.objectType() === ObjectType.BOOLEAN_OBJ && (obj as objects.Boolean)?.value === true
+const isFalse = (obj:objects.Objects | null) => obj?.objectType() === ObjectType.BOOLEAN_OBJ && (obj as objects.Boolean)?.value === false
 
 // Helper function to check if an object is "Hashable"
 const isHashable = (obj: any): obj is objects.Hashable => {
