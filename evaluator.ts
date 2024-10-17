@@ -399,7 +399,7 @@ const evaluateHashIndexExpression = (
     }
 
     const pair = (hashObj as objects.Hash).pairs.get(index.hashKey().toString())
-    if (pair === null) {
+    if (pair === undefined) {
         return new objects.Null()
     }
     return pair?.value ?? null

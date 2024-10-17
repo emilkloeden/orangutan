@@ -74,11 +74,12 @@ Deno.test("Test selection expression", () => {
   const tests = [
     { input: 'let a = {"name": "JimBob"}; a["name"];', expected: "JimBob" },
     { input: 'let a = {"name": "JimBob"}; a.name;', expected: "JimBob" },
+    { input: 'let a = {"name": "JimBob"}; a.job;', expected: null },
   ];
 
   tests.forEach((tt, iteration) => {
     const evaluated = testEval<objects.String>(tt.input);
-    assertStringObject(evaluated as objects.String, tt.expected, iteration);
+    assertNullableStringObject(evaluated as objects.String, tt.expected, iteration);
   });
 
 });
@@ -88,13 +89,16 @@ function testEval<T>(input: string): T {
   const lexer = new Lexer(input);
   const parser = new Parser(lexer, "");
   const program = parser.parseProgram();
-
+  // console.log('program Statements...')
+  // program.statements.forEach(console.log)
   const env = new Environment({})  
-  return evaluate(program, env) as T;
+  const evaluated = evaluate(program, env) as T;
+  // console.log(evaluated)
+  return evaluated
 }
 
-function assertStringObject(obj: objects.String, expected: string, iteration: number) {
-  assertEquals(obj.value, expected, `Test iteration # ${iteration} failed. Expected string evaluation mismatch`);
+function assertNullableStringObject(obj: objects.String | objects.Null, expected: string | null, iteration: number) {
+    assertEquals(obj?.value, expected, `Test iteration # ${iteration} failed. Expected string evaluation mismatch`);
 }
 
 
