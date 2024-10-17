@@ -2,6 +2,9 @@ import {assertEquals} from "https://deno.land/std@0.224.0/assert/assert_equals.t
 import  Lexer  from "../lexer.ts";
 import  Parser  from "../parser.ts";
 import { LetStatement, Program } from "../ast.ts";
+import Environment from "../environment.ts";
+import evaluate from "../evaluator.ts";
+import {String} from "../objects.ts"
 
 Deno.test("TestLetStatements", () => {
   const input = `
@@ -31,3 +34,19 @@ Deno.test("TestLetStatements", () => {
     assertEquals(stmt.name.value, tt.expectedIdentifier, `Test ${i} failed: incorrect identifier`);
   });
 });
+
+Deno.test("Selector Test", () => {
+  const tt = { input: 'let a = { "name": "JimBob" }; a.name', expected: "JimBob"}
+  const evaluated = testEval<String>(tt.input);
+  assertEquals(evaluated.value, tt.expected, `Test selector failed`)
+
+})
+
+function testEval<T>(input: string): T {
+  const lexer = new Lexer(input);
+  const parser = new Parser(lexer, "");
+  const program = parser.parseProgram();
+  
+  const env = new Environment({})  
+  return evaluate(program, env) as T;
+}

@@ -87,6 +87,15 @@ const evaluate = (node: ast.Node | null, env: Environment): objects.Objects | nu
             return index
         }
         return evaluateIndexExpression(left, index)
+    } else if (node instanceof ast.PropertyAccessExpression) {
+        const left = evaluate(node.left, env)
+        if (isError(left)) {
+            return left
+        }
+        // TODO: Implement error handling
+        const property = new objects.String(node?.property?.tokenLiteral() ?? "")
+        
+        return evaluateHashIndexExpression(left!, property!)
     } else if (node instanceof ast.WhileStatement) {
         return evaluateWhileStatement(node, env)
     }
@@ -181,6 +190,8 @@ const evaluateHashLiteral = (node: ast.HashLiteral, env: Environment): objects.O
     }
     return new objects.Hash(pairs)
 }
+
+
 
 const evaluatePrefixExpression = (operator: string, right: objects.Objects | null): objects.Objects  => {
     if (right === null) {

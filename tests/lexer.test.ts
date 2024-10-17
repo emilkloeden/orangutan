@@ -3,7 +3,7 @@ import  Lexer  from "../lexer.ts";  // assuming the lexer is in lexer.ts
 import { TokenType } from "../token.ts";  // assuming TokenType is defined in token.ts
 
 Deno.test("TestNextToken", () => {
-  const input = "=+(){},;";
+  const input = "=+(){},;.";
   
   const tests = [
     { expectedType: TokenType.ASSIGN, expectedLiteral: "=" },
@@ -13,6 +13,36 @@ Deno.test("TestNextToken", () => {
     { expectedType: TokenType.LBRACE, expectedLiteral: "{" },
     { expectedType: TokenType.RBRACE, expectedLiteral: "}" },
     { expectedType: TokenType.COMMA, expectedLiteral: "," },
+    { expectedType: TokenType.SEMICOLON, expectedLiteral: ";" },
+    { expectedType: TokenType.PERIOD, expectedLiteral: "." },
+  ];
+
+  const lexer = new Lexer(input);
+
+  tests.forEach((tt, i) => {
+    const token = lexer.nextToken();
+
+    assertEquals(token.tokenType, tt.expectedType, `Test ${i} failed - wrong token type`);
+    assertEquals(token.literal, tt.expectedLiteral, `Test ${i} failed - wrong literal`);
+  });
+});
+
+Deno.test("TestPeriod", () => {
+  const input = 'let a = {"name": "JimBob"}; a.name;';
+  
+  const tests = [
+    { expectedType: TokenType.LET, expectedLiteral: "let" },
+    { expectedType: TokenType.IDENT, expectedLiteral: "a" },
+    { expectedType: TokenType.ASSIGN, expectedLiteral: "=" },
+    { expectedType: TokenType.LBRACE, expectedLiteral: "{" },
+    { expectedType: TokenType.STRING, expectedLiteral: "name" },
+    { expectedType: TokenType.COLON, expectedLiteral: ":" },
+    { expectedType: TokenType.STRING, expectedLiteral: "JimBob" },
+    { expectedType: TokenType.RBRACE, expectedLiteral: "}" },
+    { expectedType: TokenType.SEMICOLON, expectedLiteral: ";" },
+    { expectedType: TokenType.IDENT, expectedLiteral: "a" },
+    { expectedType: TokenType.PERIOD, expectedLiteral: "." },
+    { expectedType: TokenType.IDENT, expectedLiteral: "name" },
     { expectedType: TokenType.SEMICOLON, expectedLiteral: ";" },
   ];
 

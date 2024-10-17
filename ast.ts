@@ -130,8 +130,9 @@ export class Identifier implements Expression {
     tokenLiteral() {
         return this.token.literal
     }
-
 }
+
+
 export class IntegerLiteral implements Expression {
     value!: number
     constructor(private token: Token) {} 
@@ -206,7 +207,7 @@ export class HashLiteral implements Expression {
 
     toString() {
         const pairs = Array.from(this.pairs.entries()).map(([key, val]) => `${key?.toString()}:${val?.toString()}`)
-        return `{{${pairs.join(", ")}}}`
+        return `{${pairs.join(", ")}}`
 
     } tokenLiteral() {
         return this.token.literal
@@ -291,3 +292,14 @@ export class IndexExpression implements Expression {
     }
 }
 
+export class PropertyAccessExpression implements Expression {
+    constructor(private token: Token, public left: Expression | null, public property: Expression | null) {}
+
+    toString(): string {
+      return `${this.left?.toString}.${this.property?.toString()}`
+    }
+    
+    tokenLiteral() {
+        return this.token.literal
+    }
+}

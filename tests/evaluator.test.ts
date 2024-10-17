@@ -67,14 +67,36 @@ Deno.test("Test evaluation to null", () => {
 
 })
 
+
+
+
+Deno.test("Test selection expression", () => {
+  const tests = [
+    { input: 'let a = {"name": "JimBob"}; a["name"];', expected: "JimBob" },
+    { input: 'let a = {"name": "JimBob"}; a.name;', expected: "JimBob" },
+  ];
+
+  tests.forEach((tt, iteration) => {
+    const evaluated = testEval<objects.String>(tt.input);
+    assertStringObject(evaluated as objects.String, tt.expected, iteration);
+  });
+
+});
+
 // Helper functions
 function testEval<T>(input: string): T {
   const lexer = new Lexer(input);
   const parser = new Parser(lexer, "");
   const program = parser.parseProgram();
+
   const env = new Environment({})  
   return evaluate(program, env) as T;
 }
+
+function assertStringObject(obj: objects.String, expected: string, iteration: number) {
+  assertEquals(obj.value, expected, `Test iteration # ${iteration} failed. Expected string evaluation mismatch`);
+}
+
 
 function assertIntegerObject(obj: Integer, expected: number, iteration: number) {
   assertEquals(obj.value, expected, `Test iteration # ${iteration} failed. Expected integer evaluation mismatch`);

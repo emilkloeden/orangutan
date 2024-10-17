@@ -30,7 +30,7 @@ export const precedences: Record<string, Precedence> = {
     [TokenType.OR]: Precedence.OR,
     [TokenType.LPAREN]: Precedence.CALL,
     [TokenType.LBRACKET]: Precedence.INDEX,
-    // [TokenType.PERIOD]: Precedence.INDEX, // TODO: Find usage
+    [TokenType.PERIOD]: Precedence.CALL, // TODO: Find usage
 }
 
 export default class Parser {
@@ -77,7 +77,7 @@ export default class Parser {
             [TokenType.GT]: this.parseInfixExpression,
             [TokenType.LPAREN]: this.parseCallExpression,
             [TokenType.LBRACKET]: this.parseIndexExpression,
-            [TokenType.PERIOD]: this.parseSelectorExpression,
+            [TokenType.PERIOD]: this.parsePropertyAccessExpression,
         }
     }
 
@@ -208,16 +208,12 @@ export default class Parser {
 
         // TODO: Check definition
         if (prefix === undefined) {
+            console.log(this.currentToken)
             console.error(`No prefix parse function found for token: ${this.currentToken.tokenType}`)
             this.noPrefixParseFnError(this.currentToken.tokenType)
             return null
         }
         let leftExp = prefix()
-        // // TODO: Introduced code, probable error zone
-        // if (leftExp === null) {
-        //     return null;
-        // }
-        // // END: Introduced code, probable error zone
         
         while (
             !this.peekTokenIs(TokenType.SEMICOLON)
@@ -383,10 +379,12 @@ export default class Parser {
         }
         return exp
     }
-    parseSelectorExpression = (exp: ast.Expression | null): ast.Expression | null => {
-        this.expectPeek(TokenType.IDENT)
-        const index = new ast.StringLiteral(this.currentToken, this.currentToken.literal)
-        return new ast.IndexExpression(this.currentToken, exp, index)
+    parsePropertyAccessExpression = (left: ast.Expression | null): ast.Expression | null => {
+        this.nextToken()
+        const property = this.parseExpression(Precedence.LOWEST)
+        return new ast.PropertyAccessExpression(this.currentToken, left, property)
+        // this.expectPeek(TokenType.IDENT)
+        // return new ast.PropertyAccessExpression(this.currentToken, exp)
     }
 
     parseHashLiteral = ():ast.Expression | null => {
