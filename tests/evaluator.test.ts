@@ -75,6 +75,10 @@ Deno.test("Test selection expression", () => {
     { input: 'let a = {"name": "JimBob"}; a["name"];', expected: "JimBob" },
     { input: 'let a = {"name": "JimBob"}; a.name;', expected: "JimBob" },
     { input: 'let a = {"name": "JimBob"}; a.job;', expected: null },
+    // { input: 'let a = {"person": {"name": "JimBob"}}; a.["person"]["name"];', expected: "JimBob" },
+    // { input: 'let a = {"person": {"name": "JimBob"}}; a.["person"].name;', expected: "JimBob" },
+    { input: 'let a = {"person": {"name": "JimBob"}}; a.person.name;', expected: "JimBob" },
+    // { input: 'let a = {"person": {"name": "JimBob"}}; a.person.["name"];', expected: "JimBob" },
   ];
 
   tests.forEach((tt, iteration) => {
