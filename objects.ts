@@ -60,6 +60,8 @@ export class String implements Objects, Hashable {
     toString = () => this.value;
     hashKey = () => {
         const hash = crypto.createHmac('sha256', this.value).digest('hex');
+        console.log(`Generating hash key for value: ${this.value}, hash: ${hash}`);  // Add this line for debugging
+    
         return new HashKey(this.objectType(), hash);
         // return hash;
       }

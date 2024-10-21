@@ -1,0 +1,4 @@
+let multiply = fn(a, b) { a * b }
+let double = fn(a) { multiply(a, 2) }
+puts(double(3))
+let five = "5";

@@ -47,7 +47,7 @@ export enum TokenType {
     IF = "IF",
     ELSE = "ELSE",
     RETURN = "RETURN",
-    // IMPORT = "IMPORT",
+    USE = "USE",
     WHILE = "WHILE",
 }
 
@@ -59,7 +59,7 @@ export const keywords: Record<string, TokenType> = {
     "if": TokenType.IF,
     "else": TokenType.ELSE,
     "return": TokenType.RETURN,
-    // "import": TokenType.IMPORT,
+    "use": TokenType.USE,
     "while": TokenType.WHILE,
 }
 

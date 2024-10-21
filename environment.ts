@@ -1,7 +1,7 @@
 import * as objects from "./objects.ts"
 
 export default class Environment {
-    constructor(private store: Record<string, objects.Objects>, private outer?: Environment) {}
+    constructor(public store: Record<string, objects.Objects>, private outer?: Environment) {}
 
     get = (name: string): objects.Objects | null => {
         const obj = this.store[name];

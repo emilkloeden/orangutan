@@ -30,7 +30,8 @@ export const precedences: Record<string, Precedence> = {
     [TokenType.OR]: Precedence.OR,
     [TokenType.LPAREN]: Precedence.CALL,
     [TokenType.LBRACKET]: Precedence.INDEX,
-    [TokenType.PERIOD]: Precedence.CALL, // TODO: Find usage
+    [TokenType.PERIOD]: Precedence.INDEX,
+    [TokenType.USE]: Precedence.CALL,
 }
 
 export default class Parser {
@@ -59,7 +60,7 @@ export default class Parser {
             [TokenType.STRING]: this.parseStringLiteral,
             [TokenType.LBRACKET]: this.parseArrayLiteral,
             [TokenType.LBRACE]: this.parseHashLiteral,
-            // [TokenType.IMPORT]: this.parseImportExpression,
+            [TokenType.USE]: this.parseUseExpression,
             [TokenType.WHILE]: this.parseWhileStatement,
         }
 
@@ -230,6 +231,27 @@ export default class Parser {
         }
         return leftExp
     }
+
+    parseUseExpression = (): ast.UseExpression | null => {
+        const token = this.currentToken
+        if (!this.expectPeek(TokenType.LPAREN)) {
+            console.error("Damnit1", this.peekToken)
+            return null
+        }
+        if (!this.expectPeek(TokenType.STRING)) {
+            console.error("Damnit2", this.peekToken)
+            return null
+        }
+        const value = this.parseExpression(Precedence.LOWEST)
+        console.log("value", value)
+        const expression = new ast.UseExpression(token, value)
+        if (!this.expectPeek(TokenType.RPAREN)) {
+            return null
+        }
+        console.log("returning expression", expression)
+        return expression;
+    }
+    
 
     parseBoolean = (): ast.Boolean => {
         return new ast.Boolean(this.currentToken, this.currentTokenIs(TokenType.TRUE))

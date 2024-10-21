@@ -28,7 +28,7 @@ function testEval(input: string): Integer {
     const parser = new Parser(lexer, "")
     const program = parser.parseProgram()
     const env = new Environment({})
-    return evaluate(program, env) as Integer
+    return evaluate(program, env, Deno.cwd()) as Integer
 }
 
 function assertIntegerObject(obj: Integer, expected: number, iteration: number) {

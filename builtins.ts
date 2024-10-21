@@ -84,63 +84,64 @@ const prependFn = (
   return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.ARRAY_OBJ);
 };
 
-const mapFn = (
-  ...args: (objects.Objects | null)[]
-): objects.ArrayObj | objects.Error => {
-  if (args.length !== 2) {
-    return wrongNumberOfArgs(args.length, 2);
-  }
-  const arr = args[1];
-  const fn = args[0];
-  if (arr === null || fn === null) {
-    return gotHostNull();
-  }
-  if (fn.objectType() !== objects.ObjectType.FUNCTION_OBJ) {
-    return wrongTypeOfArgument(
-      fn.objectType(),
-      objects.ObjectType.FUNCTION_OBJ
-    );
-  } else if (arr.objectType() !== objects.ObjectType.ARRAY_OBJ) {
-    return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.ARRAY_OBJ);
-  }
-  if (arr.objectType() === objects.ObjectType.ARRAY_OBJ) {
-    return new objects.ArrayObj(
-      (arr as objects.ArrayObj).elements.map((el) => applyFunction(fn, [el]))
-    );
-  }
-  // TODO: This is technically unreachable
-  return new objects.ArrayObj([]);
-};
+// TODO: Work out how to handle missing file path
+// const mapFn = (
+//   ...args: (objects.Objects | null)[]
+// ): objects.ArrayObj | objects.Error => {
+//   if (args.length !== 2) {
+//     return wrongNumberOfArgs(args.length, 2);
+//   }
+//   const arr = args[1];
+//   const fn = args[0];
+//   if (arr === null || fn === null) {
+//     return gotHostNull();
+//   }
+//   if (fn.objectType() !== objects.ObjectType.FUNCTION_OBJ) {
+//     return wrongTypeOfArgument(
+//       fn.objectType(),
+//       objects.ObjectType.FUNCTION_OBJ
+//     );
+//   } else if (arr.objectType() !== objects.ObjectType.ARRAY_OBJ) {
+//     return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.ARRAY_OBJ);
+//   }
+//   if (arr.objectType() === objects.ObjectType.ARRAY_OBJ) {
+//     return new objects.ArrayObj(
+//       (arr as objects.ArrayObj).elements.map((el) => applyFunction(fn, [el]))
+//     );
+//   }
+//   // TODO: This is technically unreachable
+//   return new objects.ArrayObj([]);
+// };
 
-const filterFn = (
-  ...args: (objects.Objects | null)[]
-): objects.ArrayObj | objects.Error => {
-  if (args.length !== 2) {
-    return wrongNumberOfArgs(args.length, 2);
-  }
-  const arr = args[1];
-  const fn = args[0];
-  if (arr === null || fn === null) {
-    return gotHostNull();
-  }
-  if (fn.objectType() !== objects.ObjectType.FUNCTION_OBJ) {
-    return wrongTypeOfArgument(
-      fn.objectType(),
-      objects.ObjectType.FUNCTION_OBJ
-    );
-  } else if (arr.objectType() !== objects.ObjectType.ARRAY_OBJ) {
-    return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.ARRAY_OBJ);
-  }
-  if (arr.objectType() === objects.ObjectType.ARRAY_OBJ) {
-    return new objects.ArrayObj(
-      (arr as objects.ArrayObj).elements.filter((el) => {
-        return isTruthy(applyFunction(fn, [el]));
-      })
-    );
-  }
-  // TODO: This is technically unreachable
-  return new objects.ArrayObj([]);
-};
+// const filterFn = (
+//   ...args: (objects.Objects | null)[]
+// ): objects.ArrayObj | objects.Error => {
+//   if (args.length !== 2) {
+//     return wrongNumberOfArgs(args.length, 2);
+//   }
+//   const arr = args[1];
+//   const fn = args[0];
+//   if (arr === null || fn === null) {
+//     return gotHostNull();
+//   }
+//   if (fn.objectType() !== objects.ObjectType.FUNCTION_OBJ) {
+//     return wrongTypeOfArgument(
+//       fn.objectType(),
+//       objects.ObjectType.FUNCTION_OBJ
+//     );
+//   } else if (arr.objectType() !== objects.ObjectType.ARRAY_OBJ) {
+//     return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.ARRAY_OBJ);
+//   }
+//   if (arr.objectType() === objects.ObjectType.ARRAY_OBJ) {
+//     return new objects.ArrayObj(
+//       (arr as objects.ArrayObj).elements.filter((el) => {
+//         return isTruthy(applyFunction(fn, [el]));
+//       })
+//     );
+//   }
+//   // TODO: This is technically unreachable
+//   return new objects.ArrayObj([]);
+// };
 
 const wrongTypeOfArgument = (
   actual: objects.ObjectType,
@@ -168,8 +169,8 @@ const BUILTINS: Record<string, objects.BuiltIn> = {
   len: new objects.BuiltIn(lenFn),
   append: new objects.BuiltIn(appendFn),
   prepend: new objects.BuiltIn(prependFn),
-  map: new objects.BuiltIn(mapFn),
-  filter: new objects.BuiltIn(filterFn),
+  // map: new objects.BuiltIn(mapFn),
+  // filter: new objects.BuiltIn(filterFn),
 };
 
 export default BUILTINS;

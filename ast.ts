@@ -132,6 +132,19 @@ export class Identifier implements Expression {
     }
 }
 
+export class UseExpression implements Expression {
+    constructor(private token: Token, public value: Expression | null) {} 
+    
+    toString() {
+        return `use (${this.value?.toString()})`
+
+    // TODO: check why this was here?: expressionNode(this) {}
+    } 
+    
+    tokenLiteral() {
+        return this.token.literal
+    }
+}
 
 export class IntegerLiteral implements Expression {
     value!: number
@@ -296,7 +309,7 @@ export class PropertyAccessExpression implements Expression {
     constructor(private token: Token, public left: Expression | null, public property: Expression | null) {}
 
     toString(): string {
-      return `${this.left?.toString}.${this.property?.toString()}`
+      return `${this.left?.toString()}.${this.property?.toString()}`
     }
     
     tokenLiteral() {

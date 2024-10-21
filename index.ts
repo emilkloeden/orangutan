@@ -26,13 +26,14 @@ async function main() {
   }
 }
 async function script(filePath: string) {
-  const p = path.parse(path.resolve(filePath))
+  const resolvedPath = path.resolve(filePath)
+  const p = path.parse(resolvedPath)
   const { dir } = p
-  const text = await Deno.readTextFile(filePath);
+  const text = await Deno.readTextFile(resolvedPath);
   const l = new Lexer(text);
   const parser  = new Parser(l, dir)
   const env = new Environment({});
-  const evaluated = evaluate(parser.parseProgram(), env)
+  const evaluated = evaluate(parser.parseProgram(), env, resolvedPath)
   if (isError(evaluated)) {
     console.error((evaluated as objects.Error)?.message)
   }
@@ -41,22 +42,25 @@ async function script(filePath: string) {
 
 function repl() {
     console.log("Orangutan REPL. Press Ctrl+c or type exit() to quit.");
-
+    const currentFilePath = Deno.build.os === "windows"
+    ? new URL(import.meta.url).pathname.substring(1)  // Remove leading `/` on Windows
+    : new URL(import.meta.url).pathname;
+    console.log(currentFilePath)
   const env = new Environment({});
   while (true) {
     const scanned = prompt(">");
-    if (scanned === "exit()") {
-      Deno.exit(0);
-    }
     if (scanned !== null) {
+      if (["exit()", "exit",  "quit()", "quit"].includes(scanned)) {
+        Deno.exit(0);
+      }
       const l = new Lexer(scanned);
-      const p = new Parser(l, Deno.cwd());
+      const p = new Parser(l, currentFilePath);
       const program = p.parseProgram();
       if (p.errors.length) {
         printErrors(p.errors);
         continue;
       }
-      const evaluated = evaluate(program, env);
+      const evaluated = evaluate(program, env,currentFilePath);
       if (evaluated !== null) {
         console.log(evaluated.toString());
       }

@@ -42,11 +42,18 @@ Deno.test("Selector Test", () => {
 
 })
 
+Deno.test("Test Use Expression parsing", () => {
+  const tt = { input: 'let i = use("./orangutan/tests/imported.utan"); i["five"];', expected: "5"}
+  const evaluated = testEval<String>(tt.input);
+  assertEquals(evaluated.value, tt.expected, `Test Use Expression parsing failed`)
+
+})
+
 function testEval<T>(input: string): T {
   const lexer = new Lexer(input);
   const parser = new Parser(lexer, "");
   const program = parser.parseProgram();
   
   const env = new Environment({})  
-  return evaluate(program, env) as T;
+  return evaluate(program, env, Deno.cwd()) as T;
 }

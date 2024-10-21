@@ -72,12 +72,30 @@ Deno.test("Test evaluation to null", () => {
 
 Deno.test("Test selection expression", () => {
   const tests = [
-    { input: 'let a = {"name": "JimBob"}; a["name"];', expected: "JimBob" },
-    { input: 'let a = {"name": "JimBob"}; a.name;', expected: "JimBob" },
-    { input: 'let a = {"name": "JimBob"}; a.job;', expected: null },
-    // { input: 'let a = {"person": {"name": "JimBob"}}; a.["person"]["name"];', expected: "JimBob" },
-    // { input: 'let a = {"person": {"name": "JimBob"}}; a.["person"].name;', expected: "JimBob" },
+    // { input: 'let a = {"name": "JimBob"}; a["name"];', expected: "JimBob" },
+    // { input: 'let a = {"name": "JimBob"}; a.name;', expected: "JimBob" },
+    // { input: 'let a = {"name": "JimBob"}; a.job;', expected: null },
+    // { input: 'let a = {"person": {"name": "JimBob"}}; a["person"]["name"];', expected: "JimBob" },
+    // { input: 'let a = {"person": {"name": "JimBob"}}; a["person"].name;', expected: "JimBob" },
     { input: 'let a = {"person": {"name": "JimBob"}}; a.person.name;', expected: "JimBob" },
+    // { input: 'let a = {"person": {"name": "JimBob"}}; a.person.["name"];', expected: "JimBob" },
+  ];
+
+  tests.forEach((tt, iteration) => {
+    const evaluated = testEval<objects.String>(tt.input);
+    assertNullableStringObject(evaluated as objects.String, tt.expected, iteration);
+  });
+
+});
+
+Deno.test("Test use expression", () => {
+  const tests = [
+    // { input: 'let a = {"name": "JimBob"}; a["name"];', expected: "JimBob" },
+    // { input: 'let a = {"name": "JimBob"}; a.name;', expected: "JimBob" },
+    // { input: 'let a = {"name": "JimBob"}; a.job;', expected: null },
+    // { input: 'let a = {"person": {"name": "JimBob"}}; a["person"]["name"];', expected: "JimBob" },
+    // { input: 'let a = {"person": {"name": "JimBob"}}; a["person"].name;', expected: "JimBob" },
+    { input: 'let i = use("./orangutan/tests/imported.utan"); i["five"];', expected: "5"}
     // { input: 'let a = {"person": {"name": "JimBob"}}; a.person.["name"];', expected: "JimBob" },
   ];
 
@@ -96,7 +114,7 @@ function testEval<T>(input: string): T {
   // console.log('program Statements...')
   // program.statements.forEach(console.log)
   const env = new Environment({})  
-  const evaluated = evaluate(program, env) as T;
+  const evaluated = evaluate(program, env, Deno.cwd()) as T;
   // console.log(evaluated)
   return evaluated
 }

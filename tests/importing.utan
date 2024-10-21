@@ -1,0 +1,2 @@
+let i = use("imported.utan");
+puts("i.double(3)", i["double"](3))

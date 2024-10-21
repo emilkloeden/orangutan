@@ -1,0 +1,6 @@
+Generating hash key for value: name, hash: 1023fa00b0f609fcfe29063836bd77f8a36703105f7201c3a969448e0c94210f
+Key: name, Hash: STRING:1023fa00b0f609fcfe29063836bd77f8a36703105f7201c3a969448e0c94210f, Value: JimBob
+Generating hash key for value: person, hash: c32611effe5e4e969a96bdd58749d02977d0af787090667320b8eb6272e24400
+Key: person, Hash: STRING:c32611effe5e4e969a96bdd58749d02977d0af787090667320b8eb6272e24400, Value: {"name": "JimBob"}
+Generating hash key for value: person, hash: c32611effe5e4e969a96bdd58749d02977d0af787090667320b8eb6272e24400
+Generating hash key for value: name, hash: 1023fa00b0f609fcfe29063836bd77f8a36703105f7201c3a969448e0c94210f
