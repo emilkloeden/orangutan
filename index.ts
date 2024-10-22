@@ -45,7 +45,6 @@ function repl() {
     const currentFilePath = Deno.build.os === "windows"
     ? new URL(import.meta.url).pathname.substring(1)  // Remove leading `/` on Windows
     : new URL(import.meta.url).pathname;
-    console.log(currentFilePath)
   const env = new Environment({});
   while (true) {
     const scanned = prompt(">");

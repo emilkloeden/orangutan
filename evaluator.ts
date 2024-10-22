@@ -85,7 +85,7 @@ const evaluate = (
     if (args.length === 1 && isError(args[0])) {
       return args[0];
     }
-    return applyFunction(fn, args, currentFilePath);
+    return applyFunction(fn, args, env, currentFilePath);
   } else if (node instanceof ast.IndexExpression) {
     const left = evaluate(node.left, env, currentFilePath);
     if (isError(left)) {
@@ -182,7 +182,6 @@ const evaluateBlockStatement = (
 };
 
 const evaluateWhileStatement = (stmt: ast.WhileStatement, env: Environment, currentFilePath: string) => {
-  console.debug("Hi there");
   while (true) {
     const evaluated = evaluate(stmt.condition, env, currentFilePath);
     if (isError(evaluated) || evaluated === null) {
@@ -224,12 +223,10 @@ const evaluateUseExpression = (
   currentFilePath: string,
 ): objects.Objects | null => {
   const moduleName = (node.value as unknown as objects.String).value;
-    console.log("currentFilePath", currentFilePath)
     const modulePath = resolveModulePath(currentFilePath, moduleName)
-    console.log("modulePath", modulePath)
     // Load and parse the module
     const moduleEnv = new Environment({}, env);
-    const module = loadModule(modulePath); // Implement the logic to load the module from a file
+    const module = loadModule(modulePath);
     evaluateProgram(module, moduleEnv, currentFilePath);
 
     // Create a hash to represent the module's namespace
@@ -238,7 +235,7 @@ const evaluateUseExpression = (
       const keyObj = new objects.String(key);
       const hashed = keyObj.hashKey().toString();
       pairs.set(hashed, new objects.HashPair(keyObj, val));
-      console.log(`Key: ${keyObj.toString()}, Hash: ${hashed}, Value: ${val?.toString()}`);
+      // console.log(`Key: ${keyObj.toString()}, Hash: ${hashed}, Value: ${val?.toString()}`);
     }
 
     return new objects.Hash(pairs); // Return the module's environment as a hash
@@ -268,7 +265,6 @@ const evaluateHashLiteral = (
     }
 
     const hashed = key.hashKey().toString();
-    console.log(`Key: ${key.toString()}, Hash: ${hashed}, Value: ${value?.toString()}`);
     pairs.set(hashed, new objects.HashPair(key, value));
   }
   return new objects.Hash(pairs);
@@ -509,23 +505,14 @@ const evaluateHashIndexExpression = (
   if (hashObj.objectType() !== ObjectType.HASH_OBJ) {
     return newError(`hashObj not a Hash Obj: ${hashObj.objectType()}`);
   }
-  console.log('--evaluateHashIndexExpression')
-  console.log('index', index)
-//   console.log('---hashObj---')
-//   console.log(hashObj)
   const hashKeyString = index.hashKey().toString();
-//   console.log('----hashKeyString----')
-//   console.log(hashKeyString)
   const pair = (hashObj as objects.Hash).pairs.get(hashKeyString);
-//   console.log('-----pair-----')
-//   console.log(pair)
   if (pair === undefined) {
     return new objects.Null();
   }
   return pair?.value ?? null;
 };
 
-// HELPERS TODO: Convert from python
 
 export const isError = (obj: objects.Objects | null): boolean => {
   if (obj !== null) {
@@ -564,9 +551,33 @@ const isHashable = (obj: any): obj is objects.Hashable => {
   return obj !== null && typeof obj.hashKey === "function";
 };
 
+// export const applyFunction = (
+//   fn: objects.Objects | null,
+//   args: (objects.Objects | null)[], currentFilePath: string
+// ): objects.Objects | null => {
+//   if (fn instanceof objects.Function) {
+//     const extendedEnv = extendFunctionEnv(fn, args);
+//     if (extendedEnv instanceof objects.Error) {
+//       return extendedEnv;
+//     }
+
+//     const evaluated = evaluate(fn.body, extendedEnv, currentFilePath);
+//     if (evaluated === null) {
+//       return evaluated;
+//     }
+
+//     return unwrapReturnValue(evaluated);
+//   } else if (fn instanceof objects.BuiltIn) {
+//     return fn.fn(...args);
+//   }
+//   return newError(`not a function ${fn!.objectType()}`);
+// };
+
 export const applyFunction = (
   fn: objects.Objects | null,
-  args: (objects.Objects | null)[], currentFilePath: string
+  args: (objects.Objects | null)[],
+  env: Environment,  // Add the environment
+  currentFilePath: string  // Add the current file path
 ): objects.Objects | null => {
   if (fn instanceof objects.Function) {
     const extendedEnv = extendFunctionEnv(fn, args);
@@ -574,14 +585,15 @@ export const applyFunction = (
       return extendedEnv;
     }
 
-    const evaluated = evaluate(fn.body, extendedEnv, currentFilePath);
+    const evaluated = evaluate(fn.body, extendedEnv, currentFilePath);  // Pass the currentFilePath
     if (evaluated === null) {
       return evaluated;
     }
 
     return unwrapReturnValue(evaluated);
   } else if (fn instanceof objects.BuiltIn) {
-    return fn.fn(...args);
+    // Pass the environment and currentFilePath to the built-in function
+    return fn.invoke(env, currentFilePath, ...args);
   }
   return newError(`not a function ${fn!.objectType()}`);
 };
@@ -619,6 +631,5 @@ const loadModule = (moduleName: string): ast.Program => {
 const resolveModulePath = (currentFilePath: string, modulePath: string): string => {
   const currentFile = path.parse(currentFilePath)
   const currentDir = currentFile.dir
-  console.log("currentFile", currentFile)
   return path.resolve(currentDir, modulePath);
 };

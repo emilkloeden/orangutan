@@ -209,7 +209,6 @@ export default class Parser {
 
         // TODO: Check definition
         if (prefix === undefined) {
-            console.log(this.currentToken)
             console.error(`No prefix parse function found for token: ${this.currentToken.tokenType}`)
             this.noPrefixParseFnError(this.currentToken.tokenType)
             return null
@@ -235,20 +234,16 @@ export default class Parser {
     parseUseExpression = (): ast.UseExpression | null => {
         const token = this.currentToken
         if (!this.expectPeek(TokenType.LPAREN)) {
-            console.error("Damnit1", this.peekToken)
             return null
         }
         if (!this.expectPeek(TokenType.STRING)) {
-            console.error("Damnit2", this.peekToken)
             return null
         }
         const value = this.parseExpression(Precedence.LOWEST)
-        console.log("value", value)
         const expression = new ast.UseExpression(token, value)
         if (!this.expectPeek(TokenType.RPAREN)) {
             return null
         }
-        console.log("returning expression", expression)
         return expression;
     }
     
@@ -399,10 +394,6 @@ export default class Parser {
         if (!this.expectPeek(TokenType.RBRACKET)) {
             return null
         }
-        console.log('--parseIndexExpression')
-        console.log('this.currentToken', this.currentToken)
-        console.log('left', left)
-        console.log('index', index)
         return exp
     }
     parsePropertyAccessExpression = (left: ast.Expression | null): ast.Expression | null => {
@@ -416,11 +407,6 @@ export default class Parser {
         }
     
         const property = new ast.Identifier(this.currentToken, this.currentToken.literal); // Parse the property as an Identifier
-    
-        console.log('--parsePropertyAccessExpression');
-        console.log('this.currentToken', this.currentToken);
-        console.log('left', left);
-        console.log('property', property);
     
         return new ast.PropertyAccessExpression(token, left, property);
     };

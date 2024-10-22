@@ -60,14 +60,11 @@ export class String implements Objects, Hashable {
     toString = () => this.value;
     hashKey = () => {
         const hash = crypto.createHmac('sha256', this.value).digest('hex');
-        console.log(`Generating hash key for value: ${this.value}, hash: ${hash}`);  // Add this line for debugging
     
         return new HashKey(this.objectType(), hash);
-        // return hash;
       }
 }
 
-// export type HashKey = string;
 
 export class HashKey {
     // TODO: Confirm value type, monkey uses uint64 but, we're using a hash .hexdigest()?
@@ -122,13 +119,15 @@ export class Function implements Objects {
     }
 }
 
-type BuiltinFunction = (...args: (Objects | null)[]) => Objects;
+type BuiltinFunction = (env: Environment, currentFilePath: string, ...args: (Objects | null)[]) => Objects;
 
 export class BuiltIn implements Objects{
     // TODO: Confirm signature
     constructor(public fn: BuiltinFunction) {}
     objectType = () => ObjectType.BUILTIN_OBJ
     toString = () => "builtin function"
+
+    invoke = (env: Environment, currentFilePath: string, ...args: (Objects | null)[]) => this.fn(env, currentFilePath, ...args)
 }
 
 export class ArrayObj implements Objects {
