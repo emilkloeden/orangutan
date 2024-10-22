@@ -97,16 +97,7 @@ const evaluate = (
     }
     return evaluateIndexExpression(left, index);
   } else if (node instanceof ast.PropertyAccessExpression) {
-    // Handle property access, such as `a.name`
-    const left = evaluate(node.left, env, currentFilePath);
-    if (isError(left)) {
-        return left;
-    }
-
-    // Convert IDENT to string and reuse hash access logic
-    const propertyKey = new objects.String(node?.property?.tokenLiteral() ?? "");
-
-    return evaluateHashIndexExpression(left!, propertyKey);
+    return evaluatePropertyAccessExpression(node, env, currentFilePath)
 } else if (node instanceof ast.WhileStatement) {
     return evaluateWhileStatement(node, env, currentFilePath);
   }
@@ -114,6 +105,44 @@ const evaluate = (
 };
 
 export default evaluate;
+
+const evaluatePropertyAccessExpression = (
+  node: ast.PropertyAccessExpression,
+  env: Environment,
+  currentFilePath: string
+): objects.Objects | null => {
+  let result = evaluate(node.left, env, currentFilePath);  // Evaluate 'a' in 'a.person.name'
+  
+  if (isError(result)) {
+    return result;
+  }
+
+  // Now, we need to evaluate the property chain step by step.
+  let currentNode: ast.Expression | null = node;
+  
+  while (currentNode instanceof ast.PropertyAccessExpression) {
+    // Resolve the current property key (e.g., 'person' in 'a.person')
+    const propertyKey = new objects.String(currentNode?.property?.tokenLiteral() ?? "");
+    
+    if (!isHashable(propertyKey)) {
+      return newError(`unusable as hash key: `)//TODO: fix${propertyKey?.objectType()}`);
+    }
+
+    // Evaluate this step, like 'a["person"]'
+    result = evaluateHashIndexExpression(result!, propertyKey);
+
+    if (isError(result)) {
+      return result;
+    }
+
+    // Move to the next part of the chain
+    currentNode = currentNode.property;
+  }
+
+  return result;
+};
+
+
 
 const evaluateProgram = (
   program: ast.Program,
@@ -480,6 +509,8 @@ const evaluateHashIndexExpression = (
   if (hashObj.objectType() !== ObjectType.HASH_OBJ) {
     return newError(`hashObj not a Hash Obj: ${hashObj.objectType()}`);
   }
+  console.log('--evaluateHashIndexExpression')
+  console.log('index', index)
 //   console.log('---hashObj---')
 //   console.log(hashObj)
   const hashKeyString = index.hashKey().toString();

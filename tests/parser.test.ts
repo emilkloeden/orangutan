@@ -43,7 +43,7 @@ Deno.test("Selector Test", () => {
 })
 
 Deno.test("Test Use Expression parsing", () => {
-  const tt = { input: 'let i = use("./orangutan/tests/imported.utan"); i["five"];', expected: "5"}
+  const tt = { input: 'let i = use("./orangutan/tests/imported.🐵"); i["five"];', expected: "5"}
   const evaluated = testEval<String>(tt.input);
   assertEquals(evaluated.value, tt.expected, `Test Use Expression parsing failed`)
 

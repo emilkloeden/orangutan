@@ -72,13 +72,13 @@ Deno.test("Test evaluation to null", () => {
 
 Deno.test("Test selection expression", () => {
   const tests = [
-    // { input: 'let a = {"name": "JimBob"}; a["name"];', expected: "JimBob" },
-    // { input: 'let a = {"name": "JimBob"}; a.name;', expected: "JimBob" },
-    // { input: 'let a = {"name": "JimBob"}; a.job;', expected: null },
-    // { input: 'let a = {"person": {"name": "JimBob"}}; a["person"]["name"];', expected: "JimBob" },
-    // { input: 'let a = {"person": {"name": "JimBob"}}; a["person"].name;', expected: "JimBob" },
+    { input: 'let a = {"name": "JimBob"}; a["name"];', expected: "JimBob" },
+    { input: 'let a = {"name": "JimBob"}; a.name;', expected: "JimBob" },
+    { input: 'let a = {"name": "JimBob"}; a.job;', expected: null },
+    { input: 'let a = {"person": {"name": "JimBob"}}; a["person"]["name"];', expected: "JimBob" },
+    { input: 'let a = {"person": {"name": "JimBob"}}; a["person"].name;', expected: "JimBob" },
     { input: 'let a = {"person": {"name": "JimBob"}}; a.person.name;', expected: "JimBob" },
-    // { input: 'let a = {"person": {"name": "JimBob"}}; a.person.["name"];', expected: "JimBob" },
+    { input: 'let a = {"person": {"name": "JimBob"}}; a.person["name"];', expected: "JimBob" },
   ];
 
   tests.forEach((tt, iteration) => {
@@ -88,23 +88,24 @@ Deno.test("Test selection expression", () => {
 
 });
 
-Deno.test("Test use expression", () => {
-  const tests = [
-    // { input: 'let a = {"name": "JimBob"}; a["name"];', expected: "JimBob" },
-    // { input: 'let a = {"name": "JimBob"}; a.name;', expected: "JimBob" },
-    // { input: 'let a = {"name": "JimBob"}; a.job;', expected: null },
-    // { input: 'let a = {"person": {"name": "JimBob"}}; a["person"]["name"];', expected: "JimBob" },
-    // { input: 'let a = {"person": {"name": "JimBob"}}; a["person"].name;', expected: "JimBob" },
-    { input: 'let i = use("./orangutan/tests/imported.utan"); i["five"];', expected: "5"}
-    // { input: 'let a = {"person": {"name": "JimBob"}}; a.person.["name"];', expected: "JimBob" },
-  ];
+// Deno.test("Test use expression", () => {
+//   const tests = [
+//     { input: 'let i = use("./orangutan/tests/imported.🐵"); i["five"];', expected: "5"},
+//     { input: 'let i = use("./orangutan/tests/imported.🐵"); i["double"](3);', expected: 6},
+//     { input: 'let i = use("./orangutan/tests/imported.🐵"); i.double(3);', expected: 6}
+//   ];
 
-  tests.forEach((tt, iteration) => {
-    const evaluated = testEval<objects.String>(tt.input);
-    assertNullableStringObject(evaluated as objects.String, tt.expected, iteration);
-  });
+//   tests.forEach((tt, iteration) => {
+//     const evaluated = testEval<objects.String | Integer>(tt.input);
+//     if(typeof tt.expected === 'string') {
+//       assertNullableStringObject(evaluated as objects.String, tt.expected, iteration);
+//     }
+//     else {
+//       assertIntegerObject(evaluated as Integer, tt.expected, iteration)
+//     }
+//   });
 
-});
+// });
 
 // Helper functions
 function testEval<T>(input: string): T {

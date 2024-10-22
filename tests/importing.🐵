@@ -1,2 +1,2 @@
-let i = use("imported.utan");
+let i = use("imported.🐵");
 puts("i.double(3)", i["double"](3))

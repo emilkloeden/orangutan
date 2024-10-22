@@ -58,7 +58,7 @@ Deno.test("TestPeriod", () => {
 
 
 Deno.test("Test Use Expression tokenisation", () => {
-  const input = 'let i = use("imported.utan");';
+  const input = 'let i = use("imported.🐵");';
   
   const tests = [
     { expectedType: TokenType.LET, expectedLiteral: "let" },
@@ -66,7 +66,7 @@ Deno.test("Test Use Expression tokenisation", () => {
     { expectedType: TokenType.ASSIGN, expectedLiteral: "=" },
     { expectedType: TokenType.USE, expectedLiteral: "use" },
     { expectedType: TokenType.LPAREN, expectedLiteral: "(" },
-    { expectedType: TokenType.STRING, expectedLiteral: "imported.utan" },
+    { expectedType: TokenType.STRING, expectedLiteral: "imported.🐵" },
     { expectedType: TokenType.RPAREN, expectedLiteral: ")" },
     { expectedType: TokenType.SEMICOLON, expectedLiteral: ";" },
   ];

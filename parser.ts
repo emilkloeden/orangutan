@@ -399,15 +399,32 @@ export default class Parser {
         if (!this.expectPeek(TokenType.RBRACKET)) {
             return null
         }
+        console.log('--parseIndexExpression')
+        console.log('this.currentToken', this.currentToken)
+        console.log('left', left)
+        console.log('index', index)
         return exp
     }
     parsePropertyAccessExpression = (left: ast.Expression | null): ast.Expression | null => {
-        this.nextToken()
-        const property = this.parseExpression(Precedence.LOWEST)
-        return new ast.PropertyAccessExpression(this.currentToken, left, property)
-        // this.expectPeek(TokenType.IDENT)
-        // return new ast.PropertyAccessExpression(this.currentToken, exp)
-    }
+        const token = this.currentToken; // This is the "." token
+        this.nextToken(); // Move to the next token (which should be the property, e.g., "person" or "name")
+    
+        // Ensure the next token is an identifier (like "person" or "name")
+        if (this.currentToken.tokenType !== TokenType.IDENT) {
+            // Handle error or unexpected token
+            return null;
+        }
+    
+        const property = new ast.Identifier(this.currentToken, this.currentToken.literal); // Parse the property as an Identifier
+    
+        console.log('--parsePropertyAccessExpression');
+        console.log('this.currentToken', this.currentToken);
+        console.log('left', left);
+        console.log('property', property);
+    
+        return new ast.PropertyAccessExpression(token, left, property);
+    };
+    
 
     parseHashLiteral = ():ast.Expression | null => {
         const lit = new ast.HashLiteral(this.currentToken)
