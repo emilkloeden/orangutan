@@ -1,16 +1,16 @@
 import * as path from "https://deno.land/std/path/mod.ts";
-import * as ast from "./ast.ts";
-import Environment from "./environment.ts";
-import * as objects from "./objects.ts";
-import { ObjectType } from "./objects.ts";
-import BUILTINS from "./builtins.ts";
-import Lexer from "./lexer.ts";
-import Parser from "./parser.ts";
+import * as ast from "../ast/ast.ts";
+import Environment from "../environment/environment.ts";
+import * as objects from "../objects/objects.ts";
+import { ObjectType } from "../objects/objects.ts";
+import BUILTINS from "../builtins/builtins.ts";
+import Lexer from "../lexer/lexer.ts";
+import Parser from "../parser/parser.ts";
 
 const evaluate = (
   node: ast.Node | null,
   env: Environment,
-  currentFilePath: string
+  currentFilePath: string,
 ): objects.Objects | null => {
   if (node === null) {
     return newError(`node is null`);
@@ -33,7 +33,7 @@ const evaluate = (
       return val;
     }
     env.set(node.name.value, val);
-  } else if(node instanceof ast.UseExpression) {
+  } else if (node instanceof ast.UseExpression) {
     return evaluateUseExpression(node, env, currentFilePath);
   } else if (node instanceof ast.IntegerLiteral) {
     return new objects.Integer(node.value);
@@ -97,8 +97,8 @@ const evaluate = (
     }
     return evaluateIndexExpression(left, index);
   } else if (node instanceof ast.PropertyAccessExpression) {
-    return evaluatePropertyAccessExpression(node, env, currentFilePath)
-} else if (node instanceof ast.WhileStatement) {
+    return evaluatePropertyAccessExpression(node, env, currentFilePath);
+  } else if (node instanceof ast.WhileStatement) {
     return evaluateWhileStatement(node, env, currentFilePath);
   }
   return null;
@@ -109,23 +109,25 @@ export default evaluate;
 const evaluatePropertyAccessExpression = (
   node: ast.PropertyAccessExpression,
   env: Environment,
-  currentFilePath: string
+  currentFilePath: string,
 ): objects.Objects | null => {
-  let result = evaluate(node.left, env, currentFilePath);  // Evaluate 'a' in 'a.person.name'
-  
+  let result = evaluate(node.left, env, currentFilePath); // Evaluate 'a' in 'a.person.name'
+
   if (isError(result)) {
     return result;
   }
 
   // Now, we need to evaluate the property chain step by step.
   let currentNode: ast.Expression | null = node;
-  
+
   while (currentNode instanceof ast.PropertyAccessExpression) {
     // Resolve the current property key (e.g., 'person' in 'a.person')
-    const propertyKey = new objects.String(currentNode?.property?.tokenLiteral() ?? "");
-    
+    const propertyKey = new objects.String(
+      currentNode?.property?.tokenLiteral() ?? "",
+    );
+
     if (!isHashable(propertyKey)) {
-      return newError(`unusable as hash key: `)//TODO: fix${propertyKey?.objectType()}`);
+      return newError(`unusable as hash key: `); //TODO: fix${propertyKey?.objectType()}`);
     }
 
     // Evaluate this step, like 'a["person"]'
@@ -142,11 +144,10 @@ const evaluatePropertyAccessExpression = (
   return result;
 };
 
-
-
 const evaluateProgram = (
   program: ast.Program,
-  env: Environment, currentFilePath: string
+  env: Environment,
+  currentFilePath: string,
 ): objects.Objects | null => {
   let result: objects.Objects | null = null;
 
@@ -163,7 +164,8 @@ const evaluateProgram = (
 
 const evaluateBlockStatement = (
   block: ast.BlockStatement,
-  env: Environment, currentFilePath: string
+  env: Environment,
+  currentFilePath: string,
 ): objects.Objects | null => {
   let result: objects.Objects | null = null;
   for (const statement of block.statements) {
@@ -171,7 +173,7 @@ const evaluateBlockStatement = (
     if (result !== null) {
       if (
         [ObjectType.RETURN_VALUE_OBJ, ObjectType.ERROR_OBJ].includes(
-          result.objectType()
+          result.objectType(),
         )
       ) {
         return result;
@@ -181,7 +183,11 @@ const evaluateBlockStatement = (
   return result;
 };
 
-const evaluateWhileStatement = (stmt: ast.WhileStatement, env: Environment, currentFilePath: string) => {
+const evaluateWhileStatement = (
+  stmt: ast.WhileStatement,
+  env: Environment,
+  currentFilePath: string,
+) => {
   while (true) {
     const evaluated = evaluate(stmt.condition, env, currentFilePath);
     if (isError(evaluated) || evaluated === null) {
@@ -201,7 +207,8 @@ const evaluateWhileStatement = (stmt: ast.WhileStatement, env: Environment, curr
 
 const evaluateExpressions = (
   expressions: (ast.Expression | null)[] | null,
-  env: Environment, currentFilePath: string
+  env: Environment,
+  currentFilePath: string,
 ): (objects.Objects | null)[] => {
   const result: (objects.Objects | null)[] = [];
   if (expressions === null) {
@@ -223,29 +230,28 @@ const evaluateUseExpression = (
   currentFilePath: string,
 ): objects.Objects | null => {
   const moduleName = (node.value as unknown as objects.String).value;
-    const modulePath = resolveModulePath(currentFilePath, moduleName)
-    // Load and parse the module
-    const moduleEnv = new Environment({}, env);
-    const module = loadModule(modulePath);
-    evaluateProgram(module, moduleEnv, currentFilePath);
+  const modulePath = resolveModulePath(currentFilePath, moduleName);
+  // Load and parse the module
+  const moduleEnv = new Environment({}, env);
+  const module = loadModule(modulePath);
+  evaluateProgram(module, moduleEnv, currentFilePath);
 
-    // Create a hash to represent the module's namespace
-    const pairs: Map<string, objects.HashPair> = new Map();
-    for (const [key, val] of Object.entries(moduleEnv.store)) {
-      const keyObj = new objects.String(key);
-      const hashed = keyObj.hashKey().toString();
-      pairs.set(hashed, new objects.HashPair(keyObj, val));
-      // console.log(`Key: ${keyObj.toString()}, Hash: ${hashed}, Value: ${val?.toString()}`);
-    }
+  // Create a hash to represent the module's namespace
+  const pairs: Map<string, objects.HashPair> = new Map();
+  for (const [key, val] of Object.entries(moduleEnv.store)) {
+    const keyObj = new objects.String(key);
+    const hashed = keyObj.hashKey().toString();
+    pairs.set(hashed, new objects.HashPair(keyObj, val));
+    // console.log(`Key: ${keyObj.toString()}, Hash: ${hashed}, Value: ${val?.toString()}`);
+  }
 
-    return new objects.Hash(pairs); // Return the module's environment as a hash
-
-}
+  return new objects.Hash(pairs); // Return the module's environment as a hash
+};
 
 const evaluateHashLiteral = (
   node: ast.HashLiteral,
-  env: Environment
-  , currentFilePath: string
+  env: Environment,
+  currentFilePath: string,
 ): objects.Objects | null => {
   const pairs: Map<string, objects.HashPair> = new Map();
 
@@ -272,7 +278,7 @@ const evaluateHashLiteral = (
 
 const evaluatePrefixExpression = (
   operator: string,
-  right: objects.Objects | null
+  right: objects.Objects | null,
 ): objects.Objects => {
   if (right === null) {
     return newError("evaluatePrefixExpression has a null right object");
@@ -289,7 +295,7 @@ const evaluatePrefixExpression = (
 const evaluateInfixExpression = (
   operator: string,
   left: objects.Objects | null,
-  right: objects.Objects | null
+  right: objects.Objects | null,
 ): objects.Objects | null => {
   if (left === null || right === null) {
     return newError("Issue with infixExpression");
@@ -301,7 +307,7 @@ const evaluateInfixExpression = (
     return evaluateIntegerInfixExpression(
       operator,
       left as objects.Integer,
-      right as objects.Integer
+      right as objects.Integer,
     );
   } else if (
     left.objectType() === right.objectType() &&
@@ -310,10 +316,9 @@ const evaluateInfixExpression = (
     return evaluateStringInfixExpression(
       operator,
       left as objects.String,
-      right as objects.String
+      right as objects.String,
     );
-  }
-  // else if (left.objectType() === right.objectType() && left.objectType() === ObjectType.ARRAY_OBJ) {
+  } // else if (left.objectType() === right.objectType() && left.objectType() === ObjectType.ARRAY_OBJ) {
   //     return evaluateArrayInfixExpression(operator, left as objects.Array, right as objects.Array)
   // }
   else if (operator === "==") {
@@ -326,7 +331,7 @@ const evaluateInfixExpression = (
       left.objectType() === ObjectType.BOOLEAN_OBJ
     ) {
       return nativeBoolToBooleanObject(
-        (left as objects.Boolean).value && (right as objects.Boolean).value
+        (left as objects.Boolean).value && (right as objects.Boolean).value,
       );
     }
   } else if (operator === "||") {
@@ -335,22 +340,23 @@ const evaluateInfixExpression = (
       left.objectType() === ObjectType.BOOLEAN_OBJ
     ) {
       return nativeBoolToBooleanObject(
-        (left as objects.Boolean).value || (right as objects.Boolean).value
+        (left as objects.Boolean).value || (right as objects.Boolean).value,
       );
     }
   } else if (left.objectType() !== right.objectType()) {
     return newError(
-      `type mismatch: ${left.objectType()} ${operator} ${right.objectType()}`
+      `type mismatch: ${left.objectType()} ${operator} ${right.objectType()}`,
     );
   }
   return newError(
-    `unknown operator: ${left.objectType()} ${operator} ${right.objectType()}`
+    `unknown operator: ${left.objectType()} ${operator} ${right.objectType()}`,
   );
 };
 
 const evaluateIfExpression = (
   expression: ast.IfExpression,
-  env: Environment, currentFilePath: string
+  env: Environment,
+  currentFilePath: string,
 ): objects.Objects | null => {
   const condition = evaluate(expression.condition, env, currentFilePath);
   if (isError(condition)) {
@@ -368,7 +374,7 @@ const evaluateIfExpression = (
 
 const evaluateIdentifier = (
   node: ast.Identifier,
-  env: Environment
+  env: Environment,
 ): objects.Objects => {
   const val = env.get(node.value);
 
@@ -388,7 +394,7 @@ const evaluateIdentifier = (
 
 const evaluateIndexExpression = (
   left: objects.Objects | null,
-  index: objects.Objects | null
+  index: objects.Objects | null,
 ): objects.Objects | null => {
   if (left === null) {
     return newError(`left object is null`);
@@ -401,7 +407,7 @@ const evaluateIndexExpression = (
   ) {
     return evaluateArrayIndexExpression(
       left as objects.ArrayObj,
-      index as objects.Integer
+      index as objects.Integer,
     );
   } else if (left.objectType() === ObjectType.HASH_OBJ) {
     return evaluateHashIndexExpression(left, index);
@@ -410,7 +416,7 @@ const evaluateIndexExpression = (
 };
 
 const evaluateBangOperatorExpression = (
-  right: objects.Objects
+  right: objects.Objects,
 ): objects.Objects => {
   if (right === new objects.Boolean(true)) {
     return new objects.Boolean(false);
@@ -424,7 +430,7 @@ const evaluateBangOperatorExpression = (
 };
 
 const evaluateMinusPrefixOperatorExpression = (
-  right: objects.Objects
+  right: objects.Objects,
 ): objects.Integer | objects.Error => {
   if (right.objectType() !== ObjectType.INTEGER_OBJ) {
     return newError(`unknown operator: -${right.objectType()}`);
@@ -435,7 +441,7 @@ const evaluateMinusPrefixOperatorExpression = (
 const evaluateIntegerInfixExpression = (
   operator: string,
   left: objects.Integer,
-  right: objects.Integer
+  right: objects.Integer,
 ): objects.Integer | objects.Boolean | objects.Error => {
   const left_value = left.value;
   const right_value = right.value;
@@ -460,14 +466,14 @@ const evaluateIntegerInfixExpression = (
     return nativeBoolToBooleanObject(left_value !== right_value);
   }
   return newError(
-    `unknown operator: ${left.objectType()} ${operator} ${right.objectType()}`
+    `unknown operator: ${left.objectType()} ${operator} ${right.objectType()}`,
   );
 };
 
 const evaluateStringInfixExpression = (
   operator: string,
   left: objects.String,
-  right: objects.String
+  right: objects.String,
 ): objects.String | objects.Boolean | objects.Error => {
   if (operator === "+") {
     return new objects.String(left.value + right.value);
@@ -478,13 +484,13 @@ const evaluateStringInfixExpression = (
   }
 
   return newError(
-    `unknown operator: ${left.objectType()} ${operator} ${right.objectType()}`
+    `unknown operator: ${left.objectType()} ${operator} ${right.objectType()}`,
   );
 };
 
 const evaluateArrayIndexExpression = (
   array: objects.ArrayObj,
-  index: objects.Integer
+  index: objects.Integer,
 ): objects.Objects | null => {
   const idx = index.value;
 
@@ -497,7 +503,7 @@ const evaluateArrayIndexExpression = (
 
 const evaluateHashIndexExpression = (
   hashObj: objects.Objects,
-  index: objects.Objects
+  index: objects.Objects,
 ): objects.Objects | null => {
   if (!isHashable(index)) {
     return newError(`unusable as hash key: ${index.objectType()}`);
@@ -512,7 +518,6 @@ const evaluateHashIndexExpression = (
   }
   return pair?.value ?? null;
 };
-
 
 export const isError = (obj: objects.Objects | null): boolean => {
   if (obj !== null) {
@@ -576,8 +581,8 @@ const isHashable = (obj: any): obj is objects.Hashable => {
 export const applyFunction = (
   fn: objects.Objects | null,
   args: (objects.Objects | null)[],
-  env: Environment,  // Add the environment
-  currentFilePath: string  // Add the current file path
+  env: Environment, // Add the environment
+  currentFilePath: string, // Add the current file path
 ): objects.Objects | null => {
   if (fn instanceof objects.Function) {
     const extendedEnv = extendFunctionEnv(fn, args);
@@ -585,7 +590,7 @@ export const applyFunction = (
       return extendedEnv;
     }
 
-    const evaluated = evaluate(fn.body, extendedEnv, currentFilePath);  // Pass the currentFilePath
+    const evaluated = evaluate(fn.body, extendedEnv, currentFilePath); // Pass the currentFilePath
     if (evaluated === null) {
       return evaluated;
     }
@@ -600,7 +605,7 @@ export const applyFunction = (
 
 const extendFunctionEnv = (
   fn: objects.Function,
-  args: (objects.Objects | null)[]
+  args: (objects.Objects | null)[],
 ): Environment | objects.Error => {
   const env = new Environment({}, fn.env);
 
@@ -620,16 +625,18 @@ const unwrapReturnValue = (obj: objects.Objects): objects.Objects | null => {
   return obj;
 };
 
-
 const loadModule = (moduleName: string): ast.Program => {
   const code = Deno.readTextFileSync(moduleName);
   const lexer = new Lexer(code);
   const parser = new Parser(lexer, Deno.cwd());
   return parser.parseProgram();
-}
+};
 
-const resolveModulePath = (currentFilePath: string, modulePath: string): string => {
-  const currentFile = path.parse(currentFilePath)
-  const currentDir = currentFile.dir
+const resolveModulePath = (
+  currentFilePath: string,
+  modulePath: string,
+): string => {
+  const currentFile = path.parse(currentFilePath);
+  const currentDir = currentFile.dir;
   return path.resolve(currentDir, modulePath);
 };

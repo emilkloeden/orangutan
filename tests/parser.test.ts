@@ -1,10 +1,10 @@
-import {assertEquals} from "https://deno.land/std@0.224.0/assert/assert_equals.ts";
-import  Lexer  from "../lexer.ts";
-import  Parser  from "../parser.ts";
-import { LetStatement, Program } from "../ast.ts";
-import Environment from "../environment.ts";
-import evaluate from "../evaluator.ts";
-import {String} from "../objects.ts"
+import { assertEquals } from "https://deno.land/std@0.224.0/assert/assert_equals.ts";
+import Lexer from "../src/lexer/lexer.ts";
+import Parser from "../src/parser/parser.ts";
+import { LetStatement, Program } from "../src/ast/ast.ts";
+import Environment from "../src/environment/environment.ts";
+import evaluate from "../src/evaluator/evaluator.ts";
+import { String } from "../src/objects/objects.ts";
 
 Deno.test("TestLetStatements", () => {
   const input = `
@@ -31,29 +31,41 @@ Deno.test("TestLetStatements", () => {
 
   tests.forEach((tt, i) => {
     const stmt = program.statements[i] as LetStatement;
-    assertEquals(stmt.name.value, tt.expectedIdentifier, `Test ${i} failed: incorrect identifier`);
+    assertEquals(
+      stmt.name.value,
+      tt.expectedIdentifier,
+      `Test ${i} failed: incorrect identifier`,
+    );
   });
 });
 
 Deno.test("Selector Test", () => {
-  const tt = { input: 'let a = { "name": "JimBob" }; a.name', expected: "JimBob"}
+  const tt = {
+    input: 'let a = { "name": "JimBob" }; a.name',
+    expected: "JimBob",
+  };
   const evaluated = testEval<String>(tt.input);
-  assertEquals(evaluated.value, tt.expected, `Test selector failed`)
-
-})
+  assertEquals(evaluated.value, tt.expected, `Test selector failed`);
+});
 
 Deno.test("Test Use Expression parsing", () => {
-  const tt = { input: 'let i = use("./orangutan/tests/imported.🐵"); i["five"];', expected: "5"}
+  const tt = {
+    input: 'let i = use("./orangutan/tests/imported.🐵"); i["five"];',
+    expected: "5",
+  };
   const evaluated = testEval<String>(tt.input);
-  assertEquals(evaluated.value, tt.expected, `Test Use Expression parsing failed`)
-
-})
+  assertEquals(
+    evaluated.value,
+    tt.expected,
+    `Test Use Expression parsing failed`,
+  );
+});
 
 function testEval<T>(input: string): T {
   const lexer = new Lexer(input);
   const parser = new Parser(lexer, "");
   const program = parser.parseProgram();
-  
-  const env = new Environment({})  
+
+  const env = new Environment({});
   return evaluate(program, env, Deno.cwd()) as T;
 }
