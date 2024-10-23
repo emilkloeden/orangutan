@@ -132,3 +132,4 @@ dist
 
 .vscode
 TODO.md
+*.exe
