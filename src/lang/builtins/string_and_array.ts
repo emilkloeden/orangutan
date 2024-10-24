@@ -1,14 +1,14 @@
+import * as objects from "../objects/objects.ts";
 import Environment from "../environment/environment.ts";
 import {
   gotHostNull,
   wrongNumberOfArgs,
   wrongTypeOfArgument,
 } from "./_helpers.ts";
-import * as objects from "../objects/objects.ts";
 
 export const lenFn = (
-  env: Environment,
-  currentFilePath: string,
+  _env: Environment,
+  _currentFilePath: string,
   ...args: (objects.Objects | null)[]
 ): objects.Integer | objects.Error => {
   if (args.length !== 1) {
@@ -26,4 +26,3 @@ export const lenFn = (
   // TODO: Fix to allow expected to be String | Array
   return wrongTypeOfArgument(arg.objectType(), objects.ObjectType.ARRAY_OBJ);
 };
-

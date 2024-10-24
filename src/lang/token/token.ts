@@ -21,7 +21,9 @@ export enum TokenType {
   OR = "||",
 
   LT = "<",
+  LTE = "<=",
   GT = ">",
+  GTE = ">=",
 
   EQ = "==",
   NOT_EQ = "!=",

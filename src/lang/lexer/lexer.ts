@@ -91,9 +91,23 @@ export default class Lexer {
         tok = new Token(TokenType.ILLEGAL, this.ch);
       }
     } else if (this.ch == "<") {
-      tok = new Token(TokenType.LT, this.ch);
+      if (this.peekChar() == "=") {
+        const ch = this.ch;
+        this.readChar();
+        const literal = `${ch}${this.ch}`;
+        tok = new Token(TokenType.LTE, literal);
+      } else {
+        tok = new Token(TokenType.LT, this.ch);
+      }
     } else if (this.ch == ">") {
-      tok = new Token(TokenType.GT, this.ch);
+      if (this.peekChar() == "=") {
+        const ch = this.ch;
+        this.readChar();
+        const literal = `${ch}${this.ch}`;
+        tok = new Token(TokenType.GTE, literal);
+      } else {
+        tok = new Token(TokenType.LT, this.ch);
+      }
     } else if (this.ch == ";") {
       tok = new Token(TokenType.SEMICOLON, this.ch);
     } else if (this.ch == "(") {

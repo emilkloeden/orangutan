@@ -1,10 +1,10 @@
-import Environment from "../environment/environment.ts";
 import * as objects from "../objects/objects.ts";
+import Environment from "../environment/environment.ts";
 import { wrongNumberOfArgs } from "./_helpers.ts";
 
 export const putsFn = (
-  env: Environment,
-  currentFilePath: string,
+  _env: Environment,
+  _currentFilePath: string,
   ...args: (objects.Objects | null)[]
 ): objects.Objects => {
   const output = [];
@@ -20,8 +20,8 @@ export const putsFn = (
 };
 
 export const typeFn = (
-  env: Environment,
-  currentFilePath: string,
+  _env: Environment,
+  _currentFilePath: string,
   ...args: (objects.Objects | null)[]
 ): objects.String | objects.Error => {
   if (args.length !== 1) {

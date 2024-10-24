@@ -1,10 +1,12 @@
-import * as objects from "../objects/objects.ts";
+import * as objects from "../../lang/objects/objects.ts";
 
 export const wrongTypeOfArgument = (
   actual: objects.ObjectType,
   expected: objects.ObjectType,
 ): objects.Error => {
-  return new objects.Error(`wrong type of argument. got=${actual}.`);
+  return new objects.Error(
+    `wrong type of argument. expected=${expected} got=${actual}.`,
+  );
 };
 
 export const gotHostNull = (): objects.Error => {

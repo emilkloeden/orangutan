@@ -1,4 +1,5 @@
-import * as crypto from "node:crypto";
+import * as crypto from "node:crypto"; // using node:crypto do get a synchronous hash
+
 import * as ast from "../ast/ast.ts";
 import Environment from "../environment/environment.ts";
 

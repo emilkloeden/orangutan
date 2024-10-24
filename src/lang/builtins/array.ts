@@ -13,8 +13,8 @@ import {
 } from "./_helpers.ts";
 
 export const joinFn = (
-  env: Environment,
-  currentFilePath: string,
+  _env: Environment,
+  _currentFilePath: string,
   ...args: (objects.Objects | null)[]
 ): objects.String | objects.Error => {
   if (args.length !== 2) {
@@ -47,8 +47,8 @@ export const joinFn = (
 };
 
 export const appendFn = (
-  env: Environment,
-  currentFilePath: string,
+  _env: Environment,
+  _currentFilePath: string,
   ...args: (objects.Objects | null)[]
 ): objects.ArrayObj | objects.Error => {
   if (args.length !== 2) {
@@ -68,8 +68,8 @@ export const appendFn = (
 };
 
 export const prependFn = (
-  env: Environment,
-  currentFilePath: string,
+  _env: Environment,
+  _currentFilePath: string,
   ...args: (objects.Objects | null)[]
 ): objects.ArrayObj | objects.Error => {
   if (args.length !== 2) {

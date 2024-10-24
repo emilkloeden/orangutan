@@ -1,10 +1,10 @@
-import Environment from "../environment/environment.ts";
-
-import * as objects from "../objects/objects.ts";
 import * as path from "https://deno.land/std/path/mod.ts";
 
+import * as objects from "../objects/objects.ts";
+import Environment from "../environment/environment.ts";
+
 export const readFileFn = (
-  env: Environment,
+  _env: Environment,
   currentFilePath: string,
   ...args: (objects.Objects | null)[]
 ) => {
@@ -25,7 +25,7 @@ export const readFileFn = (
 
 // Define writeFile function
 export const writeFileFn = (
-  env: Environment,
+  _env: Environment,
   currentFilePath: string,
   ...args: (objects.Objects | null)[]
 ) => {

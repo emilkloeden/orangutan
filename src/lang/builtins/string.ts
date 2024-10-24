@@ -1,5 +1,5 @@
-import Environment from "../environment/environment.ts";
 import * as objects from "../objects/objects.ts";
+import Environment from "../environment/environment.ts";
 import {
   gotHostNull,
   wrongNumberOfArgs,
@@ -7,8 +7,8 @@ import {
 } from "./_helpers.ts";
 
 export const splitFn = (
-  env: Environment,
-  currentFilePath: string,
+  _env: Environment,
+  _currentFilePath: string,
   ...args: (objects.Objects | null)[]
 ): objects.ArrayObj | objects.Error => {
   if (args.length !== 2) {

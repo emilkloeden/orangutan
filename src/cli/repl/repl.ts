@@ -1,7 +1,7 @@
-import Environment from "../../environment/environment.ts";
-import evaluate from "../../evaluator/evaluator.ts";
-import Lexer from "../../lexer/lexer.ts";
-import Parser from "../../parser/parser.ts";
+import Environment from "../../lang/environment/environment.ts";
+import evaluate from "../../lang/evaluator/evaluator.ts";
+import Lexer from "../../lang/lexer/lexer.ts";
+import Parser from "../../lang/parser/parser.ts";
 
 export default function repl() {
   console.log("Orangutan REPL. Press Ctrl+c or type exit() to quit.");

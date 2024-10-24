@@ -1,11 +1,13 @@
 import * as path from "https://deno.land/std/path/mod.ts";
+
 import * as ast from "../ast/ast.ts";
-import Environment from "../environment/environment.ts";
 import * as objects from "../objects/objects.ts";
-import { ObjectType } from "../objects/objects.ts";
+
+import Environment from "../environment/environment.ts";
 import BUILTINS from "../builtins/builtins.ts";
 import Lexer from "../lexer/lexer.ts";
 import Parser from "../parser/parser.ts";
+import { ObjectType } from "../objects/objects.ts";
 
 const evaluate = (
   node: ast.Node | null,
@@ -458,8 +460,12 @@ const evaluateIntegerInfixExpression = (
     return new objects.Integer(left_value % right_value);
   } else if (operator === "<") {
     return nativeBoolToBooleanObject(left_value < right_value);
+  } else if (operator === "<=") {
+    return nativeBoolToBooleanObject(left_value <= right_value);
   } else if (operator === ">") {
     return nativeBoolToBooleanObject(left_value > right_value);
+  } else if (operator === ">=") {
+    return nativeBoolToBooleanObject(left_value >= right_value);
   } else if (operator === "==") {
     return nativeBoolToBooleanObject(left_value === right_value);
   } else if (operator === "!=") {

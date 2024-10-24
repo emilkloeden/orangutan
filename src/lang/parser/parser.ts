@@ -20,7 +20,9 @@ export const precedences: Record<string, Precedence> = {
   [TokenType.EQ]: Precedence.EQUALS,
   [TokenType.NOT_EQ]: Precedence.EQUALS,
   [TokenType.LT]: Precedence.LESSGREATER,
+  [TokenType.LTE]: Precedence.LESSGREATER,
   [TokenType.GT]: Precedence.LESSGREATER,
+  [TokenType.GTE]: Precedence.LESSGREATER,
   [TokenType.PLUS]: Precedence.SUM,
   [TokenType.MINUS]: Precedence.SUM,
   [TokenType.SLASH]: Precedence.PRODUCT,
@@ -44,7 +46,7 @@ export default class Parser {
     (left: ast.Expression | null) => ast.Expression | null
   >;
 
-  constructor(private lexer: Lexer, private currentDir: string) {
+  constructor(private lexer: Lexer, private _currentDir: string) {
     this.errors = [];
 
     this.currentToken = this.lexer.nextToken();
@@ -78,7 +80,9 @@ export default class Parser {
       [TokenType.AND]: this.parseInfixExpression,
       [TokenType.OR]: this.parseInfixExpression,
       [TokenType.LT]: this.parseInfixExpression,
+      [TokenType.LTE]: this.parseInfixExpression,
       [TokenType.GT]: this.parseInfixExpression,
+      [TokenType.GTE]: this.parseInfixExpression,
       [TokenType.LPAREN]: this.parseCallExpression,
       [TokenType.LBRACKET]: this.parseIndexExpression,
       [TokenType.PERIOD]: this.parsePropertyAccessExpression,

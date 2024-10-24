@@ -1,4 +1,3 @@
-import { HashPair } from "../objects/objects.ts";
 import Token from "../token/token.ts";
 
 export interface Node {

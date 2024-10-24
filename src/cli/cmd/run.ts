@@ -1,9 +1,9 @@
-import Environment from "../../environment/environment.ts";
-import evaluate, { isError } from "../../evaluator/evaluator.ts";
-import Lexer from "../../lexer/lexer.ts";
-import Parser from "../../parser/parser.ts";
-import * as objects from "../../objects/objects.ts";
+import evaluate, { isError } from "../../lang/evaluator/evaluator.ts";
+import Lexer from "../../lang/lexer/lexer.ts";
+import Parser from "../../lang/parser/parser.ts";
+import * as objects from "../../lang/objects/objects.ts";
 import * as path from "https://deno.land/std/path/mod.ts";
+import Environment from "../../lang/environment/environment.ts";
 
 export async function runCommand(...args: string[]) {
   if (!args.length) {
