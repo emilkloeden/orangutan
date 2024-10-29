@@ -1,9 +1,9 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/assert_equals.ts";
-import evaluate from "../src/evaluator/evaluator.ts";
-import Environment from "../src/environment/environment.ts";
-import Parser from "../src/parser/parser.ts";
-import Lexer from "../src/lexer/lexer.ts";
-import { Integer } from "../src/objects/objects.ts";
+import evaluate from "../src/lang/evaluator/evaluator.ts";
+import Environment from "../src/lang/environment/environment.ts";
+import Parser from "../src/lang/parser/parser.ts";
+import Lexer from "../src/lang/lexer/lexer.ts";
+import { Integer } from "../src/lang/objects/objects.ts";
 
 const fibonacciDefinition =
   "let fibonacci = fn(x) {     if (x == 0) {      return 0;     } else {       if (x == 1) {         return 1;       } else {         fibonacci(x - 1) + fibonacci(x - 2);       }     }   };";
