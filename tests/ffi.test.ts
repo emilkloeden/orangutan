@@ -36,7 +36,7 @@ Deno.test("Test FFI expression", () => {
         expected: new objects.Error("wrong type of argument. expected=STRING got=HASH."),
       },
       {
-        input: 'let i = ffi("{}"); i;',
+        input: 'let i = ffi("const x = {}; x;"); i;',
         expected: new objects.Error("Unable to evaluate result of ffi call. Received: object"),
       },
     ];

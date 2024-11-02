@@ -67,7 +67,7 @@ Deno.test("Test evaluation to null", () => {
 
 Deno.test("Test builtins", () => {
   const evaluated = testEval<objects.Integer>(
-    "let a = [1, 2, 3]; let double = fn(a) { a * 2 }; let b = map(double, a)[2]; puts(b); b;",
+    "let a = [1, 2, 3]; let double = fn(a) { a * 2 }; let b = map(a, double)[2]; puts(b); b;",
   );
   assertEquals(evaluated.value, 6, ` Expected integer evaluation mismatch`);
   const evaluated2 = testEval<objects.Boolean>(
