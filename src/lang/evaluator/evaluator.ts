@@ -79,15 +79,7 @@ const evaluate = (
     const body = node.body;
     return new objects.Function(params, body, env);
   } else if (node instanceof ast.CallExpression) {
-    const fn = evaluate(node.fn, env, currentFilePath);
-    if (isError(fn)) {
-      return fn;
-    }
-    const args = evaluateExpressions(node.arguments, env, currentFilePath);
-    if (args.length === 1 && isError(args[0])) {
-      return args[0];
-    }
-    return applyFunction(fn, args, env, currentFilePath);
+    return evaluateCallExpression(node, env, currentFilePath);
   } else if (node instanceof ast.IndexExpression) {
     const left = evaluate(node.left, env, currentFilePath);
     if (isError(left)) {
@@ -107,6 +99,23 @@ const evaluate = (
 };
 
 export default evaluate;
+
+const evaluateCallExpression = (
+  node: ast.CallExpression,
+  env: Environment,
+  currentFilePath: string
+): objects.Objects | null => {
+  const fn = evaluate(node.fn, env, currentFilePath);
+    if (isError(fn)) {
+      return fn;
+    }
+    const args = evaluateExpressions(node.arguments, env, currentFilePath);
+    if (args.length === 1 && isError(args[0])) {
+      return args[0];
+    }
+    return applyFunction(fn, args, env, currentFilePath);
+  
+}
 
 const evaluatePropertyAccessExpression = (
   node: ast.PropertyAccessExpression,

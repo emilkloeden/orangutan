@@ -15,6 +15,7 @@ export enum ObjectType {
   ARRAY_OBJ = "ARRAY",
   HASH_OBJ = "HASH",
   MODULE = "MODULE",
+  MODULE_FUNCTION = "MODULE_FUNCTION",
 }
 
 export interface Objects {
