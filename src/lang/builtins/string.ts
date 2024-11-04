@@ -6,11 +6,11 @@ import {
   wrongTypeOfArgument,
 } from "./_helpers.ts";
 
-export const splitFn = (
+export const splitFn = async (
   _env: Environment,
   _currentFilePath: string,
   ...args: (objects.Objects | null)[]
-): objects.ArrayObj | objects.Error => {
+): Promise<objects.Error | objects.ArrayObj> => {
   if (args.length !== 2) {
     return wrongNumberOfArgs(args.length, 2);
   }

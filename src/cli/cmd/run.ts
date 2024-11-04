@@ -29,7 +29,7 @@ async function script(filePath: string) {
   const l = new Lexer(text);
   const parser = new Parser(l, dir);
   const env = new Environment({});
-  const evaluated = evaluate(parser.parseProgram(), env, resolvedPath);
+  const evaluated = await evaluate(parser.parseProgram(), env, resolvedPath);
   if (isError(evaluated)) {
     console.error((evaluated as objects.Error)?.message);
   }

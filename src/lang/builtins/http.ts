@@ -31,4 +31,23 @@ export const getFn =  (
     // }
 
   };
+
+  export const getAsyncFn = async (
+    _env: Environment,
+    _currentFilePath: string,
+    ...args: (objects.Objects | null)[]
+  ): Promise<objects.String | objects.Error> => {
+    if (args.length !== 1) {
+      return wrongNumberOfArgs(args.length, 1);
+    }
+    const url = (args[0] as objects.String).value;
+    try {
+        const response = await fetch(url)
+        const text = await response.text();
+        return new objects.String(text);
+    } catch (error) {
+        return new objects.Error(`FETCH Error: ${error.message}`)
+    }
+
+  };
   

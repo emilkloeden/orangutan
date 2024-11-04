@@ -2,11 +2,11 @@ import * as objects from "../objects/objects.ts";
 import Environment from "../environment/environment.ts";
 import { wrongNumberOfArgs } from "./_helpers.ts";
 
-export const putsFn = (
+export const putsFn = async (
   _env: Environment,
   _currentFilePath: string,
   ...args: (objects.Objects | null)[]
-): objects.Objects => {
+): Promise<objects.Objects> => {
   const output = [];
   for (const arg of args) {
     if (arg === null) {
@@ -19,11 +19,11 @@ export const putsFn = (
   return new objects.Null();
 };
 
-export const typeFn = (
+export const typeFn = async (
   _env: Environment,
   _currentFilePath: string,
   ...args: (objects.Objects | null)[]
-): objects.String | objects.Error => {
+): Promise<objects.String | objects.Error> => {
   if (args.length !== 1) {
     return wrongNumberOfArgs(args.length, 1);
   }

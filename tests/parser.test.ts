@@ -1,10 +1,10 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/assert_equals.ts";
-import Lexer from "../src/lexer/lexer.ts";
-import Parser from "../src/parser/parser.ts";
-import { LetStatement, Program } from "../src/ast/ast.ts";
-import Environment from "../src/environment/environment.ts";
-import evaluate from "../src/evaluator/evaluator.ts";
-import { String } from "../src/objects/objects.ts";
+import Lexer from "../src/lang/lexer/lexer.ts";
+import Parser from "../src/lang/parser/parser.ts";
+import { LetStatement, Program } from "../src/lang/ast/ast.ts";
+import Environment from "../src/lang/environment/environment.ts";
+import evaluate from "../src/lang/evaluator/evaluator.ts";
+import { String } from "../src/lang/objects/objects.ts";
 
 Deno.test("TestLetStatements", () => {
   const input = `
