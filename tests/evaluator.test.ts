@@ -66,10 +66,10 @@ Deno.test("Test evaluation to null", async () => {
 });
 
 Deno.test("Test builtins", async () => {
-  // const evaluated = await testEval<objects.Integer>(
-  //   "let a = [1, 2, 3]; let double = fn(a) { a * 2 }; let b = map(a, double)[2]; puts(b); b;",
-  // );
-  // assertEquals(evaluated.value, 6, ` Expected integer evaluation mismatch`);
+  const evaluated = await testEval<objects.Integer>(
+    "let a = [1, 2, 3]; let double = fn(a) { a * 2 }; let b = map(a, double)[2]; puts(b); b;",
+  );
+  assertEquals(evaluated.value, 6, ` Expected integer evaluation mismatch`);
   const evaluated2 = await testEval<objects.Boolean>(
     "let a = 2; let isOdd = fn(a) { a % 2 == 1 }; let b = isOdd(2); b;",
   );
@@ -82,8 +82,8 @@ Deno.test("Test builtins", async () => {
 
 Deno.test("Test HTTP Get", async () => {
   const tests = [
-    {input: 'aget("https://dummyjson.com/test")', expected: '{"status":"ok","method":"GET"}'},
-    // {input: 'get("https://dummyjson.com/test1")', expected: ""}
+    {input: 'get("https://dummyjson.com/test")', expected: '{"status":"ok","method":"GET"}'},
+    {input: 'get("https://dummyjson.com/test1")', expected: ""}
   ]
   for (const [iteration, tt] of tests.entries()) {
     const evaluated = await testEval<objects.String>(tt.input);

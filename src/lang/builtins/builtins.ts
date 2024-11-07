@@ -3,13 +3,13 @@ import {
   appendFn,
   filterFn,
   joinFn,
-  // mapFn,
+  mapFn,
   prependFn,
   reduceFn,
 } from "./array.ts";
 import { readFileFn, writeFileFn } from "./file.ts";
 import { putsFn, typeFn } from "./general.ts";
-import { getAsyncFn, getFn } from "./http.ts";
+import { getAsyncFn, postAsyncFn } from "./http.ts";
 import { splitFn } from "./string.ts";
 import { lenFn } from "./string_and_array.ts";
 
@@ -27,7 +27,7 @@ const BUILTINS: Record<string, objects.BuiltIn> = {
   join: new objects.BuiltIn(joinFn),
   append: new objects.BuiltIn(appendFn),
   prepend: new objects.BuiltIn(prependFn),
-  // map: new objects.BuiltIn(mapFn),
+  map: new objects.BuiltIn(mapFn),
   filter: new objects.BuiltIn(filterFn),
   reduce: new objects.BuiltIn(reduceFn),
 
@@ -36,8 +36,8 @@ const BUILTINS: Record<string, objects.BuiltIn> = {
   writeFile: new objects.BuiltIn(writeFileFn),
 
   // http
-  get: new objects.BuiltIn(getFn),
-  aget: new objects.BuiltIn(getAsyncFn),
+  get: new objects.BuiltIn(getAsyncFn),
+  post: new objects.BuiltIn(postAsyncFn),
 };
 
 export default BUILTINS;

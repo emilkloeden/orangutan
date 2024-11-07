@@ -88,42 +88,44 @@ export const prependFn = (
   return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.ARRAY_OBJ);
 };
 
-// export const mapFn = async (
-//   env: Environment,
-//   currentFilePath: string,
-//   ...args: Promise<objects.Objects | null>[]
-// ): Promise<objects.Error | objects.ArrayObj> => {
-//   if (args.length !== 2) {
-//     return wrongNumberOfArgs(args.length, 2);
-//   }
-//   const arr = await args[0];
-//   const fn = await args[1];
-//   if (arr === null || fn === null) {
-//     return gotHostNull();
-//   }
-//   if (fn.objectType() !== objects.ObjectType.FUNCTION_OBJ) {
-//     return wrongTypeOfArgument(
-//       fn.objectType(),
-//       objects.ObjectType.FUNCTION_OBJ,
-//     );
-//   } else if (arr.objectType() !== objects.ObjectType.ARRAY_OBJ) {
-//     return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.ARRAY_OBJ);
-//   }
-//   if (arr.objectType() === objects.ObjectType.ARRAY_OBJ) {
-//     // const els = await 
-//     return new objects.ArrayObj((arr as objects.ArrayObj).elements.map(async (el) =>
-//       await applyFunction(fn, [el], env, currentFilePath)
-//     ));
-//   }
-//   // TODO: This is technically unreachable
-//   return new objects.ArrayObj([]);
-// };
-
-export const filterFn = (
+export const mapFn = async (
   env: Environment,
   currentFilePath: string,
   ...args: (objects.Objects | null)[]
-): objects.ArrayObj | objects.Error => {
+): Promise<objects.Error | objects.ArrayObj> => {
+  if (args.length !== 2) {
+    return wrongNumberOfArgs(args.length, 2);
+  }
+  const arr = await args[0];
+  const fn = await args[1];
+  if (arr === null || fn === null) {
+    return gotHostNull();
+  }
+  if (fn.objectType() !== objects.ObjectType.FUNCTION_OBJ) {
+    return wrongTypeOfArgument(
+      fn.objectType(),
+      objects.ObjectType.FUNCTION_OBJ,
+    );
+  } else if (arr.objectType() !== objects.ObjectType.ARRAY_OBJ) {
+    return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.ARRAY_OBJ);
+  }
+  if (arr.objectType() === objects.ObjectType.ARRAY_OBJ) {
+    const els = [];
+    for (const el of (arr as objects.ArrayObj).elements) {
+      const res = await applyFunction(fn, [el], env, currentFilePath);
+      els.push(res);
+    }
+    return new objects.ArrayObj(els);
+  }
+  // TODO: This is technically unreachable
+  return new objects.ArrayObj([]);
+};
+
+export const filterFn = async (
+  env: Environment,
+  currentFilePath: string,
+  ...args: (objects.Objects | null)[]
+): Promise<objects.Error | objects.ArrayObj> => {
   if (args.length !== 2) {
     return wrongNumberOfArgs(args.length, 2);
   }
@@ -141,10 +143,16 @@ export const filterFn = (
     return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.ARRAY_OBJ);
   }
   if (arr.objectType() === objects.ObjectType.ARRAY_OBJ) {
+    const  els = []
+    const elements = (arr as objects.ArrayObj).elements;
+    for (const el of elements) {
+      const res = await applyFunction(fn, [el], env, currentFilePath);
+      if (isTruthy(res)) {
+        els.push(res);
+      }
+    }
     return new objects.ArrayObj(
-      (arr as objects.ArrayObj).elements.filter(async (el) => {
-        return isTruthy(await applyFunction(fn, [el], env, currentFilePath));
-      }),
+      els
     );
   }
   // TODO: This is technically unreachable
