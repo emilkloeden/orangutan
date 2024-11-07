@@ -15,6 +15,7 @@ export enum ObjectType {
   ARRAY_OBJ = "ARRAY",
   HASH_OBJ = "HASH",
   MODULE = "MODULE",
+  MODULE_FUNCTION = "MODULE_FUNCTION",
 }
 
 export interface Objects {
@@ -130,7 +131,7 @@ type BuiltinFunction = (
   env: Environment,
   currentFilePath: string,
   ...args: (Objects | null)[]
-) => Objects;
+) => Promise<Objects> | Objects;
 
 export class BuiltIn implements Objects {
   // TODO: Confirm signature
@@ -138,11 +139,11 @@ export class BuiltIn implements Objects {
   objectType = () => ObjectType.BUILTIN_OBJ;
   toString = () => "builtin function";
 
-  invoke = (
+  invoke = async (
     env: Environment,
     currentFilePath: string,
     ...args: (Objects | null)[]
-  ) => this.fn(env, currentFilePath, ...args);
+  ) => await this.fn(env, currentFilePath, ...args);
 }
 
 export class ArrayObj implements Objects {

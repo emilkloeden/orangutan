@@ -12,11 +12,11 @@ import {
   wrongTypeOfArgument,
 } from "./_helpers.ts";
 
-export const joinFn = (
+export const joinFn = async (
   _env: Environment,
   _currentFilePath: string,
   ...args: (objects.Objects | null)[]
-): objects.String | objects.Error => {
+): Promise<objects.String | objects.Error> => {
   if (args.length !== 2) {
     return wrongNumberOfArgs(args.length, 2);
   }
@@ -88,11 +88,44 @@ export const prependFn = (
   return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.ARRAY_OBJ);
 };
 
-export const mapFn = (
+export const mapFn = async (
   env: Environment,
   currentFilePath: string,
   ...args: (objects.Objects | null)[]
-): objects.ArrayObj | objects.Error => {
+): Promise<objects.Error | objects.ArrayObj> => {
+  if (args.length !== 2) {
+    return wrongNumberOfArgs(args.length, 2);
+  }
+  const arr = await args[0];
+  const fn = await args[1];
+  if (arr === null || fn === null) {
+    return gotHostNull();
+  }
+  if (fn.objectType() !== objects.ObjectType.FUNCTION_OBJ) {
+    return wrongTypeOfArgument(
+      fn.objectType(),
+      objects.ObjectType.FUNCTION_OBJ,
+    );
+  } else if (arr.objectType() !== objects.ObjectType.ARRAY_OBJ) {
+    return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.ARRAY_OBJ);
+  }
+  if (arr.objectType() === objects.ObjectType.ARRAY_OBJ) {
+    const els = [];
+    for (const el of (arr as objects.ArrayObj).elements) {
+      const res = await applyFunction(fn, [el], env, currentFilePath);
+      els.push(res);
+    }
+    return new objects.ArrayObj(els);
+  }
+  // TODO: This is technically unreachable
+  return new objects.ArrayObj([]);
+};
+
+export const filterFn = async (
+  env: Environment,
+  currentFilePath: string,
+  ...args: (objects.Objects | null)[]
+): Promise<objects.Error | objects.ArrayObj> => {
   if (args.length !== 2) {
     return wrongNumberOfArgs(args.length, 2);
   }
@@ -110,53 +143,27 @@ export const mapFn = (
     return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.ARRAY_OBJ);
   }
   if (arr.objectType() === objects.ObjectType.ARRAY_OBJ) {
+    const  els = []
+    const elements = (arr as objects.ArrayObj).elements;
+    for (const el of elements) {
+      const res = await applyFunction(fn, [el], env, currentFilePath);
+      if (isTruthy(res)) {
+        els.push(res);
+      }
+    }
     return new objects.ArrayObj(
-      (arr as objects.ArrayObj).elements.map((el) =>
-        applyFunction(fn, [el], env, currentFilePath)
-      ),
+      els
     );
   }
   // TODO: This is technically unreachable
   return new objects.ArrayObj([]);
 };
 
-export const filterFn = (
+export const reduceFn = async (
   env: Environment,
   currentFilePath: string,
   ...args: (objects.Objects | null)[]
-): objects.ArrayObj | objects.Error => {
-  if (args.length !== 2) {
-    return wrongNumberOfArgs(args.length, 2);
-  }
-  const arr = args[0];
-  const fn = args[1];
-  if (arr === null || fn === null) {
-    return gotHostNull();
-  }
-  if (fn.objectType() !== objects.ObjectType.FUNCTION_OBJ) {
-    return wrongTypeOfArgument(
-      fn.objectType(),
-      objects.ObjectType.FUNCTION_OBJ,
-    );
-  } else if (arr.objectType() !== objects.ObjectType.ARRAY_OBJ) {
-    return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.ARRAY_OBJ);
-  }
-  if (arr.objectType() === objects.ObjectType.ARRAY_OBJ) {
-    return new objects.ArrayObj(
-      (arr as objects.ArrayObj).elements.filter((el) => {
-        return isTruthy(applyFunction(fn, [el], env, currentFilePath));
-      }),
-    );
-  }
-  // TODO: This is technically unreachable
-  return new objects.ArrayObj([]);
-};
-
-export const reduceFn = (
-  env: Environment,
-  currentFilePath: string,
-  ...args: (objects.Objects | null)[]
-): objects.Objects | objects.Error => {
+): Promise<objects.Objects | objects.Error> => {
   if (args.length < 2 || args.length > 3) {
     return wrongNumberOfArgs(args.length, 2);
   }
@@ -195,7 +202,7 @@ export const reduceFn = (
   }
 
   for (let i = startIdx; i < elements.length; i++) {
-    accumulator = applyFunction(
+    accumulator = await applyFunction(
       fn,
       [accumulator, elements[i]],
       env,

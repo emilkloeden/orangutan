@@ -127,7 +127,14 @@ export default class Lexer {
     } else if (this.ch == "]") {
       tok = new Token(TokenType.RBRACKET, this.ch);
     } else if (this.ch == ":") {
-      tok = new Token(TokenType.COLON, this.ch);
+      if (this.peekChar() == ":") {
+        const ch = this.ch;
+        this.readChar();
+        const literal = `${ch}${this.ch}`;
+        tok = new Token(TokenType.DOUBLE_COLON, literal);
+      } else {
+        tok = new Token(TokenType.COLON, this.ch);
+      }
     } else if (this.ch == ".") {
       tok = new Token(TokenType.PERIOD, this.ch);
     } else if (this.ch == "\0") {

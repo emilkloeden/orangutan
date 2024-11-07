@@ -9,69 +9,69 @@ import Lexer from "../lexer/lexer.ts";
 import Parser from "../parser/parser.ts";
 import { ObjectType } from "../objects/objects.ts";
 
-const evaluate = (
+const evaluate = async (
   node: ast.Node | null,
   env: Environment,
   currentFilePath: string,
-): objects.Objects | null => {
+): Promise<objects.Objects | null> => {
   if (node === null) {
     return newError(`node is null`);
   }
   if (node instanceof ast.Program) {
-    return evaluateProgram(node, env, currentFilePath);
+    return await evaluateProgram(node, env, currentFilePath);
   } else if (node instanceof ast.ExpressionStatement) {
-    return evaluate(node.expression, env, currentFilePath);
+    return await evaluate(node.expression, env, currentFilePath);
   } else if (node instanceof ast.BlockStatement) {
-    return evaluateBlockStatement(node, env, currentFilePath);
+    return await evaluateBlockStatement(node, env, currentFilePath);
   } else if (node instanceof ast.ReturnStatement) {
-    const value = evaluate(node.returnValue, env, currentFilePath);
+    const value = await evaluate(node.returnValue, env, currentFilePath);
     if (isError(value)) {
       return value;
     }
     return new objects.ReturnValue(value);
   } else if (node instanceof ast.LetStatement) {
-    const val = evaluate(node.value, env, currentFilePath);
+    const val = await evaluate(node.value, env, currentFilePath);
     if (isError(val)) {
       return val;
     }
     env.set(node.name.value, val);
   } else if (node instanceof ast.UseExpression) {
-    return evaluateUseExpression(node, env, currentFilePath);
+    return await evaluateUseExpression(node, env, currentFilePath);
   } else if (node instanceof ast.IntegerLiteral) {
     return new objects.Integer(node.value);
   } else if (node instanceof ast.StringLiteral) {
     return new objects.String(node.value);
   } else if (node instanceof ast.ArrayLiteral) {
-    const elements = evaluateExpressions(node.elements, env, currentFilePath);
+    const elements = await evaluateExpressions(node.elements, env, currentFilePath);
     if (elements.length === 1 && isError(elements[0])) {
       return elements[0];
     }
     return new objects.ArrayObj(elements);
   } else if (node instanceof ast.HashLiteral) {
-    return evaluateHashLiteral(node, env, currentFilePath);
+    return await evaluateHashLiteral(node, env, currentFilePath);
   } else if (node instanceof ast.Boolean) {
     if (node.value) {
       return new objects.Boolean(true);
     }
     return new objects.Boolean(false);
   } else if (node instanceof ast.PrefixExpression) {
-    const right = evaluate(node.right, env, currentFilePath);
+    const right = await evaluate(node.right, env, currentFilePath);
     if (isError(right)) {
       return right;
     }
     return evaluatePrefixExpression(node.operator, right);
   } else if (node instanceof ast.InfixExpression) {
-    const left = evaluate(node.left, env, currentFilePath);
+    const left = await evaluate(node.left, env, currentFilePath);
     if (isError(left)) {
       return left;
     }
-    const right = evaluate(node.right, env, currentFilePath);
+    const right = await evaluate(node.right, env, currentFilePath);
     if (isError(right)) {
       return right;
     }
     return evaluateInfixExpression(node.operator, left, right);
   } else if (node instanceof ast.IfExpression) {
-    return evaluateIfExpression(node, env, currentFilePath);
+    return await evaluateIfExpression(node, env, currentFilePath);
   } else if (node instanceof ast.Identifier) {
     return evaluateIdentifier(node, env);
   } else if (node instanceof ast.FunctionLiteral) {
@@ -79,41 +79,50 @@ const evaluate = (
     const body = node.body;
     return new objects.Function(params, body, env);
   } else if (node instanceof ast.CallExpression) {
-    const fn = evaluate(node.fn, env, currentFilePath);
-    if (isError(fn)) {
-      return fn;
-    }
-    const args = evaluateExpressions(node.arguments, env, currentFilePath);
-    if (args.length === 1 && isError(args[0])) {
-      return args[0];
-    }
-    return applyFunction(fn, args, env, currentFilePath);
+    return await evaluateCallExpression(node, env, currentFilePath);
   } else if (node instanceof ast.IndexExpression) {
-    const left = evaluate(node.left, env, currentFilePath);
+    const left = await evaluate(node.left, env, currentFilePath);
     if (isError(left)) {
       return left;
     }
-    const index = evaluate(node.index, env, currentFilePath);
+    const index = await evaluate(node.index, env, currentFilePath);
     if (isError(index)) {
       return index;
     }
     return evaluateIndexExpression(left, index);
   } else if (node instanceof ast.PropertyAccessExpression) {
-    return evaluatePropertyAccessExpression(node, env, currentFilePath);
+    return await evaluatePropertyAccessExpression(node, env, currentFilePath);
   } else if (node instanceof ast.WhileStatement) {
-    return evaluateWhileStatement(node, env, currentFilePath);
+    return await evaluateWhileStatement(node, env, currentFilePath);
   }
   return null;
 };
 
 export default evaluate;
 
-const evaluatePropertyAccessExpression = (
+const evaluateCallExpression = async (
+  node: ast.CallExpression,
+  env: Environment,
+  currentFilePath: string
+): Promise<objects.Objects | null> => {
+  const fn = await evaluate(node.fn, env, currentFilePath);
+    if (isError(fn)) {
+      return fn;
+    }
+    const args = await evaluateExpressions(node.arguments, env, currentFilePath);
+    if (args.length === 1 && isError(args[0])) {
+      return args[0];
+    }
+    return await applyFunction(fn, args, env, currentFilePath);
+  
+}
+
+const evaluatePropertyAccessExpression = async (
   node: ast.PropertyAccessExpression,
   env: Environment,
   currentFilePath: string,
-): objects.Objects | null => {
-  let result = evaluate(node.left, env, currentFilePath); // Evaluate 'a' in 'a.person.name'
+): Promise<objects.Objects | null> => {
+  let result = await evaluate(node.left, env, currentFilePath); // Evaluate 'a' in 'a.person.name'
 
   if (isError(result)) {
     return result;
@@ -146,15 +155,15 @@ const evaluatePropertyAccessExpression = (
   return result;
 };
 
-const evaluateProgram = (
+const evaluateProgram = async (
   program: ast.Program,
   env: Environment,
   currentFilePath: string,
-): objects.Objects | null => {
+): Promise<objects.Objects | null> => {
   let result: objects.Objects | null = null;
 
   for (const statement of program.statements) {
-    result = evaluate(statement, env, currentFilePath);
+    result = await evaluate(statement, env, currentFilePath);
     if (result instanceof objects.ReturnValue) {
       return result.value;
     } else if (result instanceof objects.Error) {
@@ -164,14 +173,14 @@ const evaluateProgram = (
   return result;
 };
 
-const evaluateBlockStatement = (
+const evaluateBlockStatement = async (
   block: ast.BlockStatement,
   env: Environment,
   currentFilePath: string,
-): objects.Objects | null => {
+): Promise<objects.Objects | null> => {
   let result: objects.Objects | null = null;
   for (const statement of block.statements) {
-    result = evaluate(statement, env, currentFilePath);
+    result = await evaluate(statement, env, currentFilePath);
     if (result !== null) {
       if (
         [ObjectType.RETURN_VALUE_OBJ, ObjectType.ERROR_OBJ].includes(
@@ -185,18 +194,18 @@ const evaluateBlockStatement = (
   return result;
 };
 
-const evaluateWhileStatement = (
+const evaluateWhileStatement = async (
   stmt: ast.WhileStatement,
   env: Environment,
   currentFilePath: string,
 ) => {
   while (true) {
-    const evaluated = evaluate(stmt.condition, env, currentFilePath);
+    const evaluated = await evaluate(stmt.condition, env, currentFilePath);
     if (isError(evaluated) || evaluated === null) {
       return evaluated;
     }
     if (isTruthy(evaluated)) {
-      const consequence = evaluate(stmt.body, env, currentFilePath);
+      const consequence = await evaluate(stmt.body, env, currentFilePath);
       if (isError(consequence)) {
         return consequence;
       }
@@ -207,17 +216,17 @@ const evaluateWhileStatement = (
   return null;
 };
 
-const evaluateExpressions = (
+const evaluateExpressions = async (
   expressions: (ast.Expression | null)[] | null,
   env: Environment,
   currentFilePath: string,
-): (objects.Objects | null)[] => {
+): Promise<(objects.Objects | null)[]> => {
   const result: (objects.Objects | null)[] = [];
   if (expressions === null) {
     return [];
   }
   for (const expression of expressions) {
-    const evaluated = evaluate(expression, env, currentFilePath);
+    const evaluated = await evaluate(expression, env, currentFilePath);
     if (isError(evaluated)) {
       return [evaluated];
     }
@@ -226,17 +235,17 @@ const evaluateExpressions = (
   return result;
 };
 
-const evaluateUseExpression = (
+const evaluateUseExpression = async (
   node: ast.UseExpression,
   env: Environment,
   currentFilePath: string,
-): objects.Objects | null => {
+): Promise<objects.Objects | null> => {
   const moduleName = (node.value as unknown as objects.String).value;
   const modulePath = resolveModulePath(currentFilePath, moduleName);
   // Load and parse the module
   const moduleEnv = new Environment({}, env);
   const module = loadModule(modulePath);
-  evaluateProgram(module, moduleEnv, currentFilePath);
+  await evaluateProgram(module, moduleEnv, currentFilePath);
 
   // Create a hash to represent the module's namespace
   const pairs: Map<string, objects.HashPair> = new Map();
@@ -250,15 +259,15 @@ const evaluateUseExpression = (
   return new objects.Hash(pairs); // Return the module's environment as a hash
 };
 
-const evaluateHashLiteral = (
+const evaluateHashLiteral = async (
   node: ast.HashLiteral,
   env: Environment,
   currentFilePath: string,
-): objects.Objects | null => {
+): Promise<objects.Objects | null> => {
   const pairs: Map<string, objects.HashPair> = new Map();
 
   for (const [keyNode, valueNode] of node.pairs) {
-    const key = evaluate(keyNode, env, currentFilePath);
+    const key = await evaluate(keyNode, env, currentFilePath);
     if (isError(key)) {
       return key;
     }
@@ -267,7 +276,7 @@ const evaluateHashLiteral = (
       return newError(`unusable as hash key: ${key?.objectType()}`);
     }
 
-    const value = evaluate(valueNode, env, currentFilePath);
+    const value = await evaluate(valueNode, env, currentFilePath);
     if (isError(value)) {
       return value;
     }
@@ -355,21 +364,21 @@ const evaluateInfixExpression = (
   );
 };
 
-const evaluateIfExpression = (
+const evaluateIfExpression = async (
   expression: ast.IfExpression,
   env: Environment,
   currentFilePath: string,
-): objects.Objects | null => {
-  const condition = evaluate(expression.condition, env, currentFilePath);
+): Promise<objects.Objects | null> => {
+  const condition = await evaluate(expression.condition, env, currentFilePath);
   if (isError(condition)) {
     return condition;
   }
   if (isTruthy(condition)) {
-    return evaluate(expression.consequence, env, currentFilePath);
+    return await evaluate(expression.consequence, env, currentFilePath);
   }
   // If no else block, alternative is undefined (not null)
   if (expression.alternative !== undefined) {
-    return evaluate(expression.alternative, env, currentFilePath);
+    return await evaluate(expression.alternative, env, currentFilePath);
   }
   return new objects.Null();
 };
@@ -584,19 +593,19 @@ const isHashable = (obj: any): obj is objects.Hashable => {
 //   return newError(`not a function ${fn!.objectType()}`);
 // };
 
-export const applyFunction = (
+export const applyFunction = async (
   fn: objects.Objects | null,
   args: (objects.Objects | null)[],
   env: Environment, // Add the environment
   currentFilePath: string, // Add the current file path
-): objects.Objects | null => {
+): Promise<objects.Objects | null> => {
   if (fn instanceof objects.Function) {
     const extendedEnv = extendFunctionEnv(fn, args);
     if (extendedEnv instanceof objects.Error) {
       return extendedEnv;
     }
 
-    const evaluated = evaluate(fn.body, extendedEnv, currentFilePath); // Pass the currentFilePath
+    const evaluated = await evaluate(fn.body, extendedEnv, currentFilePath); // Pass the currentFilePath
     if (evaluated === null) {
       return evaluated;
     }
@@ -604,7 +613,7 @@ export const applyFunction = (
     return unwrapReturnValue(evaluated);
   } else if (fn instanceof objects.BuiltIn) {
     // Pass the environment and currentFilePath to the built-in function
-    return fn.invoke(env, currentFilePath, ...args);
+    return await fn.invoke(env, currentFilePath, ...args);
   }
   return newError(`not a function ${fn!.objectType()}`);
 };
