@@ -18,11 +18,11 @@ export const lenFn = async (
   if (arg === null) {
     return gotHostNull();
   }
-  if (arg.objectType() === objects.ObjectType.ARRAY_OBJ) {
-    return new objects.Integer((arg as objects.ArrayObj).elements.length);
-  } else if (arg.objectType() === objects.ObjectType.STRING_OBJ) {
-    return new objects.Integer((arg as objects.String).value.length);
+  if (arg instanceof objects.ArrayObj) {
+    return new objects.Integer(arg.elements.length);
+  } else if (arg instanceof objects.String) {
+    return new objects.Integer(arg.value.length);
   }
   // TODO: Fix to allow expected to be String | Array
-  return wrongTypeOfArgument(arg.objectType(), objects.ObjectType.ARRAY_OBJ);
+  return wrongTypeOfArgument(arg._type, objects.ObjectType.ARRAY_OBJ);
 };

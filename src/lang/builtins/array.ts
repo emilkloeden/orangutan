@@ -27,23 +27,23 @@ export const joinFn = async (
   }
 
   if (
-    arr.objectType() === objects.ObjectType.ARRAY_OBJ &&
-    joiner.objectType() === objects.ObjectType.STRING_OBJ
+    arr instanceof objects.ArrayObj &&
+    joiner instanceof objects.String
   ) {
-    const elementValues = (arr as objects.ArrayObj).elements;
-    if (elementValues.some((el) => el?.objectType() !== "STRING")) {
+    const elementValues = arr.elements;
+    if (elementValues.some((el) => (!(el instanceof objects.String)))) {
       return newError(`Attempted to join an array that contains non-strings.`);
     }
 
     const elementStrings = elementValues.map(
       (s) => (s as objects.String).value,
     );
-    const joined = elementStrings.join((joiner as objects.String).value);
+    const joined = elementStrings.join(joiner.value);
 
     return new objects.String(joined);
   }
   // TODO: Fix to handle both arguments
-  return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.STRING_OBJ);
+  return wrongTypeOfArgument(arr._type, objects.ObjectType.STRING_OBJ);
 };
 
 export const appendFn = (
@@ -59,12 +59,12 @@ export const appendFn = (
   if (arr === null || el === null) {
     return gotHostNull();
   }
-  if (arr.objectType() === objects.ObjectType.ARRAY_OBJ) {
-    const intermediate = [...(arr as objects.ArrayObj).elements, el];
+  if (arr instanceof objects.ArrayObj) {
+    const intermediate = [...arr.elements, el];
     return new objects.ArrayObj(intermediate);
   }
 
-  return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.ARRAY_OBJ);
+  return wrongTypeOfArgument(arr._type, objects.ObjectType.ARRAY_OBJ);
 };
 
 export const prependFn = (
@@ -80,12 +80,12 @@ export const prependFn = (
   if (arr === null || el === null) {
     return gotHostNull();
   }
-  if (arr.objectType() === objects.ObjectType.ARRAY_OBJ) {
+  if (arr instanceof objects.ArrayObj) {
     const intermediate = [el, ...(arr as objects.ArrayObj).elements];
     return new objects.ArrayObj(intermediate);
   }
 
-  return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.ARRAY_OBJ);
+  return wrongTypeOfArgument(arr._type, objects.ObjectType.ARRAY_OBJ);
 };
 
 export const mapFn = async (
@@ -96,22 +96,23 @@ export const mapFn = async (
   if (args.length !== 2) {
     return wrongNumberOfArgs(args.length, 2);
   }
-  const arr = await args[0];
-  const fn = await args[1];
+  const arr = args[0];
+  const fn = args[1];
   if (arr === null || fn === null) {
     return gotHostNull();
   }
-  if (fn.objectType() !== objects.ObjectType.FUNCTION_OBJ) {
+  if (!(fn instanceof objects.Function)) {
     return wrongTypeOfArgument(
-      fn.objectType(),
+      fn._type,
       objects.ObjectType.FUNCTION_OBJ,
     );
-  } else if (arr.objectType() !== objects.ObjectType.ARRAY_OBJ) {
-    return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.ARRAY_OBJ);
+  } else if (!(arr instanceof objects.ArrayObj)) {
+    console.log(arr);
+    return wrongTypeOfArgument(arr._type, objects.ObjectType.ARRAY_OBJ);
   }
-  if (arr.objectType() === objects.ObjectType.ARRAY_OBJ) {
+  if (arr instanceof objects.ArrayObj) {
     const els = [];
-    for (const el of (arr as objects.ArrayObj).elements) {
+    for (const el of arr.elements) {
       const res = await applyFunction(fn, [el], env, currentFilePath);
       els.push(res);
     }
@@ -134,25 +135,24 @@ export const filterFn = async (
   if (arr === null || fn === null) {
     return gotHostNull();
   }
-  if (fn.objectType() !== objects.ObjectType.FUNCTION_OBJ) {
+  if (!(fn instanceof objects.Function)) {
     return wrongTypeOfArgument(
-      fn.objectType(),
+      fn._type,
       objects.ObjectType.FUNCTION_OBJ,
     );
-  } else if (arr.objectType() !== objects.ObjectType.ARRAY_OBJ) {
-    return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.ARRAY_OBJ);
+  } else if (!(arr instanceof objects.ArrayObj)) {
+    return wrongTypeOfArgument(arr._type, objects.ObjectType.ARRAY_OBJ);
   }
-  if (arr.objectType() === objects.ObjectType.ARRAY_OBJ) {
-    const  els = []
-    const elements = (arr as objects.ArrayObj).elements;
-    for (const el of elements) {
+  if (arr instanceof objects.ArrayObj) {
+    const els = [];
+    for (const el of arr.elements) {
       const res = await applyFunction(fn, [el], env, currentFilePath);
       if (isTruthy(res)) {
         els.push(res);
       }
     }
     return new objects.ArrayObj(
-      els
+      els,
     );
   }
   // TODO: This is technically unreachable
@@ -176,16 +176,16 @@ export const reduceFn = async (
     return gotHostNull();
   }
 
-  if (fn.objectType() !== objects.ObjectType.FUNCTION_OBJ) {
+  if (!(fn instanceof objects.Function)) {
     return wrongTypeOfArgument(
-      fn.objectType(),
+      fn._type,
       objects.ObjectType.FUNCTION_OBJ,
     );
-  } else if (arr.objectType() !== objects.ObjectType.ARRAY_OBJ) {
-    return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.ARRAY_OBJ);
+  } else if (!(arr instanceof objects.ArrayObj)) {
+    return wrongTypeOfArgument(arr._type, objects.ObjectType.ARRAY_OBJ);
   }
 
-  const elements = (arr as objects.ArrayObj).elements;
+  const elements = arr.elements;
 
   let accumulator: objects.Objects | null = initialValue;
   let startIdx = 0;

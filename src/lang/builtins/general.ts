@@ -31,5 +31,5 @@ export const typeFn = async (
   if (arg === null) {
     return new objects.String("Host language null");
   }
-  return new objects.String(arg.objectType());
+  return new objects.String(arg._type);
 };

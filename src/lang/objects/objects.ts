@@ -19,7 +19,7 @@ export enum ObjectType {
 }
 
 export interface Objects {
-  objectType: () => ObjectType;
+  readonly _type: ObjectType;
 }
 
 export interface Hashable {
@@ -31,44 +31,47 @@ export class Boolean implements Objects, Hashable {
   // private readonly _falseInstance = false;
   // private readonly _trueInstance = true;
 
+  public readonly _type = ObjectType.BOOLEAN_OBJ;
+
   constructor(public value: boolean) {}
 
-  objectType = () => ObjectType.BOOLEAN_OBJ;
   toString = () => this.value.toString().toLowerCase();
   hashKey = () => {
     const val = this.value ? "1" : "0";
-    return new HashKey(this.objectType(), val);
+    return new HashKey(this._type, val);
   };
 }
 
 export class Integer implements Objects, Hashable {
+  public readonly _type = ObjectType.INTEGER_OBJ;
+
   constructor(public value: number) {}
 
-  objectType = () => ObjectType.INTEGER_OBJ;
   toString = () => this.value.toString();
   hashKey = () => {
-    return new HashKey(this.objectType(), this.value.toString());
+    return new HashKey(this._type, this.value.toString());
   };
 }
 
 export class String implements Objects, Hashable {
+  public readonly _type = ObjectType.STRING_OBJ;
+
   constructor(public value: string) {}
 
-  objectType = () => ObjectType.STRING_OBJ;
   toString = () => this.value;
   hashKey = () => {
     const hash = crypto.createHmac("sha256", this.value).digest("hex");
 
-    return new HashKey(this.objectType(), hash);
+    return new HashKey(this._type, hash);
   };
 }
 
 export class HashKey {
   // TODO: Confirm value type, monkey uses uint64 but, we're using a hash .hexdigest()?
-  constructor(public objectType: ObjectType, public value: string) {}
+  constructor(public readonly _type: ObjectType, public value: string) {}
 
   toString = () => {
-    return `${this.objectType}:${this.value}`;
+    return `${this._type}:${this.value}`;
   };
 }
 export class HashPair {
@@ -76,17 +79,18 @@ export class HashPair {
 }
 
 export class Hash implements Objects {
+  public readonly _type = ObjectType.HASH_OBJ;
+
   constructor(public pairs: Map<string, HashPair>) {}
 
-  objectType = () => ObjectType.HASH_OBJ;
   toString = () => {
     const str = Array.from(this.pairs.values()).map(({ key, value }) =>
       `${
-        key?.objectType() == ObjectType.STRING_OBJ
+        key?._type == ObjectType.STRING_OBJ
           ? '"' + key?.toString() + '"'
           : key?.toString()
       }: ${
-        value?.objectType() === ObjectType.STRING_OBJ
+        value?._type === ObjectType.STRING_OBJ
           ? '"' + value?.toString() + '"'
           : value?.toString()
       }`
@@ -96,30 +100,37 @@ export class Hash implements Objects {
 }
 
 export class Null implements Objects {
+  public readonly _type = ObjectType.NULL_OBJ;
   public value = null;
-  objectType = () => ObjectType.NULL_OBJ;
+
   toString = () => "null";
 }
 
 export class ReturnValue implements Objects {
+  public readonly _type = ObjectType.RETURN_VALUE_OBJ;
+
   constructor(public value: Objects | null) {}
-  objectType = () => ObjectType.RETURN_VALUE_OBJ;
+
   toString = () => this.value?.toString() ?? "null";
 }
 
 export class Error implements Objects {
+  public readonly _type = ObjectType.ERROR_OBJ;
+
   constructor(public message: string) {}
-  objectType = () => ObjectType.ERROR_OBJ;
+
   toString = () => `ERROR: ${this.message.toString()}`;
 }
 
 export class Function implements Objects {
+  public readonly _type = ObjectType.FUNCTION_OBJ;
+
   constructor(
     public parameters: ast.Identifier[] | null,
     public body: ast.BlockStatement,
     public env: Environment,
   ) {}
-  objectType = () => ObjectType.FUNCTION_OBJ;
+
   toString = () => {
     const paramsString = this.parameters?.map((p) => p.toString()).join(", ");
     const bodyString = this.body.toString();
@@ -135,8 +146,10 @@ type BuiltinFunction = (
 
 export class BuiltIn implements Objects {
   // TODO: Confirm signature
+  public readonly _type = ObjectType.BUILTIN_OBJ;
+
   constructor(public fn: BuiltinFunction) {}
-  objectType = () => ObjectType.BUILTIN_OBJ;
+
   toString = () => "builtin function";
 
   invoke = async (
@@ -147,8 +160,10 @@ export class BuiltIn implements Objects {
 }
 
 export class ArrayObj implements Objects {
+  public readonly _type = ObjectType.ARRAY_OBJ;
+
   constructor(public elements: (Objects | null)[]) {}
-  objectType = () => ObjectType.ARRAY_OBJ;
+
   toString = () =>
     "[" + this.elements.map((e) => e?.toString() ?? "null").join(", ") + "]";
 }

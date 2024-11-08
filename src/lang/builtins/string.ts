@@ -21,16 +21,15 @@ export const splitFn = async (
   }
 
   if (
-    item.objectType() === objects.ObjectType.STRING_OBJ &&
-    splitter.objectType() === objects.ObjectType.STRING_OBJ
+    item instanceof objects.String && splitter instanceof objects.String
   ) {
-    const elementStrings = (item as objects.String).value.split(
-      (splitter as objects.String).value,
+    const elementStrings = item.value.split(
+      splitter.value,
     );
     const elementObjects = elementStrings.map((s) => new objects.String(s));
 
     return new objects.ArrayObj(elementObjects);
   }
   // TODO: Fix to handle both arguments
-  return wrongTypeOfArgument(item.objectType(), objects.ObjectType.STRING_OBJ);
+  return wrongTypeOfArgument(item._type, objects.ObjectType.STRING_OBJ);
 };

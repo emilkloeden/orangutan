@@ -42,7 +42,11 @@ const evaluate = async (
   } else if (node instanceof ast.StringLiteral) {
     return new objects.String(node.value);
   } else if (node instanceof ast.ArrayLiteral) {
-    const elements = await evaluateExpressions(node.elements, env, currentFilePath);
+    const elements = await evaluateExpressions(
+      node.elements,
+      env,
+      currentFilePath,
+    );
     if (elements.length === 1 && isError(elements[0])) {
       return elements[0];
     }
@@ -103,19 +107,18 @@ export default evaluate;
 const evaluateCallExpression = async (
   node: ast.CallExpression,
   env: Environment,
-  currentFilePath: string
+  currentFilePath: string,
 ): Promise<objects.Objects | null> => {
   const fn = await evaluate(node.fn, env, currentFilePath);
-    if (isError(fn)) {
-      return fn;
-    }
-    const args = await evaluateExpressions(node.arguments, env, currentFilePath);
-    if (args.length === 1 && isError(args[0])) {
-      return args[0];
-    }
-    return await applyFunction(fn, args, env, currentFilePath);
-  
-}
+  if (isError(fn)) {
+    return fn;
+  }
+  const args = await evaluateExpressions(node.arguments, env, currentFilePath);
+  if (args.length === 1 && isError(args[0])) {
+    return args[0];
+  }
+  return await applyFunction(fn, args, env, currentFilePath);
+};
 
 const evaluatePropertyAccessExpression = async (
   node: ast.PropertyAccessExpression,
@@ -138,7 +141,7 @@ const evaluatePropertyAccessExpression = async (
     );
 
     if (!isHashable(propertyKey)) {
-      return newError(`unusable as hash key: `); //TODO: fix${propertyKey?.objectType()}`);
+      return newError(`unusable as hash key: `); //TODO: fix${propertyKey?._type}`);
     }
 
     // Evaluate this step, like 'a["person"]'
@@ -183,9 +186,7 @@ const evaluateBlockStatement = async (
     result = await evaluate(statement, env, currentFilePath);
     if (result !== null) {
       if (
-        [ObjectType.RETURN_VALUE_OBJ, ObjectType.ERROR_OBJ].includes(
-          result.objectType(),
-        )
+        result instanceof objects.ReturnValue || result instanceof objects.Error
       ) {
         return result;
       }
@@ -273,7 +274,7 @@ const evaluateHashLiteral = async (
     }
 
     if (!isHashable(key)) {
-      return newError(`unusable as hash key: ${key?.objectType()}`);
+      return newError(`unusable as hash key: ${key?._type}`);
     }
 
     const value = await evaluate(valueNode, env, currentFilePath);
@@ -299,7 +300,7 @@ const evaluatePrefixExpression = (
   } else if (operator === "-") {
     return evaluateMinusPrefixOperatorExpression(right);
   } else {
-    return newError(`unknown operator: ${operator}${right.objectType()}`);
+    return newError(`unknown operator: ${operator}${right._type}`);
   }
 };
 
@@ -312,25 +313,23 @@ const evaluateInfixExpression = (
     return newError("Issue with infixExpression");
   }
   if (
-    left.objectType() === right.objectType() &&
-    left.objectType() === ObjectType.INTEGER_OBJ
+    left instanceof objects.Integer && right instanceof objects.Integer
   ) {
     return evaluateIntegerInfixExpression(
       operator,
-      left as objects.Integer,
-      right as objects.Integer,
+      left,
+      right,
     );
   } else if (
-    left.objectType() === right.objectType() &&
-    left.objectType() === ObjectType.STRING_OBJ
+    left instanceof objects.String && right instanceof objects.String
   ) {
     return evaluateStringInfixExpression(
       operator,
-      left as objects.String,
-      right as objects.String,
+      left,
+      right,
     );
-  } // else if (left.objectType() === right.objectType() && left.objectType() === ObjectType.ARRAY_OBJ) {
-  //     return evaluateArrayInfixExpression(operator, left as objects.Array, right as objects.Array)
+  } // else if (left instanceof objects.ArrayObj && right instanceof objects.ArrayObj) {
+  //     return evaluateArrayInfixExpression(operator, left, right)
   // }
   else if (operator === "==") {
     return nativeBoolToBooleanObject(left === right);
@@ -338,29 +337,27 @@ const evaluateInfixExpression = (
     return nativeBoolToBooleanObject(left !== right);
   } else if (operator === "&&") {
     if (
-      left.objectType() === right.objectType() &&
-      left.objectType() === ObjectType.BOOLEAN_OBJ
+      left instanceof objects.Boolean && right instanceof objects.Boolean
     ) {
       return nativeBoolToBooleanObject(
-        (left as objects.Boolean).value && (right as objects.Boolean).value,
+        left.value && right.value,
       );
     }
   } else if (operator === "||") {
     if (
-      left.objectType() === right.objectType() &&
-      left.objectType() === ObjectType.BOOLEAN_OBJ
+      left instanceof objects.Boolean && right instanceof objects.Boolean
     ) {
       return nativeBoolToBooleanObject(
-        (left as objects.Boolean).value || (right as objects.Boolean).value,
+        left.value || right.value,
       );
     }
-  } else if (left.objectType() !== right.objectType()) {
+  } else if (left._type !== right._type) {
     return newError(
-      `type mismatch: ${left.objectType()} ${operator} ${right.objectType()}`,
+      `type mismatch: ${left._type} ${operator} ${right._type}`,
     );
   }
   return newError(
-    `unknown operator: ${left.objectType()} ${operator} ${right.objectType()}`,
+    `unknown operator: ${left._type} ${operator} ${right._type}`,
   );
 };
 
@@ -413,17 +410,17 @@ const evaluateIndexExpression = (
     return newError(`index object is null`);
   }
   if (
-    left.objectType() === ObjectType.ARRAY_OBJ &&
-    index.objectType() === ObjectType.INTEGER_OBJ
+    left instanceof objects.ArrayObj &&
+    index instanceof objects.Integer
   ) {
     return evaluateArrayIndexExpression(
-      left as objects.ArrayObj,
-      index as objects.Integer,
+      left,
+      index,
     );
-  } else if (left.objectType() === ObjectType.HASH_OBJ) {
+  } else if (left instanceof objects.Hash) {
     return evaluateHashIndexExpression(left, index);
   }
-  return newError(`index operator not supported: ${left.objectType()}`);
+  return newError(`index operator not supported: ${left._type}`);
 };
 
 const evaluateBangOperatorExpression = (
@@ -443,10 +440,10 @@ const evaluateBangOperatorExpression = (
 const evaluateMinusPrefixOperatorExpression = (
   right: objects.Objects,
 ): objects.Integer | objects.Error => {
-  if (right.objectType() !== ObjectType.INTEGER_OBJ) {
-    return newError(`unknown operator: -${right.objectType()}`);
+  if (!(right instanceof objects.Integer)) {
+    return newError(`unknown operator: -${right._type}`);
   }
-  return new objects.Integer(-(right as objects.Integer).value);
+  return new objects.Integer(-right.value);
 };
 
 const evaluateIntegerInfixExpression = (
@@ -481,7 +478,7 @@ const evaluateIntegerInfixExpression = (
     return nativeBoolToBooleanObject(left_value !== right_value);
   }
   return newError(
-    `unknown operator: ${left.objectType()} ${operator} ${right.objectType()}`,
+    `unknown operator: ${left._type} ${operator} ${right._type}`,
   );
 };
 
@@ -499,7 +496,7 @@ const evaluateStringInfixExpression = (
   }
 
   return newError(
-    `unknown operator: ${left.objectType()} ${operator} ${right.objectType()}`,
+    `unknown operator: ${left._type} ${operator} ${right._type}`,
   );
 };
 
@@ -521,10 +518,10 @@ const evaluateHashIndexExpression = (
   index: objects.Objects,
 ): objects.Objects | null => {
   if (!isHashable(index)) {
-    return newError(`unusable as hash key: ${index.objectType()}`);
+    return newError(`unusable as hash key: ${index._type}`);
   }
-  if (hashObj.objectType() !== ObjectType.HASH_OBJ) {
-    return newError(`hashObj not a Hash Obj: ${hashObj.objectType()}`);
+  if (hashObj._type !== ObjectType.HASH_OBJ) {
+    return newError(`hashObj not a Hash Obj: ${hashObj._type}`);
   }
   const hashKeyString = index.hashKey().toString();
   const pair = (hashObj as objects.Hash).pairs.get(hashKeyString);
@@ -536,7 +533,7 @@ const evaluateHashIndexExpression = (
 
 export const isError = (obj: objects.Objects | null): boolean => {
   if (obj !== null) {
-    return obj.objectType() === ObjectType.ERROR_OBJ;
+    return obj instanceof objects.Error;
   }
   return false;
 };
@@ -559,39 +556,16 @@ export const isTruthy = (obj: objects.Objects | null): boolean => {
 };
 
 const isTrue = (obj: objects.Objects | null) =>
-  obj?.objectType() === ObjectType.BOOLEAN_OBJ &&
-  (obj as objects.Boolean)?.value === true;
+  obj instanceof objects.Boolean &&
+  obj.value === true;
 const isFalse = (obj: objects.Objects | null) =>
-  obj?.objectType() === ObjectType.BOOLEAN_OBJ &&
-  (obj as objects.Boolean)?.value === false;
-
+  obj instanceof objects.Boolean &&
+  obj.value === false;
 // Helper function to check if an object is "Hashable"
 // deno-lint-ignore no-explicit-any
 const isHashable = (obj: any): obj is objects.Hashable => {
   return obj !== null && typeof obj.hashKey === "function";
 };
-
-// export const applyFunction = (
-//   fn: objects.Objects | null,
-//   args: (objects.Objects | null)[], currentFilePath: string
-// ): objects.Objects | null => {
-//   if (fn instanceof objects.Function) {
-//     const extendedEnv = extendFunctionEnv(fn, args);
-//     if (extendedEnv instanceof objects.Error) {
-//       return extendedEnv;
-//     }
-
-//     const evaluated = evaluate(fn.body, extendedEnv, currentFilePath);
-//     if (evaluated === null) {
-//       return evaluated;
-//     }
-
-//     return unwrapReturnValue(evaluated);
-//   } else if (fn instanceof objects.BuiltIn) {
-//     return fn.fn(...args);
-//   }
-//   return newError(`not a function ${fn!.objectType()}`);
-// };
 
 export const applyFunction = async (
   fn: objects.Objects | null,
@@ -615,7 +589,7 @@ export const applyFunction = async (
     // Pass the environment and currentFilePath to the built-in function
     return await fn.invoke(env, currentFilePath, ...args);
   }
-  return newError(`not a function ${fn!.objectType()}`);
+  return newError(`not a function ${fn!._type}`);
 };
 
 const extendFunctionEnv = (
