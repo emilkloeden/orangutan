@@ -8,7 +8,7 @@ import {
   reduceFn,
 } from "./array.ts";
 import { readFileFn, writeFileFn } from "./file.ts";
-import { putsFn, typeFn } from "./general.ts";
+import { ffiFn, putsFn, typeFn } from "./general.ts";
 import { getAsyncFn, postAsyncFn } from "./http.ts";
 import { splitFn } from "./string.ts";
 import { lenFn } from "./string_and_array.ts";
@@ -17,6 +17,7 @@ const BUILTINS: Record<string, objects.BuiltIn> = {
   // general
   puts: new objects.BuiltIn(putsFn),
   type: new objects.BuiltIn(typeFn),
+  ffi: new objects.BuiltIn(ffiFn),
   // string and array
   len: new objects.BuiltIn(lenFn),
 
