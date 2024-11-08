@@ -138,7 +138,7 @@ const evaluatePropertyAccessExpression = async (
     );
 
     if (!isHashable(propertyKey)) {
-      return newError(`unusable as hash key: `); //TODO: fix${propertyKey?.objectType()}`);
+      return newError(`unusable as hash key: `); //TODO: fix${propertyKey?._type}`);
     }
 
     // Evaluate this step, like 'a["person"]'
@@ -270,7 +270,7 @@ const evaluateHashLiteral = async (
     }
 
     if (!isHashable(key)) {
-      return newError(`unusable as hash key: ${key?.objectType()}`);
+      return newError(`unusable as hash key: ${key?._type}`);
     }
 
     const value = await evaluate(valueNode, env, currentFilePath);
@@ -296,7 +296,7 @@ const evaluatePrefixExpression = (
   } else if (operator === "-") {
     return evaluateMinusPrefixOperatorExpression(right);
   } else {
-    return newError(`unknown operator: ${operator}${right.objectType()}`);
+    return newError(`unknown operator: ${operator}${right._type}`);
   }
 };
 
@@ -348,13 +348,13 @@ const evaluateInfixExpression = (
         left.value || right.value,
       );
     }
-  } else if (left.objectType() !== right.objectType()) {
+  } else if (left._type !== right._type) {
     return newError(
-      `type mismatch: ${left.objectType()} ${operator} ${right.objectType()}`,
+      `type mismatch: ${left._type} ${operator} ${right._type}`,
     );
   }
   return newError(
-    `unknown operator: ${left.objectType()} ${operator} ${right.objectType()}`,
+    `unknown operator: ${left._type} ${operator} ${right._type}`,
   );
 };
 
@@ -417,7 +417,7 @@ const evaluateIndexExpression = (
   } else if (left instanceof objects.Hash) {
     return evaluateHashIndexExpression(left, index);
   }
-  return newError(`index operator not supported: ${left.objectType()}`);
+  return newError(`index operator not supported: ${left._type}`);
 };
 
 const evaluateBangOperatorExpression = (
@@ -438,7 +438,7 @@ const evaluateMinusPrefixOperatorExpression = (
   right: objects.Objects,
 ): objects.Integer | objects.Error => {
   if (!(right instanceof objects.Integer)) {
-    return newError(`unknown operator: -${right.objectType()}`);
+    return newError(`unknown operator: -${right._type}`);
   }
   return new objects.Integer(-right.value);
 };
@@ -475,7 +475,7 @@ const evaluateIntegerInfixExpression = (
     return nativeBoolToBooleanObject(left_value !== right_value);
   }
   return newError(
-    `unknown operator: ${left.objectType()} ${operator} ${right.objectType()}`,
+    `unknown operator: ${left._type} ${operator} ${right._type}`,
   );
 };
 
@@ -493,7 +493,7 @@ const evaluateStringInfixExpression = (
   }
 
   return newError(
-    `unknown operator: ${left.objectType()} ${operator} ${right.objectType()}`,
+    `unknown operator: ${left._type} ${operator} ${right._type}`,
   );
 };
 
@@ -515,10 +515,10 @@ const evaluateHashIndexExpression = (
   index: objects.Objects,
 ): objects.Objects | null => {
   if (!isHashable(index)) {
-    return newError(`unusable as hash key: ${index.objectType()}`);
+    return newError(`unusable as hash key: ${index._type}`);
   }
-  if (hashObj.objectType() !== ObjectType.HASH_OBJ) {
-    return newError(`hashObj not a Hash Obj: ${hashObj.objectType()}`);
+  if (hashObj._type !== ObjectType.HASH_OBJ) {
+    return newError(`hashObj not a Hash Obj: ${hashObj._type}`);
   }
   const hashKeyString = index.hashKey().toString();
   const pair = (hashObj as objects.Hash).pairs.get(hashKeyString);
@@ -586,7 +586,7 @@ export const applyFunction = async (
     // Pass the environment and currentFilePath to the built-in function
     return await fn.invoke(env, currentFilePath, ...args);
   }
-  return newError(`not a function ${fn!.objectType()}`);
+  return newError(`not a function ${fn!._type}`);
 };
 
 const extendFunctionEnv = (

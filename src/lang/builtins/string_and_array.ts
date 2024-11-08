@@ -24,5 +24,5 @@ export const lenFn = async (
     return new objects.Integer(arg.value.length);
   }
   // TODO: Fix to allow expected to be String | Array
-  return wrongTypeOfArgument(arg.objectType(), objects.ObjectType.ARRAY_OBJ);
+  return wrongTypeOfArgument(arg._type, objects.ObjectType.ARRAY_OBJ);
 };

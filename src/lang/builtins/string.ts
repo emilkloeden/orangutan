@@ -31,5 +31,5 @@ export const splitFn = async (
     return new objects.ArrayObj(elementObjects);
   }
   // TODO: Fix to handle both arguments
-  return wrongTypeOfArgument(item.objectType(), objects.ObjectType.STRING_OBJ);
+  return wrongTypeOfArgument(item._type, objects.ObjectType.STRING_OBJ);
 };

@@ -37,11 +37,11 @@ import { wrongNumberOfArgs } from "./_helpers.ts";
     if (url === null || data === null) {
       return gotHostNull();
     }
-    if (url.objectType() !== objects.ObjectType.STRING_OBJ) {
-      return wrongTypeOfArgument(url.objectType(), objects.ObjectType.STRING_OBJ);
+    if (!(url instanceof objects.String)) {
+      return wrongTypeOfArgument(url._type, objects.ObjectType.STRING_OBJ);
     }
-    if (url.objectType() !== objects.ObjectType.STRING_OBJ) {
-      return wrongTypeOfArgument(data.objectType(), objects.ObjectType.STRING_OBJ);
+    if (!(data instanceof objects.String)) {
+      return wrongTypeOfArgument(data._type, objects.ObjectType.STRING_OBJ);
     }
     
     try {

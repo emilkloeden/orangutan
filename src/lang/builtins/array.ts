@@ -43,7 +43,7 @@ export const joinFn = async (
     return new objects.String(joined);
   }
   // TODO: Fix to handle both arguments
-  return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.STRING_OBJ);
+  return wrongTypeOfArgument(arr._type, objects.ObjectType.STRING_OBJ);
 };
 
 export const appendFn = (
@@ -64,7 +64,7 @@ export const appendFn = (
     return new objects.ArrayObj(intermediate);
   }
 
-  return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.ARRAY_OBJ);
+  return wrongTypeOfArgument(arr._type, objects.ObjectType.ARRAY_OBJ);
 };
 
 export const prependFn = (
@@ -85,7 +85,7 @@ export const prependFn = (
     return new objects.ArrayObj(intermediate);
   }
 
-  return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.ARRAY_OBJ);
+  return wrongTypeOfArgument(arr._type, objects.ObjectType.ARRAY_OBJ);
 };
 
 export const mapFn = async (
@@ -103,12 +103,12 @@ export const mapFn = async (
   }
   if (!(fn instanceof objects.Function)) {
     return wrongTypeOfArgument(
-      fn.objectType(),
+      fn._type,
       objects.ObjectType.FUNCTION_OBJ,
     );
   } else if (!(arr instanceof objects.ArrayObj)) {
     console.log(arr)
-    return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.ARRAY_OBJ);
+    return wrongTypeOfArgument(arr._type, objects.ObjectType.ARRAY_OBJ);
   }
   if (arr instanceof objects.ArrayObj) {
     const els = [];
@@ -137,11 +137,11 @@ export const filterFn = async (
   }
   if (!(fn instanceof objects.Function)) {
     return wrongTypeOfArgument(
-      fn.objectType(),
+      fn._type,
       objects.ObjectType.FUNCTION_OBJ,
     );
   } else if (!(arr instanceof objects.ArrayObj)) {
-    return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.ARRAY_OBJ);
+    return wrongTypeOfArgument(arr._type, objects.ObjectType.ARRAY_OBJ);
   }
   if (arr instanceof objects.ArrayObj) {
     const  els = []
@@ -178,11 +178,11 @@ export const reduceFn = async (
 
   if (!(fn instanceof objects.Function)) {
     return wrongTypeOfArgument(
-      fn.objectType(),
+      fn._type,
       objects.ObjectType.FUNCTION_OBJ,
     );
   } else if (!(arr instanceof objects.ArrayObj)) {
-    return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.ARRAY_OBJ);
+    return wrongTypeOfArgument(arr._type, objects.ObjectType.ARRAY_OBJ);
   }
 
   const elements = arr.elements;

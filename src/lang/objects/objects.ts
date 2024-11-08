@@ -19,7 +19,7 @@ export enum ObjectType {
 }
 
 export interface Objects {
-  objectType: () => ObjectType;
+  _type: ObjectType;
 }
 
 export interface Hashable {
@@ -33,42 +33,42 @@ export class Boolean implements Objects, Hashable {
 
   constructor(public value: boolean) {}
 
-  objectType = () => ObjectType.BOOLEAN_OBJ;
+  _type = ObjectType.BOOLEAN_OBJ;
   toString = () => this.value.toString().toLowerCase();
   hashKey = () => {
     const val = this.value ? "1" : "0";
-    return new HashKey(this.objectType(), val);
+    return new HashKey(this._type, val);
   };
 }
 
 export class Integer implements Objects, Hashable {
   constructor(public value: number) {}
 
-  objectType = () => ObjectType.INTEGER_OBJ;
+  _type = ObjectType.INTEGER_OBJ;
   toString = () => this.value.toString();
   hashKey = () => {
-    return new HashKey(this.objectType(), this.value.toString());
+    return new HashKey(this._type, this.value.toString());
   };
 }
 
 export class String implements Objects, Hashable {
   constructor(public value: string) {}
 
-  objectType = () => ObjectType.STRING_OBJ;
+  _type = ObjectType.STRING_OBJ;
   toString = () => this.value;
   hashKey = () => {
     const hash = crypto.createHmac("sha256", this.value).digest("hex");
 
-    return new HashKey(this.objectType(), hash);
+    return new HashKey(this._type, hash);
   };
 }
 
 export class HashKey {
   // TODO: Confirm value type, monkey uses uint64 but, we're using a hash .hexdigest()?
-  constructor(public objectType: ObjectType, public value: string) {}
+  constructor(public _type: ObjectType, public value: string) {}
 
   toString = () => {
-    return `${this.objectType}:${this.value}`;
+    return `${this._type}:${this.value}`;
   };
 }
 export class HashPair {
@@ -78,15 +78,15 @@ export class HashPair {
 export class Hash implements Objects {
   constructor(public pairs: Map<string, HashPair>) {}
 
-  objectType = () => ObjectType.HASH_OBJ;
+  _type = ObjectType.HASH_OBJ;
   toString = () => {
     const str = Array.from(this.pairs.values()).map(({ key, value }) =>
       `${
-        key?.objectType() == ObjectType.STRING_OBJ
+        key?._type == ObjectType.STRING_OBJ
           ? '"' + key?.toString() + '"'
           : key?.toString()
       }: ${
-        value?.objectType() === ObjectType.STRING_OBJ
+        value?._type === ObjectType.STRING_OBJ
           ? '"' + value?.toString() + '"'
           : value?.toString()
       }`
@@ -97,19 +97,19 @@ export class Hash implements Objects {
 
 export class Null implements Objects {
   public value = null;
-  objectType = () => ObjectType.NULL_OBJ;
+  _type = ObjectType.NULL_OBJ;
   toString = () => "null";
 }
 
 export class ReturnValue implements Objects {
   constructor(public value: Objects | null) {}
-  objectType = () => ObjectType.RETURN_VALUE_OBJ;
+  _type = ObjectType.RETURN_VALUE_OBJ;
   toString = () => this.value?.toString() ?? "null";
 }
 
 export class Error implements Objects {
   constructor(public message: string) {}
-  objectType = () => ObjectType.ERROR_OBJ;
+  _type = ObjectType.ERROR_OBJ;
   toString = () => `ERROR: ${this.message.toString()}`;
 }
 
@@ -119,7 +119,7 @@ export class Function implements Objects {
     public body: ast.BlockStatement,
     public env: Environment,
   ) {}
-  objectType = () => ObjectType.FUNCTION_OBJ;
+  _type = ObjectType.FUNCTION_OBJ;
   toString = () => {
     const paramsString = this.parameters?.map((p) => p.toString()).join(", ");
     const bodyString = this.body.toString();
@@ -136,7 +136,7 @@ type BuiltinFunction = (
 export class BuiltIn implements Objects {
   // TODO: Confirm signature
   constructor(public fn: BuiltinFunction) {}
-  objectType = () => ObjectType.BUILTIN_OBJ;
+  _type = ObjectType.BUILTIN_OBJ;
   toString = () => "builtin function";
 
   invoke = async (
@@ -148,7 +148,7 @@ export class BuiltIn implements Objects {
 
 export class ArrayObj implements Objects {
   constructor(public elements: (Objects | null)[]) {}
-  objectType = () => ObjectType.ARRAY_OBJ;
+  _type = ObjectType.ARRAY_OBJ;
   toString = () =>
     "[" + this.elements.map((e) => e?.toString() ?? "null").join(", ") + "]";
 }
