@@ -3,7 +3,7 @@ import Lexer from "../src/lang/lexer/lexer.ts"; // assuming the lexer is in lexe
 import { TokenType } from "../src/lang/token/token.ts"; // assuming TokenType is defined in token.ts
 
 Deno.test("TestNextToken", () => {
-  const input = "=+(){},;.";
+  const input = "=+(){},;.:::";
 
   const tests = [
     { expectedType: TokenType.ASSIGN, expectedLiteral: "=" },
@@ -15,6 +15,8 @@ Deno.test("TestNextToken", () => {
     { expectedType: TokenType.COMMA, expectedLiteral: "," },
     { expectedType: TokenType.SEMICOLON, expectedLiteral: ";" },
     { expectedType: TokenType.PERIOD, expectedLiteral: "." },
+    { expectedType: TokenType.DOUBLE_COLON, expectedLiteral: "::" },
+    { expectedType: TokenType.COLON, expectedLiteral: ":" },
   ];
 
   const lexer = new Lexer(input);

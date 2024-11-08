@@ -12,11 +12,11 @@ import {
   wrongTypeOfArgument,
 } from "./_helpers.ts";
 
-export const joinFn = (
+export const joinFn = async (
   _env: Environment,
   _currentFilePath: string,
   ...args: (objects.Objects | null)[]
-): objects.String | objects.Error => {
+): Promise<objects.String | objects.Error> => {
   if (args.length !== 2) {
     return wrongNumberOfArgs(args.length, 2);
   }
@@ -27,23 +27,23 @@ export const joinFn = (
   }
 
   if (
-    arr.objectType() === objects.ObjectType.ARRAY_OBJ &&
-    joiner.objectType() === objects.ObjectType.STRING_OBJ
+    arr instanceof objects.ArrayObj &&
+    joiner instanceof objects.String
   ) {
-    const elementValues = (arr as objects.ArrayObj).elements;
-    if (elementValues.some((el) => el?.objectType() !== "STRING")) {
+    const elementValues = arr.elements;
+    if (elementValues.some((el) => (!(el instanceof objects.String)))) {
       return newError(`Attempted to join an array that contains non-strings.`);
     }
 
     const elementStrings = elementValues.map(
       (s) => (s as objects.String).value,
     );
-    const joined = elementStrings.join((joiner as objects.String).value);
+    const joined = elementStrings.join(joiner.value);
 
     return new objects.String(joined);
   }
   // TODO: Fix to handle both arguments
-  return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.STRING_OBJ);
+  return wrongTypeOfArgument(arr._type, objects.ObjectType.STRING_OBJ);
 };
 
 export const appendFn = (
@@ -59,12 +59,12 @@ export const appendFn = (
   if (arr === null || el === null) {
     return gotHostNull();
   }
-  if (arr.objectType() === objects.ObjectType.ARRAY_OBJ) {
-    const intermediate = [...(arr as objects.ArrayObj).elements, el];
+  if (arr instanceof objects.ArrayObj) {
+    const intermediate = [...arr.elements, el];
     return new objects.ArrayObj(intermediate);
   }
 
-  return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.ARRAY_OBJ);
+  return wrongTypeOfArgument(arr._type, objects.ObjectType.ARRAY_OBJ);
 };
 
 export const prependFn = (
@@ -80,19 +80,19 @@ export const prependFn = (
   if (arr === null || el === null) {
     return gotHostNull();
   }
-  if (arr.objectType() === objects.ObjectType.ARRAY_OBJ) {
+  if (arr instanceof objects.ArrayObj) {
     const intermediate = [el, ...(arr as objects.ArrayObj).elements];
     return new objects.ArrayObj(intermediate);
   }
 
-  return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.ARRAY_OBJ);
+  return wrongTypeOfArgument(arr._type, objects.ObjectType.ARRAY_OBJ);
 };
 
-export const mapFn = (
+export const mapFn = async (
   env: Environment,
   currentFilePath: string,
   ...args: (objects.Objects | null)[]
-): objects.ArrayObj | objects.Error => {
+): Promise<objects.Error | objects.ArrayObj> => {
   if (args.length !== 2) {
     return wrongNumberOfArgs(args.length, 2);
   }
@@ -101,30 +101,32 @@ export const mapFn = (
   if (arr === null || fn === null) {
     return gotHostNull();
   }
-  if (fn.objectType() !== objects.ObjectType.FUNCTION_OBJ) {
+  if (!(fn instanceof objects.Function)) {
     return wrongTypeOfArgument(
-      fn.objectType(),
+      fn._type,
       objects.ObjectType.FUNCTION_OBJ,
     );
-  } else if (arr.objectType() !== objects.ObjectType.ARRAY_OBJ) {
-    return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.ARRAY_OBJ);
+  } else if (!(arr instanceof objects.ArrayObj)) {
+    console.log(arr);
+    return wrongTypeOfArgument(arr._type, objects.ObjectType.ARRAY_OBJ);
   }
-  if (arr.objectType() === objects.ObjectType.ARRAY_OBJ) {
-    return new objects.ArrayObj(
-      (arr as objects.ArrayObj).elements.map((el) =>
-        applyFunction(fn, [el], env, currentFilePath)
-      ),
-    );
+  if (arr instanceof objects.ArrayObj) {
+    const els = [];
+    for (const el of arr.elements) {
+      const res = await applyFunction(fn, [el], env, currentFilePath);
+      els.push(res);
+    }
+    return new objects.ArrayObj(els);
   }
   // TODO: This is technically unreachable
   return new objects.ArrayObj([]);
 };
 
-export const filterFn = (
+export const filterFn = async (
   env: Environment,
   currentFilePath: string,
   ...args: (objects.Objects | null)[]
-): objects.ArrayObj | objects.Error => {
+): Promise<objects.Error | objects.ArrayObj> => {
   if (args.length !== 2) {
     return wrongNumberOfArgs(args.length, 2);
   }
@@ -133,30 +135,35 @@ export const filterFn = (
   if (arr === null || fn === null) {
     return gotHostNull();
   }
-  if (fn.objectType() !== objects.ObjectType.FUNCTION_OBJ) {
+  if (!(fn instanceof objects.Function)) {
     return wrongTypeOfArgument(
-      fn.objectType(),
+      fn._type,
       objects.ObjectType.FUNCTION_OBJ,
     );
-  } else if (arr.objectType() !== objects.ObjectType.ARRAY_OBJ) {
-    return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.ARRAY_OBJ);
+  } else if (!(arr instanceof objects.ArrayObj)) {
+    return wrongTypeOfArgument(arr._type, objects.ObjectType.ARRAY_OBJ);
   }
-  if (arr.objectType() === objects.ObjectType.ARRAY_OBJ) {
+  if (arr instanceof objects.ArrayObj) {
+    const els = [];
+    for (const el of arr.elements) {
+      const res = await applyFunction(fn, [el], env, currentFilePath);
+      if (isTruthy(res)) {
+        els.push(res);
+      }
+    }
     return new objects.ArrayObj(
-      (arr as objects.ArrayObj).elements.filter((el) => {
-        return isTruthy(applyFunction(fn, [el], env, currentFilePath));
-      }),
+      els,
     );
   }
   // TODO: This is technically unreachable
   return new objects.ArrayObj([]);
 };
 
-export const reduceFn = (
+export const reduceFn = async (
   env: Environment,
   currentFilePath: string,
   ...args: (objects.Objects | null)[]
-): objects.Objects | objects.Error => {
+): Promise<objects.Objects | objects.Error> => {
   if (args.length < 2 || args.length > 3) {
     return wrongNumberOfArgs(args.length, 2);
   }
@@ -169,16 +176,16 @@ export const reduceFn = (
     return gotHostNull();
   }
 
-  if (fn.objectType() !== objects.ObjectType.FUNCTION_OBJ) {
+  if (!(fn instanceof objects.Function)) {
     return wrongTypeOfArgument(
-      fn.objectType(),
+      fn._type,
       objects.ObjectType.FUNCTION_OBJ,
     );
-  } else if (arr.objectType() !== objects.ObjectType.ARRAY_OBJ) {
-    return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.ARRAY_OBJ);
+  } else if (!(arr instanceof objects.ArrayObj)) {
+    return wrongTypeOfArgument(arr._type, objects.ObjectType.ARRAY_OBJ);
   }
 
-  const elements = (arr as objects.ArrayObj).elements;
+  const elements = arr.elements;
 
   let accumulator: objects.Objects | null = initialValue;
   let startIdx = 0;
@@ -195,7 +202,7 @@ export const reduceFn = (
   }
 
   for (let i = startIdx; i < elements.length; i++) {
-    accumulator = applyFunction(
+    accumulator = await applyFunction(
       fn,
       [accumulator, elements[i]],
       env,

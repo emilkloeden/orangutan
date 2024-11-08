@@ -39,21 +39,21 @@ Deno.test("TestLetStatements", () => {
   });
 });
 
-Deno.test("Selector Test", () => {
+Deno.test("Selector Test", async () => {
   const tt = {
     input: 'let a = { "name": "JimBob" }; a.name',
     expected: "JimBob",
   };
-  const evaluated = testEval<String>(tt.input);
+  const evaluated = await testEval<String>(tt.input);
   assertEquals(evaluated.value, tt.expected, `Test selector failed`);
 });
 
-Deno.test("Test Use Expression parsing", () => {
+Deno.test("Test Use Expression parsing", async () => {
   const tt = {
     input: 'let i = use("./orangutan/tests/imported.🐵"); i["five"];',
     expected: "5",
   };
-  const evaluated = testEval<String>(tt.input);
+  const evaluated = await testEval<String>(tt.input);
   assertEquals(
     evaluated.value,
     tt.expected,
@@ -61,11 +61,11 @@ Deno.test("Test Use Expression parsing", () => {
   );
 });
 
-function testEval<T>(input: string): T {
+async function testEval<T>(input: string): Promise<T> {
   const lexer = new Lexer(input);
   const parser = new Parser(lexer, "");
   const program = parser.parseProgram();
 
   const env = new Environment({});
-  return evaluate(program, env, Deno.cwd()) as T;
+  return await evaluate(program, env, Deno.cwd()) as T;
 }

@@ -4,11 +4,11 @@ import { wrongNumberOfArgs, wrongTypeOfArgument } from "./_helpers.ts";
 import { gotHostNull } from "./_helpers.ts";
 import { newError } from "../evaluator/evaluator.ts";
 
-export const putsFn = (
+export const putsFn = async (
   _env: Environment,
   _currentFilePath: string,
   ...args: (objects.Objects | null)[]
-): objects.Objects => {
+): Promise<objects.Objects> => {
   const output = [];
   for (const arg of args) {
     if (arg === null) {
@@ -22,11 +22,11 @@ export const putsFn = (
 };
 
 
-export const ffiFn = (
+export const ffiFn = async (
   _env: Environment,
   _currentFilePath: string,
   ...args: (objects.Objects | null)[]
-): objects.Objects => {
+): Promise<objects.Objects> => {
   if (args.length !== 1) {
     return wrongNumberOfArgs(args.length, 1);
   }
@@ -34,11 +34,11 @@ export const ffiFn = (
   if (arg === null) {
     return gotHostNull()
   }
-  if (arg.objectType() !== objects.ObjectType.STRING_OBJ) {
-    return wrongTypeOfArgument(arg.objectType(), objects.ObjectType.STRING_OBJ)
+  if (!(arg instanceof objects.String)) {
+    return wrongTypeOfArgument(arg._type, objects.ObjectType.STRING_OBJ)
   }
   try {
-    const result = eval((arg as objects.String).value)
+    const result = eval(arg.value)
     if (result === null || result === undefined) {
       return new objects.Null();
     }
@@ -59,11 +59,11 @@ export const ffiFn = (
   }
 } 
 
-export const typeFn = (
+export const typeFn = async (
   _env: Environment,
   _currentFilePath: string,
   ...args: (objects.Objects | null)[]
-): objects.String | objects.Error => {
+): Promise<objects.String | objects.Error> => {
   if (args.length !== 1) {
     return wrongNumberOfArgs(args.length, 1);
   }
@@ -71,5 +71,5 @@ export const typeFn = (
   if (arg === null) {
     return new objects.String("Host language null");
   }
-  return new objects.String(arg.objectType());
+  return new objects.String(arg._type);
 };

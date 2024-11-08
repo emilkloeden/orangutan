@@ -17,18 +17,18 @@ Deno.test("fibonacci", () => {
     { input: "fibonacci(5)", expected: 5 },
     { input: "fibonacci(6)", expected: 8 },
   ];
-  tests.forEach((tt, i) => {
-    const evaluated = testEval(tt.input);
+  tests.forEach(async (tt, i) => {
+    const evaluated = await testEval(tt.input);
     assertIntegerObject(evaluated, tt.expected, i);
   });
 });
 
-function testEval(input: string): Integer {
+async function testEval(input: string): Promise<Integer> {
   const lexer = new Lexer(fibonacciDefinition + " " + input);
   const parser = new Parser(lexer, "");
   const program = parser.parseProgram();
   const env = new Environment({});
-  return evaluate(program, env, Deno.cwd()) as Integer;
+  return await evaluate(program, env, Deno.cwd()) as Integer;
 }
 
 function assertIntegerObject(
