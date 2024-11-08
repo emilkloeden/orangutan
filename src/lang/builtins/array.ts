@@ -27,18 +27,18 @@ export const joinFn = (
   }
 
   if (
-    arr.objectType() === objects.ObjectType.ARRAY_OBJ &&
-    joiner.objectType() === objects.ObjectType.STRING_OBJ
+    arr instanceof objects.ArrayObj &&
+    joiner instanceof objects.String
   ) {
-    const elementValues = (arr as objects.ArrayObj).elements;
-    if (elementValues.some((el) => el?.objectType() !== "STRING")) {
+    const elementValues = arr.elements;
+    if (elementValues.some((el) => (!(el instanceof objects.String)))) {
       return newError(`Attempted to join an array that contains non-strings.`);
     }
 
     const elementStrings = elementValues.map(
       (s) => (s as objects.String).value,
     );
-    const joined = elementStrings.join((joiner as objects.String).value);
+    const joined = elementStrings.join(joiner.value);
 
     return new objects.String(joined);
   }
@@ -59,8 +59,8 @@ export const appendFn = (
   if (arr === null || el === null) {
     return gotHostNull();
   }
-  if (arr.objectType() === objects.ObjectType.ARRAY_OBJ) {
-    const intermediate = [...(arr as objects.ArrayObj).elements, el];
+  if (arr instanceof objects.ArrayObj) {
+    const intermediate = [...arr.elements, el];
     return new objects.ArrayObj(intermediate);
   }
 
@@ -80,7 +80,7 @@ export const prependFn = (
   if (arr === null || el === null) {
     return gotHostNull();
   }
-  if (arr.objectType() === objects.ObjectType.ARRAY_OBJ) {
+  if (arr instanceof objects.ArrayObj) {
     const intermediate = [el, ...(arr as objects.ArrayObj).elements];
     return new objects.ArrayObj(intermediate);
   }
@@ -106,10 +106,10 @@ export const mapFn = (
       fn.objectType(),
       objects.ObjectType.FUNCTION_OBJ,
     );
-  } else if (arr.objectType() !== objects.ObjectType.ARRAY_OBJ) {
+  } else if (arr instanceof objects.ArrayObj) {
     return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.ARRAY_OBJ);
   }
-  if (arr.objectType() === objects.ObjectType.ARRAY_OBJ) {
+  if (arr instanceof objects.ArrayObj) {
     return new objects.ArrayObj(
       (arr as objects.ArrayObj).elements.map((el) =>
         applyFunction(fn, [el], env, currentFilePath)
