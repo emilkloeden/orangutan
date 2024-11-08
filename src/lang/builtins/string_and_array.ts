@@ -6,11 +6,11 @@ import {
   wrongTypeOfArgument,
 } from "./_helpers.ts";
 
-export const lenFn = (
+export const lenFn = async (
   _env: Environment,
   _currentFilePath: string,
   ...args: (objects.Objects | null)[]
-): objects.Integer | objects.Error => {
+): Promise<objects.Integer | objects.Error> => {
   if (args.length !== 1) {
     return wrongNumberOfArgs(args.length, 1);
   }

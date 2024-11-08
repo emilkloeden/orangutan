@@ -317,3 +317,23 @@ export class PropertyAccessExpression implements Expression {
     return this.token.literal;
   }
 }
+export class ModuleFunctionCallExpression implements Expression {
+  public arguments: (null | Expression)[] | null;
+
+  constructor(
+    private token: Token,
+    public module: Expression | null, // Represents the module
+    public fn: Expression | null      // Represents the function in the module
+  ) {
+    this.arguments = [];
+  }
+
+  toString() {
+    const args = this.arguments?.map((arg) => arg?.toString());
+    return `${this.module?.toString()}.${this.fn?.toString()}(${args?.join(", ")})`;
+  }
+
+  tokenLiteral() {
+    return this.token.literal;
+  }
+}

@@ -3,7 +3,7 @@ import evaluate from "../../lang/evaluator/evaluator.ts";
 import Lexer from "../../lang/lexer/lexer.ts";
 import Parser from "../../lang/parser/parser.ts";
 
-export default function repl() {
+export default async function repl() {
   console.log("Orangutan REPL. Press Ctrl+c or type exit() to quit.");
 
   // TODO: Ascertain necessity of this
@@ -26,7 +26,7 @@ export default function repl() {
         printErrors(p.errors);
         continue;
       }
-      const evaluated = evaluate(program, env, currentFilePath);
+      const evaluated = await evaluate(program, env, currentFilePath);
       if (evaluated !== null) {
         console.log(evaluated.toString());
       }
