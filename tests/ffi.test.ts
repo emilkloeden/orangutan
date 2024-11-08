@@ -6,7 +6,7 @@ import Parser from "../src/lang/parser/parser.ts";
 import * as objects from "../src/lang/objects/objects.ts";
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/assert_equals.ts";
 
-Deno.test("Test FFI expression", () => {
+Deno.test("Test FFI expression", async () => {
     const tests : {
         input: string;
         expected: number | string | objects.Error | null;
@@ -40,9 +40,11 @@ Deno.test("Test FFI expression", () => {
         expected: new objects.Error("Unable to evaluate result of ffi call. Received: object"),
       },
     ];
-  
-    tests.forEach((tt, iteration) => {
-      const evaluated = testEval<objects.Objects>(tt.input);
+    let iteration = 0;
+    for (const tt of tests)
+    {
+      
+      const evaluated = await testEval<objects.Objects>(tt.input);
       if (tt.expected instanceof objects.Error) {
         assertEquals((evaluated as objects.Error).message, tt.expected.message, `Expected error, got ${typeof evaluated}, iteration ${iteration}.`);
       }
@@ -57,16 +59,17 @@ Deno.test("Test FFI expression", () => {
       } else if (tt.expected === null) {
         assertNullObject(evaluated as objects.Null, iteration);
       }
-    });
+      iteration++;
+   }
   });
   
   // Helper functions
-  function testEval<T>(input: string): T {
+  async function testEval<T>(input: string): Promise<T> {
     const lexer = new Lexer(input);
     const parser = new Parser(lexer, "");
     const program = parser.parseProgram();
     const env = new Environment({});
-    const evaluated = evaluate(program, env, Deno.cwd()) as T;
+    const evaluated = await evaluate(program, env, Deno.cwd()) as T;
     return evaluated;
   }
   
