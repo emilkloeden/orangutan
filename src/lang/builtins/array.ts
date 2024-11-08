@@ -96,22 +96,23 @@ export const mapFn = async (
   if (args.length !== 2) {
     return wrongNumberOfArgs(args.length, 2);
   }
-  const arr = await args[0];
-  const fn = await args[1];
+  const arr = args[0];
+  const fn = args[1];
   if (arr === null || fn === null) {
     return gotHostNull();
   }
-  if (fn.objectType() !== objects.ObjectType.FUNCTION_OBJ) {
+  if (!(fn instanceof objects.Function)) {
     return wrongTypeOfArgument(
       fn.objectType(),
       objects.ObjectType.FUNCTION_OBJ,
     );
-  } else if (arr instanceof objects.ArrayObj) {
+  } else if (!(arr instanceof objects.ArrayObj)) {
+    console.log(arr)
     return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.ARRAY_OBJ);
   }
   if (arr instanceof objects.ArrayObj) {
     const els = [];
-    for (const el of (arr as objects.ArrayObj).elements) {
+    for (const el of arr.elements) {
       const res = await applyFunction(fn, [el], env, currentFilePath);
       els.push(res);
     }
@@ -134,18 +135,17 @@ export const filterFn = async (
   if (arr === null || fn === null) {
     return gotHostNull();
   }
-  if (fn.objectType() !== objects.ObjectType.FUNCTION_OBJ) {
+  if (!(fn instanceof objects.Function)) {
     return wrongTypeOfArgument(
       fn.objectType(),
       objects.ObjectType.FUNCTION_OBJ,
     );
-  } else if (arr.objectType() !== objects.ObjectType.ARRAY_OBJ) {
+  } else if (!(arr instanceof objects.ArrayObj)) {
     return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.ARRAY_OBJ);
   }
-  if (arr.objectType() === objects.ObjectType.ARRAY_OBJ) {
+  if (arr instanceof objects.ArrayObj) {
     const  els = []
-    const elements = (arr as objects.ArrayObj).elements;
-    for (const el of elements) {
+    for (const el of arr.elements) {
       const res = await applyFunction(fn, [el], env, currentFilePath);
       if (isTruthy(res)) {
         els.push(res);
@@ -176,16 +176,16 @@ export const reduceFn = async (
     return gotHostNull();
   }
 
-  if (fn.objectType() !== objects.ObjectType.FUNCTION_OBJ) {
+  if (!(fn instanceof objects.Function)) {
     return wrongTypeOfArgument(
       fn.objectType(),
       objects.ObjectType.FUNCTION_OBJ,
     );
-  } else if (arr.objectType() !== objects.ObjectType.ARRAY_OBJ) {
+  } else if (!(arr instanceof objects.ArrayObj)) {
     return wrongTypeOfArgument(arr.objectType(), objects.ObjectType.ARRAY_OBJ);
   }
 
-  const elements = (arr as objects.ArrayObj).elements;
+  const elements = arr.elements;
 
   let accumulator: objects.Objects | null = initialValue;
   let startIdx = 0;

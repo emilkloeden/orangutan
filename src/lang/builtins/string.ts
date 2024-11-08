@@ -21,11 +21,10 @@ export const splitFn = async (
   }
 
   if (
-    item.objectType() === objects.ObjectType.STRING_OBJ &&
-    splitter.objectType() === objects.ObjectType.STRING_OBJ
-  ) {
-    const elementStrings = (item as objects.String).value.split(
-      (splitter as objects.String).value,
+    item instanceof objects.String && splitter instanceof objects.String
+    ) {
+    const elementStrings = item.value.split(
+      splitter.value,
     );
     const elementObjects = elementStrings.map((s) => new objects.String(s));
 
