@@ -22,7 +22,7 @@ export const splitFn = async (
 
   if (
     item instanceof objects.String && splitter instanceof objects.String
-    ) {
+  ) {
     const elementStrings = item.value.split(
       splitter.value,
     );

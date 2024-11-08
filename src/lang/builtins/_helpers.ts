@@ -21,4 +21,3 @@ export const wrongNumberOfArgs = (
     `wrong number of arguments. got=${actual}, want=${expected}.`,
   );
 };
-

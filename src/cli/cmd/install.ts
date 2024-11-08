@@ -2,7 +2,6 @@ import { parse } from "https://deno.land/std/toml/mod.ts";
 import * as path from "https://deno.land/std/path/mod.ts";
 import * as zip from "https://deno.land/x/zip/mod.ts";
 
-
 export async function installCommand() {
   console.log(Deno.cwd());
   const tomlPath = path.join(Deno.cwd(), "orangutan.toml");
@@ -25,7 +24,6 @@ export async function installCommand() {
         errors.forEach(console.error);
       }
     }
-
   } catch (error) {
     console.error(`Orangutan CLI Error: ${error}`);
   }

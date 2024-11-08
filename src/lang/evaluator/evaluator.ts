@@ -42,7 +42,11 @@ const evaluate = async (
   } else if (node instanceof ast.StringLiteral) {
     return new objects.String(node.value);
   } else if (node instanceof ast.ArrayLiteral) {
-    const elements = await evaluateExpressions(node.elements, env, currentFilePath);
+    const elements = await evaluateExpressions(
+      node.elements,
+      env,
+      currentFilePath,
+    );
     if (elements.length === 1 && isError(elements[0])) {
       return elements[0];
     }
@@ -103,19 +107,18 @@ export default evaluate;
 const evaluateCallExpression = async (
   node: ast.CallExpression,
   env: Environment,
-  currentFilePath: string
+  currentFilePath: string,
 ): Promise<objects.Objects | null> => {
   const fn = await evaluate(node.fn, env, currentFilePath);
-    if (isError(fn)) {
-      return fn;
-    }
-    const args = await evaluateExpressions(node.arguments, env, currentFilePath);
-    if (args.length === 1 && isError(args[0])) {
-      return args[0];
-    }
-    return await applyFunction(fn, args, env, currentFilePath);
-  
-}
+  if (isError(fn)) {
+    return fn;
+  }
+  const args = await evaluateExpressions(node.arguments, env, currentFilePath);
+  if (args.length === 1 && isError(args[0])) {
+    return args[0];
+  }
+  return await applyFunction(fn, args, env, currentFilePath);
+};
 
 const evaluatePropertyAccessExpression = async (
   node: ast.PropertyAccessExpression,
@@ -182,8 +185,9 @@ const evaluateBlockStatement = async (
   for (const statement of block.statements) {
     result = await evaluate(statement, env, currentFilePath);
     if (result !== null) {
-      if (result instanceof objects.ReturnValue || result instanceof objects.Error)
-        {
+      if (
+        result instanceof objects.ReturnValue || result instanceof objects.Error
+      ) {
         return result;
       }
     }
@@ -324,8 +328,7 @@ const evaluateInfixExpression = (
       left,
       right,
     );
-  } 
-  // else if (left instanceof objects.ArrayObj && right instanceof objects.ArrayObj) {
+  } // else if (left instanceof objects.ArrayObj && right instanceof objects.ArrayObj) {
   //     return evaluateArrayInfixExpression(operator, left, right)
   // }
   else if (operator === "==") {

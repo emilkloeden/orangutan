@@ -82,9 +82,12 @@ Deno.test("Test builtins", async () => {
 
 Deno.test("Test HTTP Get", async () => {
   const tests = [
-    {input: 'get("https://dummyjson.com/test")', expected: '{"status":"ok","method":"GET"}'},
-    {input: 'get("https://dummyjson.com/test1")', expected: ""}
-  ]
+    {
+      input: 'get("https://dummyjson.com/test")',
+      expected: '{"status":"ok","method":"GET"}',
+    },
+    { input: 'get("https://dummyjson.com/test1")', expected: "" },
+  ];
   for (const [iteration, tt] of tests.entries()) {
     const evaluated = await testEval<objects.String>(tt.input);
     await assertNullableStringObject(
@@ -93,7 +96,7 @@ Deno.test("Test HTTP Get", async () => {
       iteration,
     );
   }
-})
+});
 
 Deno.test("Test selection expression", () => {
   const tests = [
@@ -147,7 +150,6 @@ Deno.test("Test use expression", () => {
   tests.forEach(async (tt, iteration) => {
     const evaluated = await testEval<objects.String | Integer>(tt.input);
     if (typeof tt.expected === "string") {
-      
       await assertNullableStringObject(
         evaluated as objects.String,
         tt.expected,
@@ -174,7 +176,7 @@ async function assertNullableStringObject(
   expected: string | null,
   iteration: number,
 ) {
-const o = await obj;
+  const o = await obj;
   assertEquals(
     o?.value,
     expected,

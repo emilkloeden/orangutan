@@ -107,7 +107,7 @@ export const mapFn = async (
       objects.ObjectType.FUNCTION_OBJ,
     );
   } else if (!(arr instanceof objects.ArrayObj)) {
-    console.log(arr)
+    console.log(arr);
     return wrongTypeOfArgument(arr._type, objects.ObjectType.ARRAY_OBJ);
   }
   if (arr instanceof objects.ArrayObj) {
@@ -144,7 +144,7 @@ export const filterFn = async (
     return wrongTypeOfArgument(arr._type, objects.ObjectType.ARRAY_OBJ);
   }
   if (arr instanceof objects.ArrayObj) {
-    const  els = []
+    const els = [];
     for (const el of arr.elements) {
       const res = await applyFunction(fn, [el], env, currentFilePath);
       if (isTruthy(res)) {
@@ -152,7 +152,7 @@ export const filterFn = async (
       }
     }
     return new objects.ArrayObj(
-      els
+      els,
     );
   }
   // TODO: This is technically unreachable

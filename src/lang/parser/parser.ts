@@ -35,7 +35,6 @@ export const precedences: Record<string, Precedence> = {
   [TokenType.LBRACKET]: Precedence.INDEX,
   [TokenType.PERIOD]: Precedence.INDEX,
   [TokenType.USE]: Precedence.CALL,
-  
 };
 
 export default class Parser {
@@ -482,21 +481,22 @@ export default class Parser {
     const moduleFunctionExpression = new ast.ModuleFunctionCallExpression(
       this.currentToken,
       left, // This represents the module part
-      null  // Initialize fn as null; we'll set it after parsing
+      null, // Initialize fn as null; we'll set it after parsing
     );
-  
+
     // Advance to the function part
     this.nextToken();
     moduleFunctionExpression.fn = this.parseExpression(Precedence.CALL);
-  
+
     // Parse the function call arguments if present
     if (this.expectPeek(TokenType.LPAREN)) {
-      moduleFunctionExpression.arguments = this.parseExpressionList(TokenType.RPAREN);
+      moduleFunctionExpression.arguments = this.parseExpressionList(
+        TokenType.RPAREN,
+      );
     }
-  
+
     return moduleFunctionExpression;
   };
-
 
   // Helpers
   currentTokenIs = (tokenType: TokenType): boolean => {

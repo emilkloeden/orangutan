@@ -323,14 +323,16 @@ export class ModuleFunctionCallExpression implements Expression {
   constructor(
     private token: Token,
     public module: Expression | null, // Represents the module
-    public fn: Expression | null      // Represents the function in the module
+    public fn: Expression | null, // Represents the function in the module
   ) {
     this.arguments = [];
   }
 
   toString() {
     const args = this.arguments?.map((arg) => arg?.toString());
-    return `${this.module?.toString()}.${this.fn?.toString()}(${args?.join(", ")})`;
+    return `${this.module?.toString()}.${this.fn?.toString()}(${
+      args?.join(", ")
+    })`;
   }
 
   tokenLiteral() {
