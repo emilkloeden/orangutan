@@ -45,14 +45,42 @@ to start building from.
         return f(f(x));
       }
 
-## Language extensions
+## Differences from _Monkey_
 
-The following features are added in addition to those present in the original
-_Monkey_ language implementation:
+_Orangutan_ deviates from the canonical implementation of _Monkey_ as follows:
 
-- While statement
+### Changed Builtins
 
-      while(true) { puts("Hello There!"); }
+- The `push` function on an array is renamed to `append` as _Orangutan_ also supports a `prepend` function
+
+### New Builtins
+
+#### String manipulation
+
+- `split(str, on)` splits a string `str` into an array of strings on instances of `on`
+- `len(str)` returns the length of a string
+
+#### Array manipulation
+
+- `join(arr, using)` joins an array `arr` of strings using `using` between array items.
+- `map(arr, fn)`
+- `filter(arr, fn)`
+- `reduce(arr, fn)`
+
+#### Text file operations
+
+- `readFile(path)` reads the content of a file into a String
+- `writeFile(path, str)` writes `str` to a file at `path`
+
+#### HTTP operations
+
+- `get(url)` returns the body of an HTTP GET request to `url` as a String
+- `post(url, str)` posts `str` as the body of an HTTP POST request to `url`.
+
+#### General operations
+
+- `type(obj)` returns the type of `obj`
+- `ffi(javascriptString)` is an experimental feature that passes `javascriptString` down to the Deno runtime to evaluate.
 
 ## Installation
 
@@ -63,7 +91,7 @@ _Monkey_ language implementation:
 
 ## Usage
 
-    $ deno run --allow-read=. .\index.ts
+    $ deno run --allow-all=. .\index.ts
     Orangutan REPL. Press Ctrl+c or type exit() to quit.
 
 ## Project goals

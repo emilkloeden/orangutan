@@ -86,6 +86,10 @@ Deno.test("Test builtins", async () => {
     "let arr = [3,2,1]; last(arr);",
   );
   assertEquals(evaluated4.value, 1)
+  const evaluated5 = await testEval<objects.ArrayObj>(
+    "let arr = [3,2,1]; rest(arr);",
+  );
+  assertEquals(evaluated5.elements.map(e=>(e as objects.Integer).value), [2,1])
 });
 
 Deno.test("Test HTTP Get", async () => {

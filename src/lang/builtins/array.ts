@@ -243,6 +243,7 @@ export const firstFn = (
 
   return wrongTypeOfArgument(arr._type, objects.ObjectType.ARRAY_OBJ);
 };
+
 export const lastFn = (
   _env: Environment,
   _currentFilePath: string,
@@ -266,5 +267,34 @@ export const lastFn = (
     return new objects.Null();
   }
 
+  return wrongTypeOfArgument(arr._type, objects.ObjectType.ARRAY_OBJ);
+};
+
+export const restFn = (
+  _env: Environment,
+  _currentFilePath: string,
+  ...args: (objects.Objects | null)[]
+): objects.Objects | objects.Null | objects.Error => {
+  if (args.length !== 1) {
+    return wrongNumberOfArgs(args.length, 1);
+  }
+  const arr = args[0];
+  if (arr === null) {
+    return gotHostNull();
+  }
+  if (arr instanceof objects.ArrayObj) {
+    const out_elements = []
+    if (arr.elements.length > 1) {
+      for (let i = 1; i < arr.elements.length; i++) {
+        if (arr.elements[i] === null) {
+          out_elements.push(new objects.Null());
+        } else {
+          out_elements.push(arr.elements[i]);
+        }
+      }
+    }
+    return new objects.ArrayObj(out_elements);
+  }
+  
   return wrongTypeOfArgument(arr._type, objects.ObjectType.ARRAY_OBJ);
 };
