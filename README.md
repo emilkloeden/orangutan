@@ -51,18 +51,21 @@ _Orangutan_ deviates from the canonical implementation of _Monkey_ as follows:
 
 ### Changed Builtins
 
-- The `push` function on an array is renamed to `append` as _Orangutan_ also supports a `prepend` function
+- The `push` function on an array is renamed to `append` as _Orangutan_ also
+  supports a `prepend` function
 
 ### New Builtins
 
 #### String manipulation
 
-- `split(str, on)` splits a string `str` into an array of strings on instances of `on`
+- `split(str, on)` splits a string `str` into an array of strings on instances
+  of `on`
 - `len(str)` returns the length of a string
 
 #### Array manipulation
 
-- `join(arr, using)` joins an array `arr` of strings using `using` between array items.
+- `join(arr, using)` joins an array `arr` of strings using `using` between array
+  items.
 - `map(arr, fn)`
 - `filter(arr, fn)`
 - `reduce(arr, fn)`
@@ -80,7 +83,8 @@ _Orangutan_ deviates from the canonical implementation of _Monkey_ as follows:
 #### General operations
 
 - `type(obj)` returns the type of `obj`
-- `ffi(javascriptString)` is an experimental feature that passes `javascriptString` down to the Deno runtime to evaluate.
+- `ffi(javascriptString)` is an experimental feature that passes
+  `javascriptString` down to the Deno runtime to evaluate.
 
 ## Installation
 

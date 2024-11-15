@@ -216,8 +216,6 @@ export const reduceFn = async (
   return accumulator!;
 };
 
-
-
 export const firstFn = (
   _env: Environment,
   _currentFilePath: string,
@@ -234,7 +232,7 @@ export const firstFn = (
     if (arr.elements.length) {
       const first = arr.elements[0];
       if (first === null) {
-        return new objects.Null()
+        return new objects.Null();
       }
       return first;
     }
@@ -258,9 +256,9 @@ export const lastFn = (
   }
   if (arr instanceof objects.ArrayObj) {
     if (arr.elements.length) {
-      const first = arr.elements[arr.elements.length-1];
+      const first = arr.elements[arr.elements.length - 1];
       if (first === null) {
-        return new objects.Null()
+        return new objects.Null();
       }
       return first;
     }
@@ -283,7 +281,7 @@ export const restFn = (
     return gotHostNull();
   }
   if (arr instanceof objects.ArrayObj) {
-    const out_elements = []
+    const out_elements = [];
     if (arr.elements.length > 1) {
       for (let i = 1; i < arr.elements.length; i++) {
         if (arr.elements[i] === null) {
@@ -295,6 +293,6 @@ export const restFn = (
     }
     return new objects.ArrayObj(out_elements);
   }
-  
+
   return wrongTypeOfArgument(arr._type, objects.ObjectType.ARRAY_OBJ);
 };
