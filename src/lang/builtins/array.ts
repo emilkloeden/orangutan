@@ -215,3 +215,56 @@ export const reduceFn = async (
 
   return accumulator!;
 };
+
+
+
+export const firstFn = (
+  _env: Environment,
+  _currentFilePath: string,
+  ...args: (objects.Objects | null)[]
+): objects.Objects | objects.Null | objects.Error => {
+  if (args.length !== 1) {
+    return wrongNumberOfArgs(args.length, 1);
+  }
+  const arr = args[0];
+  if (arr === null) {
+    return gotHostNull();
+  }
+  if (arr instanceof objects.ArrayObj) {
+    if (arr.elements.length) {
+      const first = arr.elements[0];
+      if (first === null) {
+        return new objects.Null()
+      }
+      return first;
+    }
+    return new objects.Null();
+  }
+
+  return wrongTypeOfArgument(arr._type, objects.ObjectType.ARRAY_OBJ);
+};
+export const lastFn = (
+  _env: Environment,
+  _currentFilePath: string,
+  ...args: (objects.Objects | null)[]
+): objects.Objects | objects.Null | objects.Error => {
+  if (args.length !== 1) {
+    return wrongNumberOfArgs(args.length, 1);
+  }
+  const arr = args[0];
+  if (arr === null) {
+    return gotHostNull();
+  }
+  if (arr instanceof objects.ArrayObj) {
+    if (arr.elements.length) {
+      const first = arr.elements[arr.elements.length-1];
+      if (first === null) {
+        return new objects.Null()
+      }
+      return first;
+    }
+    return new objects.Null();
+  }
+
+  return wrongTypeOfArgument(arr._type, objects.ObjectType.ARRAY_OBJ);
+};

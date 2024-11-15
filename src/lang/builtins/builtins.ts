@@ -2,7 +2,9 @@ import * as objects from "../objects/objects.ts";
 import {
   appendFn,
   filterFn,
+  firstFn,
   joinFn,
+  lastFn,
   mapFn,
   prependFn,
   reduceFn,
@@ -31,6 +33,8 @@ const BUILTINS: Record<string, objects.BuiltIn> = {
   map: new objects.BuiltIn(mapFn),
   filter: new objects.BuiltIn(filterFn),
   reduce: new objects.BuiltIn(reduceFn),
+  first: new objects.BuiltIn(firstFn),
+  last: new objects.BuiltIn(lastFn),
 
   //file
   readFile: new objects.BuiltIn(readFileFn),

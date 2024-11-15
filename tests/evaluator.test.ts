@@ -78,6 +78,14 @@ Deno.test("Test builtins", async () => {
     false,
     ` Expected integer evaluation mismatch`,
   );
+  const evaluated3 = await testEval<objects.Integer>(
+    "let arr = [3,2,1]; first(arr);",
+  );
+  assertEquals(evaluated3.value, 3)
+  const evaluated4 = await testEval<objects.Integer>(
+    "let arr = [3,2,1]; last(arr);",
+  );
+  assertEquals(evaluated4.value, 1)
 });
 
 Deno.test("Test HTTP Get", async () => {
