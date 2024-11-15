@@ -21,7 +21,6 @@ export const putsFn = async (
   return new objects.Null();
 };
 
-
 export const ffiFn = async (
   _env: Environment,
   _currentFilePath: string,
@@ -32,32 +31,33 @@ export const ffiFn = async (
   }
   const arg = args[0];
   if (arg === null) {
-    return gotHostNull()
+    return gotHostNull();
   }
   if (!(arg instanceof objects.String)) {
-    return wrongTypeOfArgument(arg._type, objects.ObjectType.STRING_OBJ)
+    return wrongTypeOfArgument(arg._type, objects.ObjectType.STRING_OBJ);
   }
   try {
-    const result = eval(arg.value)
+    const result = eval(arg.value);
     if (result === null || result === undefined) {
       return new objects.Null();
     }
-    if (typeof result === 'string') {
+    if (typeof result === "string") {
       return new objects.String(result);
     }
-    if (typeof result === 'number') {
+    if (typeof result === "number") {
       return new objects.Integer(result);
     }
-    if (typeof result === 'boolean') {
-      return new objects.Boolean(result)
+    if (typeof result === "boolean") {
+      return new objects.Boolean(result);
+    } else {
+      return newError(
+        `Unable to evaluate result of ffi call. Received: ${typeof result}`,
+      );
     }
-    else {
-      return newError(`Unable to evaluate result of ffi call. Received: ${typeof result}`)
-    }
-  } catch(e) {
-    return newError(`FFI Error: ${e.message}`)
+  } catch (e) {
+    return newError(`FFI Error: ${e.message}`);
   }
-} 
+};
 
 export const typeFn = async (
   _env: Environment,
