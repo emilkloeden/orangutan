@@ -301,6 +301,24 @@ export class IndexExpression implements Expression {
     return this.token.literal;
   }
 }
+export class AssignExpression implements Expression {
+  constructor(
+    private token: Token,
+    public target: Expression | null,
+    public value: Expression | null,
+  ) {}
+
+  toString() {
+    // TODO: Check definition
+    if (this.value == null) {
+      return `${this.target?.toString()} = null`;
+    }
+    return `${this.target?.toString()} = ${this.value.toString()}`;
+  }
+  tokenLiteral() {
+    return this.token.literal;
+  }
+}
 
 export class PropertyAccessExpression implements Expression {
   constructor(

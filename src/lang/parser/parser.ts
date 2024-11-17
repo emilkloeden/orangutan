@@ -18,7 +18,6 @@ export enum Precedence {
 }
 
 export const precedences: Record<string, Precedence> = {
-  [TokenType.ASSIGN]: Precedence.ASSIGN,
   [TokenType.EQ]: Precedence.EQUALS,
   [TokenType.NOT_EQ]: Precedence.EQUALS,
   [TokenType.LT]: Precedence.LESSGREATER,
@@ -37,6 +36,7 @@ export const precedences: Record<string, Precedence> = {
   [TokenType.LBRACKET]: Precedence.INDEX,
   [TokenType.PERIOD]: Precedence.INDEX,
   [TokenType.USE]: Precedence.CALL,
+  [TokenType.ASSIGN]: Precedence.ASSIGN,
 };
 
 export default class Parser {
@@ -86,11 +86,11 @@ export default class Parser {
       [TokenType.LTE]: this.parseInfixExpression,
       [TokenType.GT]: this.parseInfixExpression,
       [TokenType.GTE]: this.parseInfixExpression,
-      [TokenType.ASSIGN]: this.parseInfixExpression,
       [TokenType.LPAREN]: this.parseCallExpression,
       [TokenType.LBRACKET]: this.parseIndexExpression,
+      [TokenType.ASSIGN]: this.parseAssignExpression,
       [TokenType.PERIOD]: this.parsePropertyAccessExpression,
-      [TokenType.DOUBLE_COLON]: this.parseModuleFunction,
+      // [TokenType.DOUBLE_COLON]: this.parseModuleFunction,
     };
   }
 
@@ -408,10 +408,19 @@ export default class Parser {
     }
     return identifiers;
   };
+
   parseCallExpression = (fn: ast.Expression | null): ast.Expression | null => {
     const exp = new ast.CallExpression(this.currentToken, fn);
     exp.arguments = this.parseExpressionList(TokenType.RPAREN);
     return exp;
+  };
+
+  
+  parseAssignExpression = (target: ast.Expression | null): ast.Expression | null => {
+    const tok = this.currentToken;
+    this.nextToken()
+    const right = this.parseExpression(Precedence.LOWEST);
+    return new ast.AssignExpression(tok, target, right);
   };
 
   parseIndexExpression = (

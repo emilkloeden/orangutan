@@ -65,10 +65,14 @@ const evaluate = async (
       return right;
     }
     return evaluatePrefixExpression(node.operator, right);
+  } else if (node instanceof ast.AssignExpression) {
+    return await evaluateAssignment(
+      node.target,
+      node.value,
+      env,
+      currentFilePath,
+    );
   } else if (node instanceof ast.InfixExpression) {
-    if (node.operator == "=") {
-      return await evaluateAssignment(node.left, node.right, env, currentFilePath);
-    }
     const left = await evaluate(node.left, env, currentFilePath);
     if (isError(left)) {
       return left;
@@ -127,32 +131,45 @@ const evaluateAssignment = async (
 
     return originalEnv.set(left.value, value);
   } else if (left instanceof ast.IndexExpression) {
-    const indexed = await evaluate(left.left, env, currentFilePath) 
+    const indexed = await evaluate(left.left, env, currentFilePath);
     if (isError(indexed)) {
-        return indexed;
+      return indexed;
     }
     const index = await evaluate(left.index, env, currentFilePath);
     if (isError(index)) {
       return index;
     }
-    if (indexed instanceof objects.ArrayObj && index instanceof objects.Integer) {
-     return await evaluateArrayAssignment(indexed, index, right, env, currentFilePath)
-
+    if (
+      indexed instanceof objects.ArrayObj && index instanceof objects.Integer
+    ) {
+      return await evaluateArrayAssignment(
+        indexed,
+        index,
+        right,
+        env,
+        currentFilePath,
+      );
     } else {
-      return newError(`index operator not supported: ${left}`)
+      return newError(`index operator not supported: ${left}`);
     }
     // return new objects.Null();
-  
-    
   } else {
-    return newError("Cannot assign to something that is not an identifier or an index expression.");
+    return newError(
+      "Cannot assign to something that is not an identifier or an index expression.",
+    );
   }
 };
 
-const evaluateArrayAssignment = async (array: objects.ArrayObj, index: objects.Integer, right: ast.Expression | null, env: Environment, currentFilePath: string): Promise<objects.Objects | null> => {
-  const [arrayObj, idx, max] = unpackArrayIndex(array, index)
+const evaluateArrayAssignment = async (
+  array: objects.ArrayObj,
+  index: objects.Integer,
+  right: ast.Expression | null,
+  env: Environment,
+  currentFilePath: string,
+): Promise<objects.Objects | null> => {
+  const [arrayObj, idx, max] = unpackArrayIndex(array, index);
   if (idx < 0 || idx > max) {
-    return newError(`index out of range`)
+    return newError(`index out of range`);
   }
   const value = await evaluate(right, env, currentFilePath);
   if (isError(value)) {
@@ -160,11 +177,19 @@ const evaluateArrayAssignment = async (array: objects.ArrayObj, index: objects.I
   }
   arrayObj.elements[idx] = value;
   return value;
-}
-const unpackArrayIndex = (array: objects.Objects, index: objects.Objects): [objects.ArrayObj, number, number] => {
-  const arrayObj = (array as objects.ArrayObj);
-  return [arrayObj, (index as objects.Integer).value, arrayObj.elements.length - 1];
-}
+};
+
+const unpackArrayIndex = (
+  array: objects.Objects,
+  index: objects.Objects,
+): [objects.ArrayObj, number, number] => {
+  const arrayObj = array as objects.ArrayObj;
+  return [
+    arrayObj,
+    (index as objects.Integer).value,
+    arrayObj.elements.length - 1,
+  ];
+};
 
 const evaluateCallExpression = async (
   node: ast.CallExpression,
