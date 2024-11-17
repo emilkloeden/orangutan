@@ -67,7 +67,7 @@ const evaluate = async (
     return evaluatePrefixExpression(node.operator, right);
   } else if (node instanceof ast.InfixExpression) {
     if (node.operator == "=") {
-      return evaluateAssignment(node.left, node.right, env, currentFilePath);
+      return await evaluateAssignment(node.left, node.right, env, currentFilePath);
     }
     const left = await evaluate(node.left, env, currentFilePath);
     if (isError(left)) {
@@ -136,17 +136,7 @@ const evaluateAssignment = async (
       return index;
     }
     if (indexed instanceof objects.ArrayObj && index instanceof objects.Integer) {
-      const idx = index.value;
-      const max = indexed.elements.length;
-      if (idx < 0 || idx > max) {
-        return newError(`index out of range`)
-      }
-      const value = await evaluate(right, env, currentFilePath);
-      if (isError(value)) {
-        return value;
-      }
-      indexed.elements[idx] = value;
-      return value;
+     return await evaluateArrayAssignment(indexed, index, right, env, currentFilePath)
 
     } else {
       return newError(`index operator not supported: ${left}`)
@@ -158,6 +148,23 @@ const evaluateAssignment = async (
     return newError("Cannot assign to something that is not an identifier or an index expression.");
   }
 };
+
+const evaluateArrayAssignment = async (array: objects.ArrayObj, index: objects.Integer, right: ast.Expression | null, env: Environment, currentFilePath: string): Promise<objects.Objects | null> => {
+  const [arrayObj, idx, max] = unpackArrayIndex(array, index)
+  if (idx < 0 || idx > max) {
+    return newError(`index out of range`)
+  }
+  const value = await evaluate(right, env, currentFilePath);
+  if (isError(value)) {
+    return value;
+  }
+  arrayObj.elements[idx] = value;
+  return value;
+}
+const unpackArrayIndex = (array: objects.Objects, index: objects.Objects): [objects.ArrayObj, number, number] => {
+  const arrayObj = (array as objects.ArrayObj);
+  return [arrayObj, (index as objects.Integer).value, arrayObj.elements.length - 1];
+}
 
 const evaluateCallExpression = async (
   node: ast.CallExpression,
@@ -559,13 +566,12 @@ const evaluateArrayIndexExpression = (
   array: objects.ArrayObj,
   index: objects.Integer,
 ): objects.Objects | null => {
-  const idx = index.value;
-
-  if (idx < 0 || idx > array.elements.length - 1) {
+  const [arrayObj, idx, max] = unpackArrayIndex(array, index);
+  if (idx < 0 || idx > max) {
     return new objects.Null();
   }
 
-  return array.elements[idx];
+  return arrayObj.elements[idx];
 };
 
 const evaluateHashIndexExpression = (
