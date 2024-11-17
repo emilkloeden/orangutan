@@ -54,8 +54,11 @@ export const ffiFn = async (
         `Unable to evaluate result of ffi call. Received: ${typeof result}`,
       );
     }
-  } catch (e) {
-    return newError(`FFI Error: ${e.message}`);
+  } catch (err) {
+    if (err instanceof Error) {
+      return newError(`FFI Error: ${err.message}`);
+    }
+    throw err;
   }
 };
 

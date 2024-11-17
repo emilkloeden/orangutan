@@ -18,8 +18,11 @@ export const readFileFn = (
   try {
     const data = Deno.readTextFileSync(filePath);
     return new objects.String(data);
-  } catch (err) {
-    return new objects.Error(`Error reading file: ${err.message}`);
+  } catch (err)  {
+    if (err instanceof Deno.errors.NotFound || err instanceof Deno.errors.PermissionDenied) {
+      return new objects.Error(`Error reading file: ${(err as Error).message}`);
+    }
+    throw err;
   }
 };
 
@@ -48,6 +51,9 @@ export const writeFileFn = (
     Deno.writeTextFileSync(filePath, content);
     return new objects.String("File written successfully");
   } catch (err) {
-    return new objects.Error(`Error writing to file: ${err.message}`);
+    if (err instanceof Deno.errors.NotFound || err instanceof Deno.errors.PermissionDenied) {
+      return new objects.Error(`Error writing to file: ${(err as Error).message}`);
+    }
+    throw err;
   }
 };
