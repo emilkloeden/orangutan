@@ -8,6 +8,8 @@ import BUILTINS from "../builtins/builtins.ts";
 import Lexer from "../lexer/lexer.ts";
 import Parser from "../parser/parser.ts";
 import { ObjectType } from "../objects/objects.ts";
+import { lenFn } from "../builtins/string_and_array.ts";
+import { HashPair } from "../objects/objects.ts";
 
 const evaluate = async (
   node: ast.Node | null,
@@ -64,6 +66,13 @@ const evaluate = async (
       return right;
     }
     return evaluatePrefixExpression(node.operator, right);
+  } else if (node instanceof ast.AssignExpression) {
+    return await evaluateAssignment(
+      node.target,
+      node.value,
+      env,
+      currentFilePath,
+    );
   } else if (node instanceof ast.InfixExpression) {
     const left = await evaluate(node.left, env, currentFilePath);
     if (isError(left)) {
@@ -103,6 +112,118 @@ const evaluate = async (
 };
 
 export default evaluate;
+
+const evaluateAssignment = async (
+  left: ast.Expression | null,
+  right: ast.Expression | null,
+  env: Environment,
+  currentFilePath: string,
+): Promise<objects.Objects | null> => {
+  if (left instanceof ast.Identifier) {
+    const got = env.get(left.value);
+    if (got === null) {
+      return newError(`identifier not found ${left.value}`);
+    }
+    const originalEnv = got.env;
+    const value = await evaluate(right, env, currentFilePath);
+    if (isError(value)) {
+      return value;
+    }
+
+    return originalEnv.set(left.value, value);
+  } else if (left instanceof ast.IndexExpression) {
+    const indexed = await evaluate(left.left, env, currentFilePath);
+    if (isError(indexed)) {
+      return indexed;
+    }
+    const index = await evaluate(left.index, env, currentFilePath);
+    if (isError(index)) {
+      return index;
+    }
+    if (
+      indexed instanceof objects.ArrayObj && index instanceof objects.Integer
+    ) {
+      return await evaluateArrayAssignment(
+        indexed,
+        index,
+        right,
+        env,
+        currentFilePath,
+      );
+    } else if (indexed instanceof objects.Hash) { // && index instanceof objects.String) {
+      return await evaluateHashAssignment(
+        indexed,
+        index,
+        right,
+        env,
+        currentFilePath,
+      );
+    } else {
+      return newError(`index operator not supported: ${left}`);
+    }
+    // return new objects.Null();
+  } else {
+    return newError(
+      "Cannot assign to something that is not an identifier or an index expression.",
+    );
+  }
+};
+
+const evaluateArrayAssignment = async (
+  array: objects.ArrayObj,
+  index: objects.Integer,
+  right: ast.Expression | null,
+  env: Environment,
+  currentFilePath: string,
+): Promise<objects.Objects | null> => {
+  const [arrayObj, idx, max] = unpackArrayIndex(array, index);
+  if (idx < 0 || idx > max) {
+    return newError(`index out of range`);
+  }
+  const value = await evaluate(right, env, currentFilePath);
+  if (isError(value)) {
+    return value;
+  }
+  arrayObj.elements[idx] = value;
+  return value;
+};
+
+const unpackArrayIndex = (
+  array: objects.Objects,
+  index: objects.Objects,
+): [objects.ArrayObj, number, number] => {
+  const arrayObj = array as objects.ArrayObj;
+  return [
+    arrayObj,
+    (index as objects.Integer).value,
+    arrayObj.elements.length - 1,
+  ];
+};
+
+const evaluateHashAssignment = async (
+  hash: objects.Hash,
+  index: objects.Objects | null,
+  right: ast.Expression | null,
+  env: Environment,
+  currentFilePath: string,
+): Promise<objects.Objects | null> => {
+  if (!(isHashable(index))) {
+    return newError(`Unusable as hash key: ${index}`);
+  }
+  const hashObj = hash as objects.Hash;
+  const hashKeyString = index.hashKey().toString();
+  const value = await evaluate(right, env, currentFilePath);
+  if (isError(value)) {
+    return value;
+  }
+  if (value === null) {
+    return newError("RHS of hash assignment expression evaluate to host null");
+  }
+  const hashPair = new HashPair(index, value);
+  hashObj.pairs.set(hashKeyString, hashPair);
+
+  return value;
+};
 
 const evaluateCallExpression = async (
   node: ast.CallExpression,
@@ -388,7 +509,7 @@ const evaluateIdentifier = (
 
   // TODO: Confirm !== usage
   if (val !== null) {
-    return val;
+    return val.value;
   }
 
   const builtin = BUILTINS[node.value];
@@ -504,13 +625,12 @@ const evaluateArrayIndexExpression = (
   array: objects.ArrayObj,
   index: objects.Integer,
 ): objects.Objects | null => {
-  const idx = index.value;
-
-  if (idx < 0 || idx > array.elements.length - 1) {
+  const [arrayObj, idx, max] = unpackArrayIndex(array, index);
+  if (idx < 0 || idx > max) {
     return new objects.Null();
   }
 
-  return array.elements[idx];
+  return arrayObj.elements[idx];
 };
 
 const evaluateHashIndexExpression = (
