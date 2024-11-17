@@ -415,10 +415,11 @@ export default class Parser {
     return exp;
   };
 
-  
-  parseAssignExpression = (target: ast.Expression | null): ast.Expression | null => {
+  parseAssignExpression = (
+    target: ast.Expression | null,
+  ): ast.Expression | null => {
     const tok = this.currentToken;
-    this.nextToken()
+    this.nextToken();
     const right = this.parseExpression(Precedence.LOWEST);
     return new ast.AssignExpression(tok, target, right);
   };

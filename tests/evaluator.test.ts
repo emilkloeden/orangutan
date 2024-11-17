@@ -65,6 +65,11 @@ Deno.test("Test assignment", () => {
     { input: "let x = 1; x = x + 1; x", expected: 2 },
     { input: "let x = 1; let myFn = fn() {x = 2}; myFn(); x", expected: 2 },
     { input: "let a = [0,5,10]; a[1] = 2; a[1]", expected: 2 },
+    {
+      input: `let a = {"0": 0, "5": 5, "10": 10}; a["5"] = 2; a["5"]`,
+      expected: 2,
+    },
+    // { input: `let a = {"0": 0, "5": 5, "x": 10}; a.x = 2; a.x`, expected: 2 },
   ];
 
   tests.forEach(async (tt, iteration) => {

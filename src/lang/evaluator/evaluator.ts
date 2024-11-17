@@ -9,6 +9,7 @@ import Lexer from "../lexer/lexer.ts";
 import Parser from "../parser/parser.ts";
 import { ObjectType } from "../objects/objects.ts";
 import { lenFn } from "../builtins/string_and_array.ts";
+import { HashPair } from "../objects/objects.ts";
 
 const evaluate = async (
   node: ast.Node | null,
@@ -149,6 +150,14 @@ const evaluateAssignment = async (
         env,
         currentFilePath,
       );
+    } else if (indexed instanceof objects.Hash) { // && index instanceof objects.String) {
+      return await evaluateHashAssignment(
+        indexed,
+        index,
+        right,
+        env,
+        currentFilePath,
+      );
     } else {
       return newError(`index operator not supported: ${left}`);
     }
@@ -189,6 +198,31 @@ const unpackArrayIndex = (
     (index as objects.Integer).value,
     arrayObj.elements.length - 1,
   ];
+};
+
+const evaluateHashAssignment = async (
+  hash: objects.Hash,
+  index: objects.Objects | null,
+  right: ast.Expression | null,
+  env: Environment,
+  currentFilePath: string,
+): Promise<objects.Objects | null> => {
+  if (!(isHashable(index))) {
+    return newError(`Unusable as hash key: ${index}`);
+  }
+  const hashObj = hash as objects.Hash;
+  const hashKeyString = index.hashKey().toString();
+  const value = await evaluate(right, env, currentFilePath);
+  if (isError(value)) {
+    return value;
+  }
+  if (value === null) {
+    return newError("RHS of hash assignment expression evaluate to host null");
+  }
+  const hashPair = new HashPair(index, value);
+  hashObj.pairs.set(hashKeyString, hashPair);
+
+  return value;
 };
 
 const evaluateCallExpression = async (
