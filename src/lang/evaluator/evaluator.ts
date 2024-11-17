@@ -8,6 +8,7 @@ import BUILTINS from "../builtins/builtins.ts";
 import Lexer from "../lexer/lexer.ts";
 import Parser from "../parser/parser.ts";
 import { ObjectType } from "../objects/objects.ts";
+import { lenFn } from "../builtins/string_and_array.ts";
 
 const evaluate = async (
   node: ast.Node | null,
@@ -66,8 +67,7 @@ const evaluate = async (
     return evaluatePrefixExpression(node.operator, right);
   } else if (node instanceof ast.InfixExpression) {
     if (node.operator == "=") {
-      return evaluateAssignment(node.left, node.right, env, 
-        currentFilePath);
+      return evaluateAssignment(node.left, node.right, env, currentFilePath);
     }
     const left = await evaluate(node.left, env, currentFilePath);
     if (isError(left)) {
@@ -114,21 +114,50 @@ const evaluateAssignment = async (
   env: Environment,
   currentFilePath: string,
 ): Promise<objects.Objects | null> => {
-  if(!(left instanceof ast.Identifier)) {
-    return newError("Cannot assign to something that is not an identifier")
-  }
-  const got = env.get(left.value);
-  if (got === null) {
-    return newError(`identifier not found ${left.value}`)
-  }
-  const originalEnv = got.env;
-  const value = await evaluate(right, env, currentFilePath)
-  if (isError(value)) {
-    return value;
-  }
+  if (left instanceof ast.Identifier) {
+    const got = env.get(left.value);
+    if (got === null) {
+      return newError(`identifier not found ${left.value}`);
+    }
+    const originalEnv = got.env;
+    const value = await evaluate(right, env, currentFilePath);
+    if (isError(value)) {
+      return value;
+    }
+
+    return originalEnv.set(left.value, value);
+  } else if (left instanceof ast.IndexExpression) {
+    const indexed = await evaluate(left.left, env, currentFilePath) 
+    if (isError(indexed)) {
+        return indexed;
+    }
+    const index = await evaluate(left.index, env, currentFilePath);
+    if (isError(index)) {
+      return index;
+    }
+    if (indexed instanceof objects.ArrayObj && index instanceof objects.Integer) {
+      const idx = index.value;
+      const max = indexed.elements.length;
+      if (idx < 0 || idx > max) {
+        return newError(`index out of range`)
+      }
+      const value = await evaluate(right, env, currentFilePath);
+      if (isError(value)) {
+        return value;
+      }
+      indexed.elements[idx] = value;
+      return value;
+
+    } else {
+      return newError(`index operator not supported: ${left}`)
+    }
+    // return new objects.Null();
   
-  return originalEnv.set(left.value, value)
-}
+    
+  } else {
+    return newError("Cannot assign to something that is not an identifier or an index expression.");
+  }
+};
 
 const evaluateCallExpression = async (
   node: ast.CallExpression,
@@ -411,7 +440,7 @@ const evaluateIdentifier = (
   env: Environment,
 ): objects.Objects => {
   const val = env.get(node.value);
-  
+
   // TODO: Confirm !== usage
   if (val !== null) {
     return val.value;

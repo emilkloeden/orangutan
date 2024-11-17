@@ -9,7 +9,7 @@ export default class Environment {
     private outer?: Environment,
   ) {}
 
-  get = (name: string): null | ValueEnvironmentPair  => {
+  get = (name: string): null | ValueEnvironmentPair => {
     const obj = this.store[name];
     // TODO: Confirm if !== is possible
     if (obj != null) {
