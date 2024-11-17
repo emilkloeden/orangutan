@@ -65,6 +65,10 @@ const evaluate = async (
     }
     return evaluatePrefixExpression(node.operator, right);
   } else if (node instanceof ast.InfixExpression) {
+    if (node.operator == "=") {
+      return evaluateAssignment(node.left, node.right, env, 
+        currentFilePath);
+    }
     const left = await evaluate(node.left, env, currentFilePath);
     if (isError(left)) {
       return left;
@@ -103,6 +107,28 @@ const evaluate = async (
 };
 
 export default evaluate;
+
+const evaluateAssignment = async (
+  left: ast.Expression | null,
+  right: ast.Expression | null,
+  env: Environment,
+  currentFilePath: string,
+): Promise<objects.Objects | null> => {
+  if(!(left instanceof ast.Identifier)) {
+    return newError("Cannot assign to something that is not an identifier")
+  }
+  const got = env.get(left.value);
+  if (got === null) {
+    return newError(`identifier not found ${left.value}`)
+  }
+  const originalEnv = got.env;
+  const value = await evaluate(right, env, currentFilePath)
+  if (isError(value)) {
+    return value;
+  }
+  
+  return originalEnv.set(left.value, value)
+}
 
 const evaluateCallExpression = async (
   node: ast.CallExpression,
@@ -385,10 +411,10 @@ const evaluateIdentifier = (
   env: Environment,
 ): objects.Objects => {
   const val = env.get(node.value);
-
+  
   // TODO: Confirm !== usage
   if (val !== null) {
-    return val;
+    return val.value;
   }
 
   const builtin = BUILTINS[node.value];

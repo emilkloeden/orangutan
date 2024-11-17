@@ -1,16 +1,19 @@
 import * as objects from "../objects/objects.ts";
 
+class ValueEnvironmentPair {
+  constructor(public value: objects.Objects, public env: Environment) {}
+}
 export default class Environment {
   constructor(
     public store: Record<string, objects.Objects>,
     private outer?: Environment,
   ) {}
 
-  get = (name: string): objects.Objects | null => {
+  get = (name: string): null | ValueEnvironmentPair  => {
     const obj = this.store[name];
     // TODO: Confirm if !== is possible
     if (obj != null) {
-      return obj;
+      return new ValueEnvironmentPair(obj, this);
     }
     // TODO: Confirm !== is possible
     if (this.outer !== undefined) {
