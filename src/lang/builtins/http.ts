@@ -16,8 +16,11 @@ export const getAsyncFn = async (
     const response = await fetch(url);
     const text = await response.text();
     return new objects.String(text);
-  } catch (error) {
-    return new objects.Error(`FETCH Error: ${error.message}`);
+  } catch (err) {
+    if (err instanceof Error) {
+      return new objects.Error(`FETCH Error: ${err.message}`);
+    }
+    throw err;
   }
 };
 
@@ -49,7 +52,10 @@ export const postAsyncFn = async (
     });
     const text = await response.text();
     return new objects.String(text);
-  } catch (error) {
-    return new objects.Error(`FETCH Error: ${error.message}`);
+  } catch (err) {
+    if (err instanceof Error) {
+      return new objects.Error(`FETCH Error: ${err.message}`);
+    }
+    throw err;
   }
 };
