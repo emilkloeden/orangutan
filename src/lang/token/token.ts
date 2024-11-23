@@ -74,7 +74,7 @@ export const lookupIdent = (ident: string): TokenType => {
 };
 
 export default class Token {
-  constructor(public tokenType: TokenType, public literal: string) {
+  constructor(public tokenType: TokenType, public literal: string, public line: number, public column: number) {
     this.tokenType = tokenType;
     this.literal = literal;
   }
