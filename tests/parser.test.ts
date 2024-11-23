@@ -69,3 +69,22 @@ async function testEval<T>(input: string): Promise<T> {
   const env = new Environment({});
   return await evaluate(program, env, Deno.cwd()) as T;
 }
+
+Deno.test("Test parser error prints an error with the correct line and column", async () => {
+  const tt = {
+    input: 'let a = fn(a, b) {a+b}\na(1,)\n',
+    expected: [
+      "No prefix parse function for ) found. Found on Line: 2 and Column: 5.",
+     "Expected next token to be ), got EOF instead. Found on Line: 3 and Column: 1."],
+  };
+  testErrors(tt.input, tt.expected);
+});
+
+
+function testErrors(input: string, expected: string[]) {
+  const lexer = new Lexer(input);
+  const parser = new Parser(lexer, "");
+  parser.parseProgram()
+  assertEquals(parser.errors, expected, "Expected error didn't occur.")
+
+}

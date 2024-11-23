@@ -228,7 +228,7 @@ export default class Parser {
       console.error(
         `No prefix parse function found for token: ${this.currentToken.tokenType}`,
       );
-      this.noPrefixParseFnError(this.currentToken.tokenType);
+      this.noPrefixParseFnError(this.currentToken);
       return null;
     }
     let leftExp = prefix();
@@ -282,7 +282,7 @@ export default class Parser {
       return lit;
     } catch (e) {
       this.errors.push(
-        `Could not parse ${this.currentToken.literal} as integer`,
+        `Could not parse ${this.currentToken.literal} as integer. ${printLineAndColumn(this.currentToken)}`,
       );
       return null;
     }
@@ -536,7 +536,7 @@ export default class Parser {
 
   peekError = (tokenType: TokenType): void => {
     const errorMessage =
-      `Expected next token to be ${tokenType}, got ${this.peekToken.tokenType} instead.`;
+      `Expected next token to be ${tokenType}, got ${this.peekToken.tokenType} instead. ${printLineAndColumn(this.peekToken)}`;
     this.errors.push(errorMessage);
   };
 
@@ -544,8 +544,8 @@ export default class Parser {
     return precedences[this.peekToken.tokenType] || Precedence.LOWEST;
   };
 
-  noPrefixParseFnError = (tokenType: TokenType): void => {
-    this.errors.push(`No prefix parse function for ${tokenType} found.`);
+  noPrefixParseFnError = (token: Token): void => {
+    this.errors.push(`No prefix parse function for ${token.tokenType} found. ${printLineAndColumn(token)}`);
   };
 
   parseExpressionList = (
@@ -572,4 +572,8 @@ export default class Parser {
 
     return expressions;
   };
+}
+
+const printLineAndColumn = (token: Token) => {
+  return `Found on Line: ${token.line} and Column: ${token.column}.`
 }
