@@ -10,6 +10,8 @@ import {
   reduceFn,
   restFn,
   naiveIntegerSortFn,
+  zipFn,
+  zipLongestFn
 } from "./array.ts";
 import { readFileFn, writeFileFn } from "./file.ts";
 import { ffiFn, putsFn, typeFn } from "./general.ts";
@@ -40,6 +42,8 @@ const BUILTINS: Record<string, objects.BuiltIn> = {
   last: new objects.BuiltIn(lastFn),
   rest: new objects.BuiltIn(restFn),
   sort: new objects.BuiltIn(naiveIntegerSortFn),
+  zip: new objects.BuiltIn(zipFn),
+  zipLongest: new objects.BuiltIn(zipLongestFn),
 
   //file
   readFile: new objects.BuiltIn(readFileFn),
