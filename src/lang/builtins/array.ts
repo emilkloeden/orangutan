@@ -148,7 +148,7 @@ export const filterFn = async (
     for (const el of arr.elements) {
       const res = await applyFunction(fn, [el], env, currentFilePath);
       if (isTruthy(res)) {
-        els.push(res);
+        els.push(el);
       }
     }
     return new objects.ArrayObj(
