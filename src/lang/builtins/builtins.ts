@@ -9,6 +9,7 @@ import {
   prependFn,
   reduceFn,
   restFn,
+  naiveIntegerSortFn,
 } from "./array.ts";
 import { readFileFn, writeFileFn } from "./file.ts";
 import { ffiFn, putsFn, typeFn } from "./general.ts";
@@ -38,6 +39,7 @@ const BUILTINS: Record<string, objects.BuiltIn> = {
   first: new objects.BuiltIn(firstFn),
   last: new objects.BuiltIn(lastFn),
   rest: new objects.BuiltIn(restFn),
+  sort: new objects.BuiltIn(naiveIntegerSortFn),
 
   //file
   readFile: new objects.BuiltIn(readFileFn),

@@ -296,3 +296,32 @@ export const restFn = (
 
   return wrongTypeOfArgument(arr._type, objects.ObjectType.ARRAY_OBJ);
 };
+
+export const naiveIntegerSortFn = (
+  _env: Environment,
+  _currentFilePath: string,
+  ...args: (objects.Objects | null)[]
+): objects.Objects | objects.Null | objects.Error => {
+  if (args.length !== 1) {
+    return wrongNumberOfArgs(args.length, 1);
+  }
+  const arr = args[0];
+  if (arr === null) {
+    return gotHostNull();
+  }
+  if (arr instanceof objects.ArrayObj) {
+    const toBeSorted = []
+    for(const el of arr.elements) {
+      if (el instanceof objects.Integer) {
+        toBeSorted.push(el.value)
+      } else if(el === null) {
+        return gotHostNull();
+      } else {
+        return wrongTypeOfArgument(el._type, objects.ObjectType.INTEGER_OBJ);
+      }
+    }
+    return new objects.ArrayObj(toBeSorted.sort().map(value => new objects.Integer(value)));
+  }
+
+  return wrongTypeOfArgument(arr._type, objects.ObjectType.ARRAY_OBJ);
+};
