@@ -13,7 +13,7 @@ import {
 import { readFileFn, writeFileFn } from "./file.ts";
 import { ffiFn, putsFn, typeFn } from "./general.ts";
 import { getAsyncFn, postAsyncFn } from "./http.ts";
-import { splitFn } from "./string.ts";
+import { intFn, splitFn } from "./string.ts";
 import { lenFn } from "./string_and_array.ts";
 
 const BUILTINS: Record<string, objects.BuiltIn> = {
@@ -26,6 +26,7 @@ const BUILTINS: Record<string, objects.BuiltIn> = {
 
   // string
   split: new objects.BuiltIn(splitFn),
+  int: new objects.BuiltIn(intFn),
 
   // array
   join: new objects.BuiltIn(joinFn),
