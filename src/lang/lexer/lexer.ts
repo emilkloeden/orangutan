@@ -4,11 +4,15 @@ export default class Lexer {
   position: number;
   readPosition: number;
   ch: string;
+  line: number;
+  column: number;
 
   constructor(private input: string) {
     this.position = 0;
     this.readPosition = 0;
     this.ch = "";
+    this.line = 1;
+    this.column = 0;
     this.readChar();
   }
 
@@ -20,6 +24,7 @@ export default class Lexer {
     }
     this.position = this.readPosition;
     this.readPosition++;
+    this.column++;
   };
 
   public peekChar = (): string => {
@@ -32,6 +37,10 @@ export default class Lexer {
   private skipWhitespace = (): void => {
     const whiteSpace = [" ", "\t", "\r", "\n"];
     while (whiteSpace.includes(this.ch)) {
+      if (this.ch === "\n") {
+        this.line++;
+        this.column = 0;
+      }
       this.readChar();
     }
   };
@@ -39,116 +48,118 @@ export default class Lexer {
   public nextToken = (): Token => {
     let tok: Token;
     this.skipWhitespace();
+    const { line, column } = this;
     if (this.ch === "=") {
       if (this.peekChar() === "=") {
         const ch = this.ch;
         this.readChar();
         const literal = ch.toString() + this.ch;
-        tok = new Token(TokenType.EQ, literal);
+        tok = new Token(TokenType.EQ, literal, line, column);
       } else {
-        tok = new Token(TokenType.ASSIGN, this.ch);
+        tok = new Token(TokenType.ASSIGN, this.ch, line, column);
       }
     } else if (this.ch == "+") {
-      tok = new Token(TokenType.PLUS, this.ch);
+      tok = new Token(TokenType.PLUS, this.ch, line, column);
     } else if (this.ch == "-") {
-      tok = new Token(TokenType.MINUS, this.ch);
+      tok = new Token(TokenType.MINUS, this.ch, line, column);
     } else if (this.ch == "!") {
       if (this.peekChar() == "=") {
         const ch = this.ch;
         this.readChar();
         const literal = `${ch}${this.ch}`;
-        tok = new Token(TokenType.NOT_EQ, literal);
+        tok = new Token(TokenType.NOT_EQ, literal, line, column);
       } else {
-        tok = new Token(TokenType.BANG, this.ch);
+        tok = new Token(TokenType.BANG, this.ch, line, column);
       }
     } else if (this.ch == "/") {
       if (this.peekChar() == "/") {
-        this.readChar(); // skip over the next '/' char
-        tok = new Token(TokenType.COMMENT, this.readLine());
+        tok = new Token(TokenType.COMMENT, this.readLine(), line, column);
       } else {
-        tok = new Token(TokenType.SLASH, this.ch);
+        tok = new Token(TokenType.SLASH, this.ch, line, column);
       }
     } else if (this.ch == "*") {
-      tok = new Token(TokenType.ASTERISK, this.ch);
+      tok = new Token(TokenType.ASTERISK, this.ch, line, column);
     } else if (this.ch == "%") {
-      tok = new Token(TokenType.MODULO, this.ch);
+      tok = new Token(TokenType.MODULO, this.ch, line, column);
     } else if (this.ch == "&") {
       if (this.peekChar() == "&") {
         const ch = this.ch;
         this.readChar();
         const literal = ch.toString() + this.ch;
-        tok = new Token(TokenType.AND, literal);
+        tok = new Token(TokenType.AND, literal, line, column);
       } else {
-        tok = new Token(TokenType.ILLEGAL, this.ch);
+        tok = new Token(TokenType.ILLEGAL, this.ch, line, column);
       }
     } else if (this.ch == "|") {
       if (this.peekChar() == "|") {
         const ch = this.ch;
         this.readChar();
         const literal = ch.toString() + this.ch;
-        tok = new Token(TokenType.OR, literal);
+        tok = new Token(TokenType.OR, literal, line, column);
       } else {
-        tok = new Token(TokenType.ILLEGAL, this.ch);
+        tok = new Token(TokenType.ILLEGAL, this.ch, line, column);
       }
     } else if (this.ch == "<") {
       if (this.peekChar() == "=") {
         const ch = this.ch;
         this.readChar();
         const literal = `${ch}${this.ch}`;
-        tok = new Token(TokenType.LTE, literal);
+        tok = new Token(TokenType.LTE, literal, line, column);
       } else {
-        tok = new Token(TokenType.LT, this.ch);
+        tok = new Token(TokenType.LT, this.ch, line, column);
       }
     } else if (this.ch == ">") {
       if (this.peekChar() == "=") {
         const ch = this.ch;
         this.readChar();
         const literal = `${ch}${this.ch}`;
-        tok = new Token(TokenType.GTE, literal);
+        tok = new Token(TokenType.GTE, literal, line, column);
       } else {
-        tok = new Token(TokenType.LT, this.ch);
+        tok = new Token(TokenType.LT, this.ch, line, column);
       }
     } else if (this.ch == ";") {
-      tok = new Token(TokenType.SEMICOLON, this.ch);
+      tok = new Token(TokenType.SEMICOLON, this.ch, line, column);
     } else if (this.ch == "(") {
-      tok = new Token(TokenType.LPAREN, this.ch);
+      tok = new Token(TokenType.LPAREN, this.ch, line, column);
     } else if (this.ch == ")") {
-      tok = new Token(TokenType.RPAREN, this.ch);
+      tok = new Token(TokenType.RPAREN, this.ch, line, column);
     } else if (this.ch == ",") {
-      tok = new Token(TokenType.COMMA, this.ch);
+      tok = new Token(TokenType.COMMA, this.ch, line, column);
     } else if (this.ch == "{") {
-      tok = new Token(TokenType.LBRACE, this.ch);
+      tok = new Token(TokenType.LBRACE, this.ch, line, column);
     } else if (this.ch == "}") {
-      tok = new Token(TokenType.RBRACE, this.ch);
+      tok = new Token(TokenType.RBRACE, this.ch, line, column);
     } else if (this.ch == '"') {
-      tok = new Token(TokenType.STRING, this.readString());
+      tok = new Token(TokenType.STRING, this.readString(), line, column);
     } else if (this.ch == "[") {
-      tok = new Token(TokenType.LBRACKET, this.ch);
+      tok = new Token(TokenType.LBRACKET, this.ch, line, column);
     } else if (this.ch == "]") {
-      tok = new Token(TokenType.RBRACKET, this.ch);
+      tok = new Token(TokenType.RBRACKET, this.ch, line, column);
     } else if (this.ch == ":") {
       if (this.peekChar() == ":") {
         const ch = this.ch;
         this.readChar();
         const literal = `${ch}${this.ch}`;
-        tok = new Token(TokenType.DOUBLE_COLON, literal);
+        tok = new Token(TokenType.DOUBLE_COLON, literal, line, column);
       } else {
-        tok = new Token(TokenType.COLON, this.ch);
+        tok = new Token(TokenType.COLON, this.ch, line, column);
       }
     } else if (this.ch == ".") {
-      tok = new Token(TokenType.PERIOD, this.ch);
+      tok = new Token(TokenType.PERIOD, this.ch, line, column);
     } else if (this.ch == "\0") {
-      tok = new Token(TokenType.EOF, "");
+      tok = new Token(TokenType.EOF, "", line, column);
     } else {
       if (isLetter(this.ch)) {
+        const { line, column } = this;
         const ident = this.readIdentifier();
-        tok = new Token(lookupIdent(ident), ident);
+        tok = new Token(lookupIdent(ident), ident, line, column);
         return tok;
       } else if (isDigit(this.ch)) {
-        tok = new Token(TokenType.INT, this.readNumber());
+        const { line, column } = this;
+        tok = new Token(TokenType.INT, this.readNumber(), line, column);
         return tok;
       } else {
-        tok = new Token(TokenType.ILLEGAL, this.ch);
+        tok = new Token(TokenType.ILLEGAL, this.ch, line, column);
       }
     }
     this.readChar();

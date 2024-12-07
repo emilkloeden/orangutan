@@ -148,7 +148,7 @@ export const filterFn = async (
     for (const el of arr.elements) {
       const res = await applyFunction(fn, [el], env, currentFilePath);
       if (isTruthy(res)) {
-        els.push(res);
+        els.push(el);
       }
     }
     return new objects.ArrayObj(
@@ -296,3 +296,106 @@ export const restFn = (
 
   return wrongTypeOfArgument(arr._type, objects.ObjectType.ARRAY_OBJ);
 };
+
+export const naiveIntegerSortFn = (
+  _env: Environment,
+  _currentFilePath: string,
+  ...args: (objects.Objects | null)[]
+): objects.Objects | objects.Null | objects.Error => {
+  if (args.length !== 1) {
+    return wrongNumberOfArgs(args.length, 1);
+  }
+  const arr = args[0];
+  if (arr === null) {
+    return gotHostNull();
+  }
+  if (arr instanceof objects.ArrayObj) {
+    const toBeSorted = []
+    for(const el of arr.elements) {
+      if (el instanceof objects.Integer) {
+        toBeSorted.push(el.value)
+      } else if(el === null) {
+        return gotHostNull();
+      } else {
+        return wrongTypeOfArgument(el._type, objects.ObjectType.INTEGER_OBJ);
+      }
+    }
+    return new objects.ArrayObj(toBeSorted.sort().map(value => new objects.Integer(value)));
+  }
+
+  return wrongTypeOfArgument(arr._type, objects.ObjectType.ARRAY_OBJ);
+};
+
+
+export const zipFn = (
+  _env: Environment,
+  _currentFilePath: string,
+  ...args: (objects.Objects | null)[]
+): objects.Objects | objects.Null | objects.Error => {
+  if (args.length !== 2) {
+    return wrongNumberOfArgs(args.length, 2);
+  }
+  const left = args[0];
+  const right = args[1];
+  if (left === null || right === null) {
+    return gotHostNull();
+  }
+  if (!(left instanceof objects.ArrayObj)) {
+    return wrongTypeOfArgument(left._type, objects.ObjectType.ARRAY_OBJ);
+
+  } 
+  if (!(right instanceof objects.ArrayObj)){
+    return wrongTypeOfArgument(right._type, objects.ObjectType.ARRAY_OBJ);
+
+  }
+
+  const short = left.elements.length < right.elements.length ? left : right
+  
+  const out_elements = []
+  for (let i = 0; i < short.elements.length; i++) {
+    const pair = [left.elements[i], right.elements[i]]
+    out_elements.push(new objects.ArrayObj(pair))
+  }
+  return new objects.ArrayObj(out_elements);
+};
+
+export const zipLongestFn = (
+  _env: Environment,
+  _currentFilePath: string,
+  ...args: (objects.Objects | null)[]
+): objects.Objects | objects.Null | objects.Error => {
+  if (args.length !== 2 && args.length !== 3 ) {
+    return wrongNumberOfArgs(args.length, 2);
+  }
+  const left = args[0];
+  const right = args[1];
+  // Allow for an optional third argument to use as a filler, default to null otherwise
+  
+  const defaultValue = (args.length === 3)  ? args[2] : new objects.Null();
+  
+
+  if (left === null || right === null) {
+    return gotHostNull();
+  }
+  if (!(left instanceof objects.ArrayObj)) {
+    return wrongTypeOfArgument(left._type, objects.ObjectType.ARRAY_OBJ);
+
+  } 
+  if (!(right instanceof objects.ArrayObj)){
+    return wrongTypeOfArgument(right._type, objects.ObjectType.ARRAY_OBJ);
+
+  }
+
+  const longer = left.elements.length > right.elements.length ? left : right
+  
+  const out_elements = []
+  for (let i = 0; i < longer.elements.length; i++) {
+    const l = (left.elements.length <  i+1) ? defaultValue : left.elements[i];
+    const r = (right.elements.length <  i+1) ? defaultValue : right.elements[i];
+
+    const pair = [l, r]
+    out_elements.push(new objects.ArrayObj(pair))
+  }
+  return new objects.ArrayObj(out_elements);
+};
+

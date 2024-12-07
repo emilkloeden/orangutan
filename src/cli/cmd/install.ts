@@ -24,8 +24,8 @@ export async function installCommand() {
         errors.forEach(console.error);
       }
     }
-  } catch (error) {
-    console.error(`Orangutan CLI Error: ${error}`);
+  } catch (e) {
+    console.error(`Orangutan CLI Error: ${e}`);
   }
 }
 
@@ -111,6 +111,9 @@ async function readAndParseToml(filePath: string) {
     const parsedData = parse(tomlText);
     return parsedData;
   } catch (error) {
-    throw new Error("Error reading or parsing TOML file:", error);
+    if (error instanceof Error) {
+      throw new Error("Error reading or parsing TOML file:", error);
+    }
+    throw error;
   }
 }

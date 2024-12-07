@@ -547,15 +547,10 @@ const evaluateIndexExpression = (
 const evaluateBangOperatorExpression = (
   right: objects.Objects,
 ): objects.Objects => {
-  if (right === new objects.Boolean(true)) {
+  if (isTruthy(right)) {
     return new objects.Boolean(false);
-  } else if (right === new objects.Boolean(false)) {
-    return new objects.Boolean(true);
-  } else if (right === new objects.Null()) {
-    return new objects.Boolean(true);
-  } else {
-    return new objects.Boolean(false);
-  }
+  } 
+  return new objects.Boolean(true);
 };
 
 const evaluateMinusPrefixOperatorExpression = (
@@ -665,7 +660,10 @@ const nativeBoolToBooleanObject = (input_: boolean): objects.Boolean => {
 };
 
 export const isTruthy = (obj: objects.Objects | null): boolean => {
-  if (obj == new objects.Null()) {
+  if (obj === null) {
+    return false;
+  }
+  if (obj._type == ObjectType.NULL_OBJ) {
     return false;
   } else if (isTrue(obj)) {
     return true;
