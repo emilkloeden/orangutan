@@ -665,7 +665,10 @@ const nativeBoolToBooleanObject = (input_: boolean): objects.Boolean => {
 };
 
 export const isTruthy = (obj: objects.Objects | null): boolean => {
-  if (obj == new objects.Null()) {
+  if (obj === null) {
+    return false;
+  }
+  if (obj._type == ObjectType.NULL_OBJ) {
     return false;
   } else if (isTrue(obj)) {
     return true;
