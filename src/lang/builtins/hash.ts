@@ -1,10 +1,4 @@
 import Environment from "../environment/environment.ts";
-import {
-  applyFunction,
-  isError,
-  isTruthy,
-  newError,
-} from "../evaluator/evaluator.ts";
 import * as objects from "../objects/objects.ts";
 import {
   gotHostNull,

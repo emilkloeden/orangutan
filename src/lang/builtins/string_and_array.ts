@@ -19,7 +19,7 @@ export const lenFn = async (
     return gotHostNull();
   }
   if (arg instanceof objects.ArrayObj) {
-    return new objects.Integer(arg.elements.length);
+    return new objects.Integer(arg.elements?.length || 0);
   } else if (arg instanceof objects.String) {
     return new objects.Integer(arg.value.length);
   } else if (arg instanceof objects.Hash) {
