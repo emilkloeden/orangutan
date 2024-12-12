@@ -22,6 +22,8 @@ export const lenFn = async (
     return new objects.Integer(arg.elements.length);
   } else if (arg instanceof objects.String) {
     return new objects.Integer(arg.value.length);
+  } else if (arg instanceof objects.Hash) {
+    return new objects.Integer(arg.pairs.size)
   }
   // TODO: Fix to allow expected to be String | Array
   return wrongTypeOfArgument(arg._type, objects.ObjectType.ARRAY_OBJ);

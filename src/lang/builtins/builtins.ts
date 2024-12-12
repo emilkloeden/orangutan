@@ -15,6 +15,7 @@ import {
 } from "./array.ts";
 import { readFileFn, writeFileFn } from "./file.ts";
 import { ffiFn, putsFn, typeFn } from "./general.ts";
+import { keysFn, valuesFn } from "./hash.ts";
 import { getAsyncFn, postAsyncFn } from "./http.ts";
 import { intFn, splitFn } from "./string.ts";
 import { lenFn } from "./string_and_array.ts";
@@ -45,7 +46,11 @@ const BUILTINS: Record<string, objects.BuiltIn> = {
   zip: new objects.BuiltIn(zipFn),
   zipLongest: new objects.BuiltIn(zipLongestFn),
 
-  //file
+  // hash
+  keys: new objects.BuiltIn(keysFn),
+  values: new objects.BuiltIn(valuesFn),
+
+  // file
   readFile: new objects.BuiltIn(readFileFn),
   writeFile: new objects.BuiltIn(writeFileFn),
 
