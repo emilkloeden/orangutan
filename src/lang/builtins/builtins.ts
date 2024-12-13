@@ -15,8 +15,9 @@ import {
 } from "./array.ts";
 import { readFileFn, writeFileFn } from "./file.ts";
 import { ffiFn, putsFn, typeFn } from "./general.ts";
-import { keysFn, valuesFn } from "./hash.ts";
+import { entriesFn, keysFn, valuesFn } from "./hash.ts";
 import { getAsyncFn, postAsyncFn } from "./http.ts";
+import { strFn } from "./integer.ts";
 import { intFn, splitFn } from "./string.ts";
 import { lenFn } from "./string_and_array.ts";
 
@@ -31,6 +32,9 @@ const BUILTINS: Record<string, objects.BuiltIn> = {
   // string
   split: new objects.BuiltIn(splitFn),
   int: new objects.BuiltIn(intFn),
+
+  // int
+  str: new objects.BuiltIn(strFn),
 
   // array
   join: new objects.BuiltIn(joinFn),
@@ -49,6 +53,7 @@ const BUILTINS: Record<string, objects.BuiltIn> = {
   // hash
   keys: new objects.BuiltIn(keysFn),
   values: new objects.BuiltIn(valuesFn),
+  entries: new objects.BuiltIn(entriesFn),
 
   // file
   readFile: new objects.BuiltIn(readFileFn),

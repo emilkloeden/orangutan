@@ -43,6 +43,8 @@ const evaluate = async (
     return new objects.Integer(node.value);
   } else if (node instanceof ast.StringLiteral) {
     return new objects.String(node.value);
+  } else if (node instanceof ast.NullLiteral) {
+    return new objects.Null();
   } else if (node instanceof ast.ArrayLiteral) {
     const elements = await evaluateExpressions(
       node.elements,
@@ -105,9 +107,7 @@ const evaluate = async (
     return evaluateIndexExpression(left, index);
   } else if (node instanceof ast.PropertyAccessExpression) {
     return await evaluatePropertyAccessExpression(node, env, currentFilePath);
-  } else if (node instanceof ast.WhileStatement) {
-    return await evaluateWhileStatement(node, env, currentFilePath);
-  }
+  } 
   return null;
 };
 
@@ -316,27 +316,7 @@ const evaluateBlockStatement = async (
   return result;
 };
 
-const evaluateWhileStatement = async (
-  stmt: ast.WhileStatement,
-  env: Environment,
-  currentFilePath: string,
-) => {
-  while (true) {
-    const evaluated = await evaluate(stmt.condition, env, currentFilePath);
-    if (isError(evaluated) || evaluated === null) {
-      return evaluated;
-    }
-    if (isTruthy(evaluated)) {
-      const consequence = await evaluate(stmt.body, env, currentFilePath);
-      if (isError(consequence)) {
-        return consequence;
-      }
-    } else {
-      break;
-    }
-  }
-  return null;
-};
+
 
 const evaluateExpressions = async (
   expressions: (ast.Expression | null)[] | null,
@@ -452,7 +432,12 @@ const evaluateInfixExpression = (
   } // else if (left instanceof objects.ArrayObj && right instanceof objects.ArrayObj) {
   //     return evaluateArrayInfixExpression(operator, left, right)
   // }
-  else if (operator === "==") {
+  // null == null, anything else != null - this makes use of ordering to shortcut this test
+   else if (left instanceof objects.Null && right instanceof objects.Null){
+    return nativeBoolToBooleanObject(true)
+  } else if (left instanceof objects.Null || right instanceof objects.Null){
+    return nativeBoolToBooleanObject(false)
+  } else if (operator === "==") {
     return nativeBoolToBooleanObject(left === right);
   } else if (operator === "!=") {
     return nativeBoolToBooleanObject(left !== right);

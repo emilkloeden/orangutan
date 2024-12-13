@@ -66,10 +66,10 @@ export default class Parser {
       [TokenType.IF]: this.parseIfExpression,
       [TokenType.FUNCTION]: this.parseFunctionLiteral,
       [TokenType.STRING]: this.parseStringLiteral,
+      [TokenType.NULL]: this.parseNullLiteral,
       [TokenType.LBRACKET]: this.parseArrayLiteral,
       [TokenType.LBRACE]: this.parseHashLiteral,
       [TokenType.USE]: this.parseUseExpression,
-      [TokenType.WHILE]: this.parseWhileStatement,
     };
 
     this.infixParseFns = {
@@ -123,9 +123,6 @@ export default class Parser {
     }
     if (this.currentToken.tokenType === TokenType.RETURN) {
       return this.parseReturnStatement();
-    }
-    if (this.currentToken.tokenType === TokenType.WHILE) {
-      return this.parseWhileStatement();
     } else {
       return this.parseExpressionStatement();
     }
@@ -144,26 +141,7 @@ export default class Parser {
 
     return stmt;
   };
-  parseWhileStatement = (): ast.WhileStatement | null => {
-    const stmt = new ast.WhileStatement(this.currentToken);
-    if (!this.expectPeek(TokenType.LPAREN)) {
-      return null;
-    }
-
-    this.nextToken();
-    stmt.condition = this.parseExpression(Precedence.LOWEST);
-    if (!this.expectPeek(TokenType.RPAREN)) {
-      return null;
-    }
-
-    if (!this.expectPeek(TokenType.LBRACE)) {
-      return null;
-    }
-
-    stmt.body = this.parseBlockStatement();
-
-    return stmt;
-  };
+  
   parseExpressionStatement = (): ast.ExpressionStatement | null => {
     const stmt = new ast.ExpressionStatement(this.currentToken);
     stmt.expression = this.parseExpression(Precedence.LOWEST);
@@ -289,6 +267,9 @@ export default class Parser {
   };
   parseStringLiteral = (): ast.StringLiteral => {
     return new ast.StringLiteral(this.currentToken, this.currentToken.literal);
+  };
+  parseNullLiteral = (): ast.NullLiteral => {
+    return new ast.NullLiteral(this.currentToken, this.currentToken.literal);
   };
 
   parseArrayLiteral = (): ast.Expression => {

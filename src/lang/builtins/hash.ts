@@ -59,3 +59,31 @@ export const valuesFn = (
   }
   return wrongTypeOfArgument(hash._type, objects.ObjectType.HASH_OBJ);
 };
+
+export const entriesFn = (
+  _env: Environment,
+  _currentFilePath: string,
+  ...args: (objects.Objects | null)[]
+): objects.ArrayObj | objects.Error => {
+  if (args.length !== 1) {
+    return wrongNumberOfArgs(args.length, 1);
+  }
+  const hash = args[0];
+  if (hash === null) {
+    return gotHostNull();
+  }
+
+  if (
+    hash instanceof objects.Hash
+  ) {
+    
+    const elements = []
+    for (const pair of hash.pairs.values()) {
+      const entry = new objects.ArrayObj([pair.key, pair.value]);
+      elements.push(entry)
+    }
+
+    return new objects.ArrayObj(elements);
+  }
+  return wrongTypeOfArgument(hash._type, objects.ObjectType.HASH_OBJ);
+};

@@ -57,19 +57,7 @@ export class ReturnStatement implements Statement {
     return `${this.token.literal} ${this.returnValue};`;
   }
 }
-export class WhileStatement implements Statement {
-  public condition!: Expression | null;
-  public body!: Expression;
 
-  constructor(private token: Token) {}
-
-  tokenLiteral() {
-    return this.token.literal;
-  }
-  toString() {
-    return `${this.token.literal} (${this.condition}) {{${this.body.toString()}}};`;
-  }
-}
 export class Comment implements Statement {
   constructor(private token: Token, public value: string) {}
 
@@ -169,6 +157,17 @@ export class StringLiteral implements Expression {
     return this.token.literal;
   }
 }
+
+export class NullLiteral implements Expression {
+  constructor(private token: Token, public value: string) {}
+  toString() {
+    return "null";
+  }
+  tokenLiteral() {
+    return this.token.literal;
+  }
+}
+
 export class FunctionLiteral implements Expression {
   public parameters: Identifier[] | null;
   public body!: BlockStatement;

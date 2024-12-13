@@ -32,7 +32,6 @@ export const intFn = async (
     return new objects.Integer(intermediary);
   }
   
-  // TODO: Fix to handle both arguments
   return wrongTypeOfArgument(str._type, objects.ObjectType.STRING_OBJ);
 };
 

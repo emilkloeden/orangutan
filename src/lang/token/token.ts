@@ -51,7 +51,7 @@ export enum TokenType {
   ELSE = "ELSE",
   RETURN = "RETURN",
   USE = "USE",
-  WHILE = "WHILE",
+  NULL = "NULL",
 }
 
 export const keywords: Record<string, TokenType> = {
@@ -63,7 +63,7 @@ export const keywords: Record<string, TokenType> = {
   "else": TokenType.ELSE,
   "return": TokenType.RETURN,
   "use": TokenType.USE,
-  "while": TokenType.WHILE,
+  "null": TokenType.NULL,
 };
 
 export const lookupIdent = (ident: string): TokenType => {
