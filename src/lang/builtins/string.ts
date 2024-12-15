@@ -21,6 +21,8 @@ export const intFn = async (
   }
   if (str instanceof objects.Integer) {
     return str;
+  } else if (str instanceof objects.Number) {
+    return new objects.Integer(Math.floor(str.value))
   }
   if (
     str instanceof objects.String
@@ -30,6 +32,37 @@ export const intFn = async (
       return newError(`Cannot convert string to integer: ${str.value}`)
     }
     return new objects.Integer(intermediary);
+  }
+  
+  return wrongTypeOfArgument(str._type, objects.ObjectType.STRING_OBJ);
+};
+
+
+export const numberFn = async (
+  _env: Environment,
+  _currentFilePath: string,
+  ...args: (objects.Objects | null)[]
+): Promise<objects.Error | objects.Number> => {
+  if (args.length !== 1) {
+    return wrongNumberOfArgs(args.length, 1);
+  }
+  const str = args[0];
+  if (str === null) {
+    return gotHostNull();
+  }
+  if (str instanceof objects.Number) {
+    return str;
+  } else if (str instanceof objects.Integer) {
+    return new objects.Number(str.value)
+  }
+  if (
+    str instanceof objects.String
+  ) {
+    const intermediary = Number(str.value);
+    if (isNaN(intermediary)) {
+      return newError(`Cannot convert string to integer: ${str.value}`)
+    }
+    return new objects.Number(intermediary);
   }
   
   return wrongTypeOfArgument(str._type, objects.ObjectType.STRING_OBJ);

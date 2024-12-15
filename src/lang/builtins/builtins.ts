@@ -18,7 +18,7 @@ import { ffiFn, putsFn, typeFn } from "./general.ts";
 import { entriesFn, keysFn, valuesFn } from "./hash.ts";
 import { getAsyncFn, postAsyncFn } from "./http.ts";
 import { strFn } from "./integer.ts";
-import { intFn, splitFn } from "./string.ts";
+import { intFn, numberFn, splitFn } from "./string.ts";
 import { lenFn } from "./string_and_array.ts";
 
 const BUILTINS: Record<string, objects.BuiltIn> = {
@@ -32,6 +32,7 @@ const BUILTINS: Record<string, objects.BuiltIn> = {
   // string
   split: new objects.BuiltIn(splitFn),
   int: new objects.BuiltIn(intFn),
+  number: new objects.BuiltIn(numberFn),
 
   // int
   str: new objects.BuiltIn(strFn),
