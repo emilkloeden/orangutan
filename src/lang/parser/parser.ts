@@ -41,11 +41,11 @@ export const precedences: Record<string, Precedence> = {
 
 export interface IParserError {
   message: string
-  currentToken: Token
+  currentToken?: Token
 }
 
-class ParserError implements IParserError {
-  constructor (public message: string, public currentToken: Token){}
+export class ParserError implements IParserError {
+  constructor (public message: string, public currentToken?: Token){}
 }
 
 export default class Parser {
@@ -67,6 +67,7 @@ export default class Parser {
     this.prefixParseFns = {
       [TokenType.IDENT]: this.parseIdentifier,
       [TokenType.INT]: this.parseIntegerLiteral,
+      [TokenType.NUMBER]: this.parseNumberLiteral,
       [TokenType.BANG]: this.parsePrefixExpression,
       [TokenType.MINUS]: this.parsePrefixExpression,
       [TokenType.TRUE]: this.parseBoolean,
@@ -267,16 +268,31 @@ export default class Parser {
     try {
       lit.value = parseInt(this.currentToken.literal);
       return lit;
-    } catch (e) {
+    } catch (_) {
       this.errors.push(new ParserError(
-        `Could not parse ${this.currentToken.literal} as integer. ${printLineAndColumn(this.currentToken)}`,
+        `Could not parse ${this.currentToken.literal} as integer.`,
       this.currentToken));
       return null;
     }
   };
+  
+  parseNumberLiteral = (): ast.Expression | null => {
+    const lit = new ast.NumberLiteral(this.currentToken);
+    try {
+      lit.value = Number(this.currentToken.literal);
+      return lit;
+    } catch (_) {
+      this.errors.push(new ParserError(
+        `Could not parse ${this.currentToken.literal} as number.`,
+      this.currentToken));
+      return null;
+    }
+  };
+
   parseStringLiteral = (): ast.StringLiteral => {
     return new ast.StringLiteral(this.currentToken, this.currentToken.literal);
   };
+  
   parseNullLiteral = (): ast.NullLiteral => {
     return new ast.NullLiteral(this.currentToken, this.currentToken.literal);
   };
@@ -526,7 +542,7 @@ export default class Parser {
 
   peekError = (tokenType: TokenType): void => {
     const errorMessage =
-      `Expected next token to be ${tokenType}, got ${this.peekToken.tokenType} instead. ${printLineAndColumn(this.peekToken)}`;
+      `Expected next token to be ${tokenType}, got ${this.peekToken.tokenType} instead.`;
     this.errors.push(new ParserError(errorMessage, this.currentToken));
   };
 
@@ -535,7 +551,7 @@ export default class Parser {
   };
 
   noPrefixParseFnError = (token: Token): void => {
-    this.errors.push(new ParserError(`No prefix parse function for ${token.tokenType} found. ${printLineAndColumn(token)}`, this.currentToken));
+    this.errors.push(new ParserError(`No prefix parse function for ${token.tokenType} found.`, this.currentToken));
   };
 
   parseExpressionList = (
@@ -564,6 +580,3 @@ export default class Parser {
   };
 }
 
-const printLineAndColumn = (token: Token) => {
-  return `Found on Line: ${token.line} and Column: ${token.column}.`
-}

@@ -8,7 +8,6 @@ import BUILTINS from "../builtins/builtins.ts";
 import Lexer from "../lexer/lexer.ts";
 import Parser from "../parser/parser.ts";
 import { ObjectType } from "../objects/objects.ts";
-import { lenFn } from "../builtins/string_and_array.ts";
 import { HashPair } from "../objects/objects.ts";
 
 const evaluate = async (
@@ -40,11 +39,13 @@ const evaluate = async (
   } else if (node instanceof ast.UseExpression) {
     return await evaluateUseExpression(node, env, currentFilePath);
   } else if (node instanceof ast.IntegerLiteral) {
-    return new objects.Integer(node.value);
+    return await new objects.Integer(node.value);
+  } else if (node instanceof ast.NumberLiteral) {
+    return await new objects.Number(node.value);
   } else if (node instanceof ast.StringLiteral) {
-    return new objects.String(node.value);
+    return await new objects.String(node.value);
   } else if (node instanceof ast.NullLiteral) {
-    return new objects.Null();
+    return await new objects.Null();
   } else if (node instanceof ast.ArrayLiteral) {
     const elements = await evaluateExpressions(
       node.elements,
@@ -59,7 +60,7 @@ const evaluate = async (
     return await evaluateHashLiteral(node, env, currentFilePath);
   } else if (node instanceof ast.Boolean) {
     if (node.value) {
-      return new objects.Boolean(true);
+      return await new objects.Boolean(true);
     }
     return new objects.Boolean(false);
   } else if (node instanceof ast.PrefixExpression) {
@@ -422,6 +423,30 @@ const evaluateInfixExpression = (
       right,
     );
   } else if (
+    left instanceof objects.Integer && right instanceof objects.Number
+  ) {
+    return evaluateIntegerNumberInfixExpression(
+      operator,
+      left,
+      right,
+    );
+  } else if (
+    left instanceof objects.Number && right instanceof objects.Integer
+  ) {
+    return evaluateNumberIntegerInfixExpression(
+      operator,
+      left,
+      right,
+    );
+  } else if (
+    left instanceof objects.Number && right instanceof objects.Number
+  ) {
+    return evaluateNumberInfixExpression(
+      operator,
+      left,
+      right,
+    );
+  } else if (
     left instanceof objects.String && right instanceof objects.String
   ) {
     return evaluateStringInfixExpression(
@@ -540,18 +565,21 @@ const evaluateBangOperatorExpression = (
 
 const evaluateMinusPrefixOperatorExpression = (
   right: objects.Objects,
-): objects.Integer | objects.Error => {
-  if (!(right instanceof objects.Integer)) {
+): objects.Integer | objects.Number | objects.Error => {
+  if (!(right instanceof objects.Integer || right instanceof objects.Number)) {
     return newError(`unknown operator: -${right._type}`);
   }
-  return new objects.Integer(-right.value);
+  if (right instanceof objects.Integer) {
+    return new objects.Integer(-right.value);
+  }
+  return new objects.Number(-right.value);
 };
 
 const evaluateIntegerInfixExpression = (
   operator: string,
   left: objects.Integer,
   right: objects.Integer,
-): objects.Integer | objects.Boolean | objects.Error => {
+): objects.Integer | objects.Number | objects.Boolean | objects.Error => {
   const left_value = left.value;
   const right_value = right.value;
 
@@ -562,9 +590,118 @@ const evaluateIntegerInfixExpression = (
   } else if (operator === "*") {
     return new objects.Integer(left_value * right_value);
   } else if (operator === "/") {
-    return new objects.Integer(left_value / right_value);
+    return new objects.Number(left_value / right_value);
   } else if (operator === "%") {
     return new objects.Integer(left_value % right_value);
+  } else if (operator === "<") {
+    return nativeBoolToBooleanObject(left_value < right_value);
+  } else if (operator === "<=") {
+    return nativeBoolToBooleanObject(left_value <= right_value);
+  } else if (operator === ">") {
+    return nativeBoolToBooleanObject(left_value > right_value);
+  } else if (operator === ">=") {
+    return nativeBoolToBooleanObject(left_value >= right_value);
+  } else if (operator === "==") {
+    return nativeBoolToBooleanObject(left_value === right_value);
+  } else if (operator === "!=") {
+    return nativeBoolToBooleanObject(left_value !== right_value);
+  }
+  return newError(
+    `unknown operator: ${left._type} ${operator} ${right._type}`,
+  );
+};
+
+const evaluateIntegerNumberInfixExpression = (
+  operator: string,
+  left: objects.Integer,
+  right: objects.Number,
+): objects.Number | objects.Boolean | objects.Error => {
+  const left_value = left.value;
+  const right_value = right.value;
+
+  if (operator === "+") {
+    return new objects.Number(left_value + right_value);
+  } else if (operator === "-") {
+    return new objects.Number(left_value - right_value);
+  } else if (operator === "*") {
+    return new objects.Number(left_value * right_value);
+  } else if (operator === "/") {
+    return new objects.Number(left_value / right_value);
+  } else if (operator === "%") {
+    return new objects.Number(left_value % right_value);
+  } else if (operator === "<") {
+    return nativeBoolToBooleanObject(left_value < right_value);
+  } else if (operator === "<=") {
+    return nativeBoolToBooleanObject(left_value <= right_value);
+  } else if (operator === ">") {
+    return nativeBoolToBooleanObject(left_value > right_value);
+  } else if (operator === ">=") {
+    return nativeBoolToBooleanObject(left_value >= right_value);
+  } else if (operator === "==") {
+    return nativeBoolToBooleanObject(left_value === right_value);
+  } else if (operator === "!=") {
+    return nativeBoolToBooleanObject(left_value !== right_value);
+  }
+  return newError(
+    `unknown operator: ${left._type} ${operator} ${right._type}`,
+  );
+};
+
+
+const evaluateNumberInfixExpression = (
+  operator: string,
+  left: objects.Number,
+  right: objects.Number,
+): objects.Number | objects.Boolean | objects.Error => {
+  const left_value = left.value;
+  const right_value = right.value;
+
+  if (operator === "+") {
+    return new objects.Number(left_value + right_value);
+  } else if (operator === "-") {
+    return new objects.Number(left_value - right_value);
+  } else if (operator === "*") {
+    return new objects.Number(left_value * right_value);
+  } else if (operator === "/") {
+    return new objects.Number(left_value / right_value);
+  } else if (operator === "%") {
+    return new objects.Number(left_value % right_value);
+  } else if (operator === "<") {
+    return nativeBoolToBooleanObject(left_value < right_value);
+  } else if (operator === "<=") {
+    return nativeBoolToBooleanObject(left_value <= right_value);
+  } else if (operator === ">") {
+    return nativeBoolToBooleanObject(left_value > right_value);
+  } else if (operator === ">=") {
+    return nativeBoolToBooleanObject(left_value >= right_value);
+  } else if (operator === "==") {
+    return nativeBoolToBooleanObject(left_value === right_value);
+  } else if (operator === "!=") {
+    return nativeBoolToBooleanObject(left_value !== right_value);
+  }
+  return newError(
+    `unknown operator: ${left._type} ${operator} ${right._type}`,
+  );
+};
+
+const evaluateNumberIntegerInfixExpression = (
+  operator: string,
+  left: objects.Number,
+  right: objects.Integer,
+): objects.Number | objects.Boolean | objects.Error => {
+  const left_value = left.value;
+  const right_value = right.value;
+
+  if (operator === "+") {
+    return new objects.Number(left_value + right_value);
+  } else if (operator === "-") {
+    return new objects.Number(left_value - right_value);
+  } else if (operator === "*") {
+    return new objects.Number(left_value * right_value);
+  } else if (operator === "/") {
+    return new objects.Number(left_value / right_value);
+  } else if (operator === "%") {
+    return new objects.Number(left_value % right_value);
   } else if (operator === "<") {
     return nativeBoolToBooleanObject(left_value < right_value);
   } else if (operator === "<=") {

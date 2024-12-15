@@ -23,6 +23,20 @@ Deno.test("TestEvalIntegerExpression", () => {
   });
 });
 
+Deno.test("TestEvalNumericExpressions", () => {
+  const tests = [
+    { input: "-5 / 2", expected: -2.5 },
+    { input: "2.0 + 3", expected: 5.0 },
+    { input: "2.1 + 43.1", expected: 45.2 },
+    { input: "3 + -2.0", expected: 1.0 },
+  ];
+
+  tests.forEach(async (tt, iteration) => {
+    const evaluated = await testEval<objects.Number>(tt.input);
+    assertNumberObject(evaluated, tt.expected, iteration);
+  });
+});
+
 Deno.test("TestEvalIfExpression", () => {
   const tests = [
     { input: "let x = 1; if(x==1) { 2 };", expected: 2 },
@@ -37,17 +51,7 @@ Deno.test("TestEvalIfExpression", () => {
   });
 });
 
-// Deno.test("TestEvalWhileStatement", () => {
-//   const tests = [
-//     { input: "let x = 1; while(x < 3) { x = x + 1 }; x", expected: 2 },
-//   ];
 
-//   tests.forEach((tt, iteration) => {
-//     const evaluated = testEval(tt.input);
-//     assertIntegerObject(evaluated as Integer, tt.expected, iteration);
-//   });
-
-// });
 
 Deno.test("Test reassignment", () => {
   const tests = [
@@ -226,5 +230,17 @@ function assertIntegerObject(
     obj.value,
     expected,
     `Test iteration # ${iteration} failed. Expected integer evaluation mismatch`,
+  );
+}
+
+function assertNumberObject(
+  obj: objects.Number,
+  expected: number,
+  iteration: number,
+) {
+  assertEquals(
+    obj.value,
+    expected,
+    `Test iteration # ${iteration} failed. Expected number evaluation mismatch`,
   );
 }

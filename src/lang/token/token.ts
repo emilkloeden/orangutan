@@ -6,6 +6,7 @@ export enum TokenType {
   // Identifiers + literals
   IDENT = "IDENT", // add, foobar, x, y, ...
   INT = "INT", // 123456
+  NUMBER = "NUMBER", // 123456
   STRING = "STRING",
   COMMENT = "COMMENT",
 

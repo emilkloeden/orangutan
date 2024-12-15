@@ -138,6 +138,18 @@ export class IntegerLiteral implements Expression {
     return this.token.literal;
   }
 }
+export class NumberLiteral implements Expression {
+  value!: number;
+  constructor(private token: Token) {}
+
+  toString() {
+    // TODO: Check definition
+    return this.value != null ? this.value.toString() : "";
+  }
+  tokenLiteral() {
+    return this.token.literal;
+  }
+}
 export class Boolean implements Expression {
   constructor(private token: Token, public value: boolean) {
   }

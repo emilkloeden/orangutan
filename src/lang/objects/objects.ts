@@ -5,6 +5,7 @@ import Environment from "../environment/environment.ts";
 
 export enum ObjectType {
   INTEGER_OBJ = "INTEGER",
+  NUMBER_OBJ = "NUMBER",
   BOOLEAN_OBJ = "BOOLEAN",
   NULL_OBJ = "NULL",
   RETURN_VALUE_OBJ = "RETURN_VALUE",
@@ -44,6 +45,17 @@ export class Boolean implements Objects, Hashable {
 
 export class Integer implements Objects, Hashable {
   public readonly _type = ObjectType.INTEGER_OBJ;
+
+  constructor(public value: number) {}
+
+  toString = () => this.value.toString();
+  hashKey = () => {
+    return new HashKey(this._type, this.value.toString());
+  };
+}
+
+export class Number implements Objects, Hashable {
+  public readonly _type = ObjectType.NUMBER_OBJ;
 
   constructor(public value: number) {}
 

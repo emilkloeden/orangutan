@@ -177,3 +177,32 @@ Deno.test("Test Use Expression tokenisation", () => {
     );
   });
 });
+
+Deno.test("Test Use Expression tokenisation", () => {
+  const input = 'let i = 12.05;';
+
+  const tests = [
+    { expectedType: TokenType.LET, expectedLiteral: "let" },
+    { expectedType: TokenType.IDENT, expectedLiteral: "i" },
+    { expectedType: TokenType.ASSIGN, expectedLiteral: "=" },
+    { expectedType: TokenType.NUMBER, expectedLiteral: "12.05" },
+    { expectedType: TokenType.SEMICOLON, expectedLiteral: ";" },
+  ];
+
+  const lexer = new Lexer(input);
+
+  tests.forEach((tt, i) => {
+    const token = lexer.nextToken();
+
+    assertEquals(
+      token.tokenType,
+      tt.expectedType,
+      `Test ${i} failed - wrong token type`,
+    );
+    assertEquals(
+      token.literal,
+      tt.expectedLiteral,
+      `Test ${i} failed - wrong literal`,
+    );
+  });
+});

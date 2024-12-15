@@ -156,7 +156,9 @@ export default class Lexer {
         return tok;
       } else if (isDigit(this.ch)) {
         const { line, column } = this;
-        tok = new Token(TokenType.INT, this.readNumber(), line, column);
+        const number = this.readNumber();
+        const tokenType = number.includes(".") ? TokenType.NUMBER : TokenType.INT
+        tok = new Token(tokenType, number, line, column);
         return tok;
       } else {
         tok = new Token(TokenType.ILLEGAL, this.ch, line, column);
@@ -187,6 +189,12 @@ export default class Lexer {
       //     break
       // }
     }
+    if (this.ch === ".") {
+      this.readChar();
+      while(isDigit(this.ch)) {
+        this.readChar()
+      }
+    } 
     // TODO: LOOK here for errors first
     return this.input.slice(position, this.position);
   };

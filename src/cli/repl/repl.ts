@@ -1,7 +1,7 @@
 import Environment from "../../lang/environment/environment.ts";
 import evaluate from "../../lang/evaluator/evaluator.ts";
 import Lexer from "../../lang/lexer/lexer.ts";
-import Parser, { IParserError } from "../../lang/parser/parser.ts";
+import Parser, { ParserError } from "../../lang/parser/parser.ts";
 
 export default async function repl() {
   console.log("Orangutan REPL. Press Ctrl+c or type exit() to quit.");
@@ -34,8 +34,12 @@ export default async function repl() {
   }
 }
 
-function printErrors(errors: IParserError[]) {
+function printErrors(errors: ParserError[]) {
   for (const error of errors) {
-    console.log(`\t${error.message}\n on line ${error.currentToken.line}, column ${error.currentToken.column}`);
+    let msg = `\t${error.message}\n`
+    if (error.currentToken) {
+      msg += `on line ${error.currentToken.line}, column ${error.currentToken.column}`
+    }
+    console.log(msg);
   }
 }
