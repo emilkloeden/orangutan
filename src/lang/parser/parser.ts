@@ -4,17 +4,18 @@ import * as ast from "../ast/ast.ts";
 
 export enum Precedence {
   LOWEST = 0,
-  OR = 1,
-  AND = 2,
-  ASSIGN = 3,
-  EQUALS = 4,
-  LESSGREATER = 5,
-  SUM = 6,
-  PRODUCT = 7,
-  MODULO = 8,
-  PREFIX = 9,
-  CALL = 10,
-  INDEX = 11,
+  PIPE = 1, // TODO: confirm this
+  OR = 2,
+  AND = 3,
+  ASSIGN = 4,
+  EQUALS = 5,
+  LESSGREATER = 6,
+  SUM = 7,
+  PRODUCT = 8,
+  MODULO = 9,
+  PREFIX = 10,
+  CALL = 11,
+  INDEX = 12,
 }
 
 export const precedences: Record<string, Precedence> = {
@@ -37,6 +38,7 @@ export const precedences: Record<string, Precedence> = {
   [TokenType.PERIOD]: Precedence.INDEX,
   [TokenType.USE]: Precedence.CALL,
   [TokenType.ASSIGN]: Precedence.ASSIGN,
+  [TokenType.PIPE]: Precedence.PIPE,
 };
 
 export interface IParserError {
@@ -100,6 +102,7 @@ export default class Parser {
       [TokenType.LBRACKET]: this.parseIndexExpression,
       [TokenType.ASSIGN]: this.parseAssignExpression,
       [TokenType.PERIOD]: this.parsePropertyAccessExpression,
+      [TokenType.PIPE]: this.parseInfixExpression,
       // [TokenType.DOUBLE_COLON]: this.parseModuleFunction,
     };
   }
@@ -214,7 +217,7 @@ export default class Parser {
     // TODO: Check definition
     if (prefix === undefined) {
       console.error(
-        `No prefix parse function found for token: ${this.currentToken.tokenType}`,
+        `No prefix parse function found for token: ${this.currentToken.tokenType} on line ${this.currentToken.line} column ${this.currentToken.column}`,
       );
       this.noPrefixParseFnError(this.currentToken);
       return null;
@@ -326,6 +329,7 @@ export default class Parser {
     expression.right = this.parseExpression(precedence);
     return expression;
   };
+
 
   parseGroupedExpression = (): ast.Expression | null => {
     this.nextToken();

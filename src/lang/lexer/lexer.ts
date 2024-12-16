@@ -96,6 +96,9 @@ export default class Lexer {
         this.readChar();
         const literal = ch.toString() + this.ch;
         tok = new Token(TokenType.OR, literal, line, column);
+      } else if (this.peekChar() == ">") {
+        this.readChar();
+        tok = new Token(TokenType.PIPE, "|>", line, column);
       } else {
         tok = new Token(TokenType.ILLEGAL, this.ch, line, column);
       }

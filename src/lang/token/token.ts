@@ -20,6 +20,7 @@ export enum TokenType {
   MODULO = "%",
   AND = "&&",
   OR = "||",
+  PIPE = "|>",
 
   LT = "<",
   LTE = "<=",

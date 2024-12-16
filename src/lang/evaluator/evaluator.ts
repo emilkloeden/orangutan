@@ -85,7 +85,7 @@ const evaluate = async (
     if (isError(right)) {
       return right;
     }
-    return evaluateInfixExpression(node.operator, left, right);
+    return await evaluateInfixExpression(node.operator, left, right, env, currentFilePath);
   } else if (node instanceof ast.IfExpression) {
     return await evaluateIfExpression(node, env, currentFilePath);
   } else if (node instanceof ast.Identifier) {
@@ -406,11 +406,13 @@ const evaluatePrefixExpression = (
   }
 };
 
-const evaluateInfixExpression = (
+const evaluateInfixExpression = async (
   operator: string,
   left: objects.Objects | null,
   right: objects.Objects | null,
-): objects.Objects | null => {
+  env: Environment,
+  currentFilePath: string,
+): Promise<objects.Objects | null> => {
   if (left === null || right === null) {
     return newError("Issue with infixExpression");
   }
@@ -481,6 +483,10 @@ const evaluateInfixExpression = (
       return nativeBoolToBooleanObject(
         left.value || right.value,
       );
+    }
+  } else if (operator === "|>") {
+    if (right instanceof objects.Function || right instanceof objects.BuiltIn) {
+      return await applyFunction(right, [left], env, currentFilePath);
     }
   } else if (left._type !== right._type) {
     return newError(
