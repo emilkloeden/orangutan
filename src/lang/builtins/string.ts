@@ -13,7 +13,7 @@ export const intFn = async (
   ...args: (objects.Objects | null)[]
 ): Promise<objects.Error | objects.Integer> => {
   if (args.length !== 1) {
-    return wrongNumberOfArgs(args.length, 1);
+    return wrongNumberOfArgs(args.length, [1]);
   }
   const str = args[0];
   if (str === null) {
@@ -21,7 +21,7 @@ export const intFn = async (
   }
   if (str instanceof objects.Integer) {
     return str;
-  } else if (str instanceof objects.Number) {
+  } else if (str instanceof objects.NumberObj) {
     return new objects.Integer(Math.floor(str.value))
   }
   if (
@@ -42,18 +42,18 @@ export const numberFn = async (
   _env: Environment,
   _currentFilePath: string,
   ...args: (objects.Objects | null)[]
-): Promise<objects.Error | objects.Number> => {
+): Promise<objects.Error | objects.NumberObj> => {
   if (args.length !== 1) {
-    return wrongNumberOfArgs(args.length, 1);
+    return wrongNumberOfArgs(args.length, [1]);
   }
   const str = args[0];
   if (str === null) {
     return gotHostNull();
   }
-  if (str instanceof objects.Number) {
+  if (str instanceof objects.NumberObj) {
     return str;
   } else if (str instanceof objects.Integer) {
-    return new objects.Number(str.value)
+    return new objects.NumberObj(str.value)
   }
   if (
     str instanceof objects.String
@@ -62,7 +62,7 @@ export const numberFn = async (
     if (isNaN(intermediary)) {
       return newError(`Cannot convert string to integer: ${str.value}`)
     }
-    return new objects.Number(intermediary);
+    return new objects.NumberObj(intermediary);
   }
   
   return wrongTypeOfArgument(str._type, objects.ObjectType.STRING_OBJ);
@@ -74,7 +74,7 @@ export const splitFn = async (
   ...args: (objects.Objects | null)[]
 ): Promise<objects.Error | objects.ArrayObj> => {
   if (args.length !== 2) {
-    return wrongNumberOfArgs(args.length, 2);
+    return wrongNumberOfArgs(args.length, [2]);
   }
   const item = args[0];
   const splitter = args[1];

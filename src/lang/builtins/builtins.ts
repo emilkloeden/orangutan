@@ -9,9 +9,9 @@ import {
   prependFn,
   reduceFn,
   restFn,
-  naiveIntegerSortFn,
+  sortFn,
   zipFn,
-  zipLongestFn
+  zipLongestFn,
 } from "./array.ts";
 import { readFileFn, writeFileFn } from "./file.ts";
 import { ffiFn, putsFn, typeFn } from "./general.ts";
@@ -47,7 +47,7 @@ const BUILTINS: Record<string, objects.BuiltIn> = {
   first: new objects.BuiltIn(firstFn),
   last: new objects.BuiltIn(lastFn),
   rest: new objects.BuiltIn(restFn),
-  sort: new objects.BuiltIn(naiveIntegerSortFn),
+  sort: new objects.BuiltIn(sortFn),
   zip: new objects.BuiltIn(zipFn),
   zipLongest: new objects.BuiltIn(zipLongestFn),
 

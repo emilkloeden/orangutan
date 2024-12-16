@@ -41,7 +41,7 @@ const evaluate = async (
   } else if (node instanceof ast.IntegerLiteral) {
     return await new objects.Integer(node.value);
   } else if (node instanceof ast.NumberLiteral) {
-    return await new objects.Number(node.value);
+    return await new objects.NumberObj(node.value);
   } else if (node instanceof ast.StringLiteral) {
     return await new objects.String(node.value);
   } else if (node instanceof ast.NullLiteral) {
@@ -423,7 +423,7 @@ const evaluateInfixExpression = (
       right,
     );
   } else if (
-    left instanceof objects.Integer && right instanceof objects.Number
+    left instanceof objects.Integer && right instanceof objects.NumberObj
   ) {
     return evaluateIntegerNumberInfixExpression(
       operator,
@@ -431,7 +431,7 @@ const evaluateInfixExpression = (
       right,
     );
   } else if (
-    left instanceof objects.Number && right instanceof objects.Integer
+    left instanceof objects.NumberObj && right instanceof objects.Integer
   ) {
     return evaluateNumberIntegerInfixExpression(
       operator,
@@ -439,7 +439,7 @@ const evaluateInfixExpression = (
       right,
     );
   } else if (
-    left instanceof objects.Number && right instanceof objects.Number
+    left instanceof objects.NumberObj && right instanceof objects.NumberObj
   ) {
     return evaluateNumberInfixExpression(
       operator,
@@ -565,21 +565,21 @@ const evaluateBangOperatorExpression = (
 
 const evaluateMinusPrefixOperatorExpression = (
   right: objects.Objects,
-): objects.Integer | objects.Number | objects.Error => {
-  if (!(right instanceof objects.Integer || right instanceof objects.Number)) {
+): objects.Integer | objects.NumberObj | objects.Error => {
+  if (!(right instanceof objects.Integer || right instanceof objects.NumberObj)) {
     return newError(`unknown operator: -${right._type}`);
   }
   if (right instanceof objects.Integer) {
     return new objects.Integer(-right.value);
   }
-  return new objects.Number(-right.value);
+  return new objects.NumberObj(-right.value);
 };
 
 const evaluateIntegerInfixExpression = (
   operator: string,
   left: objects.Integer,
   right: objects.Integer,
-): objects.Integer | objects.Number | objects.Boolean | objects.Error => {
+): objects.Integer | objects.NumberObj | objects.Boolean | objects.Error => {
   const left_value = left.value;
   const right_value = right.value;
 
@@ -590,7 +590,7 @@ const evaluateIntegerInfixExpression = (
   } else if (operator === "*") {
     return new objects.Integer(left_value * right_value);
   } else if (operator === "/") {
-    return new objects.Number(left_value / right_value);
+    return new objects.NumberObj(left_value / right_value);
   } else if (operator === "%") {
     return new objects.Integer(left_value % right_value);
   } else if (operator === "<") {
@@ -614,21 +614,21 @@ const evaluateIntegerInfixExpression = (
 const evaluateIntegerNumberInfixExpression = (
   operator: string,
   left: objects.Integer,
-  right: objects.Number,
-): objects.Number | objects.Boolean | objects.Error => {
+  right: objects.NumberObj,
+): objects.NumberObj | objects.Boolean | objects.Error => {
   const left_value = left.value;
   const right_value = right.value;
 
   if (operator === "+") {
-    return new objects.Number(left_value + right_value);
+    return new objects.NumberObj(left_value + right_value);
   } else if (operator === "-") {
-    return new objects.Number(left_value - right_value);
+    return new objects.NumberObj(left_value - right_value);
   } else if (operator === "*") {
-    return new objects.Number(left_value * right_value);
+    return new objects.NumberObj(left_value * right_value);
   } else if (operator === "/") {
-    return new objects.Number(left_value / right_value);
+    return new objects.NumberObj(left_value / right_value);
   } else if (operator === "%") {
-    return new objects.Number(left_value % right_value);
+    return new objects.NumberObj(left_value % right_value);
   } else if (operator === "<") {
     return nativeBoolToBooleanObject(left_value < right_value);
   } else if (operator === "<=") {
@@ -650,22 +650,22 @@ const evaluateIntegerNumberInfixExpression = (
 
 const evaluateNumberInfixExpression = (
   operator: string,
-  left: objects.Number,
-  right: objects.Number,
-): objects.Number | objects.Boolean | objects.Error => {
+  left: objects.NumberObj,
+  right: objects.NumberObj,
+): objects.NumberObj | objects.Boolean | objects.Error => {
   const left_value = left.value;
   const right_value = right.value;
 
   if (operator === "+") {
-    return new objects.Number(left_value + right_value);
+    return new objects.NumberObj(left_value + right_value);
   } else if (operator === "-") {
-    return new objects.Number(left_value - right_value);
+    return new objects.NumberObj(left_value - right_value);
   } else if (operator === "*") {
-    return new objects.Number(left_value * right_value);
+    return new objects.NumberObj(left_value * right_value);
   } else if (operator === "/") {
-    return new objects.Number(left_value / right_value);
+    return new objects.NumberObj(left_value / right_value);
   } else if (operator === "%") {
-    return new objects.Number(left_value % right_value);
+    return new objects.NumberObj(left_value % right_value);
   } else if (operator === "<") {
     return nativeBoolToBooleanObject(left_value < right_value);
   } else if (operator === "<=") {
@@ -686,22 +686,22 @@ const evaluateNumberInfixExpression = (
 
 const evaluateNumberIntegerInfixExpression = (
   operator: string,
-  left: objects.Number,
+  left: objects.NumberObj,
   right: objects.Integer,
-): objects.Number | objects.Boolean | objects.Error => {
+): objects.NumberObj | objects.Boolean | objects.Error => {
   const left_value = left.value;
   const right_value = right.value;
 
   if (operator === "+") {
-    return new objects.Number(left_value + right_value);
+    return new objects.NumberObj(left_value + right_value);
   } else if (operator === "-") {
-    return new objects.Number(left_value - right_value);
+    return new objects.NumberObj(left_value - right_value);
   } else if (operator === "*") {
-    return new objects.Number(left_value * right_value);
+    return new objects.NumberObj(left_value * right_value);
   } else if (operator === "/") {
-    return new objects.Number(left_value / right_value);
+    return new objects.NumberObj(left_value / right_value);
   } else if (operator === "%") {
-    return new objects.Number(left_value % right_value);
+    return new objects.NumberObj(left_value % right_value);
   } else if (operator === "<") {
     return nativeBoolToBooleanObject(left_value < right_value);
   } else if (operator === "<=") {

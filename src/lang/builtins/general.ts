@@ -27,7 +27,7 @@ export const ffiFn = async (
   ...args: (objects.Objects | null)[]
 ): Promise<objects.Objects> => {
   if (args.length !== 1) {
-    return wrongNumberOfArgs(args.length, 1);
+    return wrongNumberOfArgs(args.length, [1]);
   }
   const arg = args[0];
   if (arg === null) {
@@ -68,7 +68,7 @@ export const typeFn = async (
   ...args: (objects.Objects | null)[]
 ): Promise<objects.String | objects.Error> => {
   if (args.length !== 1) {
-    return wrongNumberOfArgs(args.length, 1);
+    return wrongNumberOfArgs(args.length, [1]);
   }
   const arg = args[0];
   if (arg === null) {

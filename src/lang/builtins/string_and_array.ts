@@ -12,7 +12,7 @@ export const lenFn = async (
   ...args: (objects.Objects | null)[]
 ): Promise<objects.Integer | objects.Error> => {
   if (args.length !== 1) {
-    return wrongNumberOfArgs(args.length, 1);
+    return wrongNumberOfArgs(args.length, [1]);
   }
   const arg = args[0];
   if (arg === null) {

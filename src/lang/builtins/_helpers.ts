@@ -15,9 +15,10 @@ export const gotHostNull = (): objects.Error => {
 
 export const wrongNumberOfArgs = (
   actual: number,
-  expected: number = 1,
+  expected: number[] = [1],
 ): objects.Error => {
+  const wantMsgComponent = expected.length === 1 ? `want=${expected[0]}` : `want=any of [` + expected.join(', ') + ']'
   return new objects.Error(
-    `wrong number of arguments. got=${actual}, want=${expected}.`,
+    `wrong number of arguments. got=${actual}, ${wantMsgComponent}.`,
   );
 };

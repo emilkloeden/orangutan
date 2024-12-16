@@ -54,12 +54,18 @@ export class Integer implements Objects, Hashable {
   };
 }
 
-export class Number implements Objects, Hashable {
+export class NumberObj implements Objects, Hashable {
   public readonly _type = ObjectType.NUMBER_OBJ;
 
   constructor(public value: number) {}
 
-  toString = () => this.value.toString();
+  toString = () => {
+    if (Number.isInteger(this.value)) {
+      return this.value.toFixed(1); // Ensures a single "0" in the first decimal place for integers
+    } else {
+      return this.value.toString().replace(/(\.\d*?)0+$/, "$1"); // Trims unnecessary trailing zeros
+    }
+  };
   hashKey = () => {
     return new HashKey(this._type, this.value.toString());
   };
@@ -96,17 +102,20 @@ export class Hash implements Objects {
   constructor(public pairs: Map<string, HashPair>) {}
 
   toString = () => {
-    const str = Array.from(this.pairs.values()).map(({ key, value }) =>
-      `${
-        key?._type == ObjectType.STRING_OBJ
-          ? '"' + key?.toString() + '"'
-          : key?.toString()
-      }: ${
-        value?._type === ObjectType.STRING_OBJ
-          ? '"' + value?.toString() + '"'
-          : value?.toString()
-      }`
-    ).join(", ");
+    const str = Array.from(this.pairs.values())
+      .map(
+        ({ key, value }) =>
+          `${
+            key?._type == ObjectType.STRING_OBJ
+              ? '"' + key?.toString() + '"'
+              : key?.toString()
+          }: ${
+            value?._type === ObjectType.STRING_OBJ
+              ? '"' + value?.toString() + '"'
+              : value?.toString()
+          }`
+      )
+      .join(", ");
     return "{" + str + "}";
   };
 }
@@ -140,7 +149,7 @@ export class Function implements Objects {
   constructor(
     public parameters: ast.Identifier[] | null,
     public body: ast.BlockStatement,
-    public env: Environment,
+    public env: Environment
   ) {}
 
   toString = () => {

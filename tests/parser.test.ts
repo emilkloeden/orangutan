@@ -44,7 +44,7 @@ Deno.test("Number Test", async () => {
     input: '2.01 + 1',
     expected: 3.01,
   };
-  const evaluated = await testEval<objects.Number>(tt.input);
+  const evaluated = await testEval<objects.NumberObj>(tt.input);
   assertEquals(evaluated.value, tt.expected, `Test selector failed`);
 });
 

@@ -24,14 +24,14 @@ async function testEval<T>(input: string): Promise<T> {
     ];
   
     tests.forEach(async (tt, iteration) => {
-      const evaluated = await testEval<objects.Number>(tt.input);
+      const evaluated = await testEval<objects.NumberObj>(tt.input);
       assertNumberObject(evaluated, tt.expected, iteration);
     });
   });
 
   
 function assertNumberObject(
-    obj: objects.Number,
+    obj: objects.NumberObj,
     expected: number,
     iteration: number,
   ) {

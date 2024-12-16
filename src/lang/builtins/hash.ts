@@ -12,7 +12,7 @@ export const keysFn = (
   ...args: (objects.Objects | null)[]
 ): objects.ArrayObj | objects.Error => {
   if (args.length !== 1) {
-    return wrongNumberOfArgs(args.length, 1);
+    return wrongNumberOfArgs(args.length, [1]);
   }
   const hash = args[0];
   if (hash === null) {
@@ -39,7 +39,7 @@ export const valuesFn = (
   ...args: (objects.Objects | null)[]
 ): objects.ArrayObj | objects.Error => {
   if (args.length !== 1) {
-    return wrongNumberOfArgs(args.length, 1);
+    return wrongNumberOfArgs(args.length, [1]);
   }
   const hash = args[0];
   if (hash === null) {
@@ -66,7 +66,7 @@ export const entriesFn = (
   ...args: (objects.Objects | null)[]
 ): objects.ArrayObj | objects.Error => {
   if (args.length !== 1) {
-    return wrongNumberOfArgs(args.length, 1);
+    return wrongNumberOfArgs(args.length, [1]);
   }
   const hash = args[0];
   if (hash === null) {

@@ -32,7 +32,7 @@ Deno.test("TestEvalNumericExpressions", () => {
   ];
 
   tests.forEach(async (tt, iteration) => {
-    const evaluated = await testEval<objects.Number>(tt.input);
+    const evaluated = await testEval<objects.NumberObj>(tt.input);
     assertNumberObject(evaluated, tt.expected, iteration);
   });
 });
@@ -234,7 +234,7 @@ function assertIntegerObject(
 }
 
 function assertNumberObject(
-  obj: objects.Number,
+  obj: objects.NumberObj,
   expected: number,
   iteration: number,
 ) {

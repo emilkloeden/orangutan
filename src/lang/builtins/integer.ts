@@ -8,7 +8,7 @@ export const strFn = (
     ...args: (objects.Objects | null)[]
   ): objects.Error | objects.String => {
     if (args.length !== 1) {
-      return wrongNumberOfArgs(args.length, 1);
+      return wrongNumberOfArgs(args.length, [1]);
     }
     const integer = args[0];
     if (integer === null) {

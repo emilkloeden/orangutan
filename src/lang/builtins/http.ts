@@ -9,7 +9,7 @@ export const getAsyncFn = async (
   ...args: (objects.Objects | null)[]
 ): Promise<objects.String | objects.Error> => {
   if (args.length !== 1) {
-    return wrongNumberOfArgs(args.length, 1);
+    return wrongNumberOfArgs(args.length, [1]);
   }
   const url = (args[0] as objects.String).value;
   try {
@@ -30,7 +30,7 @@ export const postAsyncFn = async (
   ...args: (objects.Objects | null)[]
 ): Promise<objects.String | objects.Error> => {
   if (args.length !== 2) {
-    return wrongNumberOfArgs(args.length, 2);
+    return wrongNumberOfArgs(args.length, [2]);
   }
   const url = args[0]; //(args[0] as objects.String).value;
   const data = args[1];
