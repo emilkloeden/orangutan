@@ -345,10 +345,12 @@ const evaluateUseExpression = async (
 ): Promise<objects.Objects | null> => {
   const moduleName = (node.value as unknown as objects.String).value;
   const modulePath = resolveModulePath(currentFilePath, moduleName);
+  // DEBUG use module resolution
+  //console.log(`Using ${moduleName} from ${currentFilePath}\n  attempting to find at ${modulePath}`)
   // Load and parse the module
   const moduleEnv = new Environment({}, env);
   const module = loadModule(modulePath);
-  await evaluateProgram(module, moduleEnv, currentFilePath);
+  await evaluateProgram(module, moduleEnv, modulePath);
 
   // Create a hash to represent the module's namespace
   const pairs: Map<string, objects.HashPair> = new Map();
