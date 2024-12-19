@@ -165,7 +165,7 @@ const evaluateAssignment = async (
     // return new objects.Null();
   } else {
     return newError(
-      "Cannot assign to something that is not an identifier or an index expression.",
+      `Cannot assign to something that is not an identifier or an index expression. left: ${left?.toString()} right: ${right?.toString()}`,
     );
   }
 };
@@ -263,7 +263,7 @@ const evaluatePropertyAccessExpression = async (
     );
 
     if (!isHashable(propertyKey)) {
-      return newError(`unusable as hash key: `); //TODO: fix${propertyKey?._type}`);
+      return newError(`unusable as hash key: ${propertyKey}`); //TODO: fix${propertyKey?._type}`);
     }
 
     // Evaluate this step, like 'a["person"]'
@@ -460,10 +460,13 @@ const evaluateInfixExpression = async (
   //     return evaluateArrayInfixExpression(operator, left, right)
   // }
   // null == null, anything else != null - this makes use of ordering to shortcut this test
+  // null || true == true
    else if (left instanceof objects.Null && right instanceof objects.Null){
-    return nativeBoolToBooleanObject(true)
-  } else if (left instanceof objects.Null || right instanceof objects.Null){
-    return nativeBoolToBooleanObject(false)
+    return evaluateNullNullInfixExpression(operator, left, right);
+  } else if (left instanceof objects.Null) {
+    return evaluateNullOtherInfixExpression(operator, left, right);
+  } else if (right instanceof objects.Null) {
+    return evaluateNullOtherInfixExpression(operator, right, left);
   } else if (operator === "==") {
     return nativeBoolToBooleanObject(left === right);
   } else if (operator === "!=") {
@@ -490,12 +493,10 @@ const evaluateInfixExpression = async (
     }
   } else if (left._type !== right._type) {
     return newError(
-      `type mismatch: ${left._type} ${operator} ${right._type}`,
+      `type mismatch: ${left._type} ${operator} ${right._type} - (left: ${left.toString()}  right: ${right.toString()})}`,
     );
   }
-  return newError(
-    `unknown operator: ${left._type} ${operator} ${right._type}`,
-  );
+  return newOperatorError(operator, left, right);
 };
 
 const evaluateIfExpression = async (
@@ -612,9 +613,58 @@ const evaluateIntegerInfixExpression = (
   } else if (operator === "!=") {
     return nativeBoolToBooleanObject(left_value !== right_value);
   }
-  return newError(
-    `unknown operator: ${left._type} ${operator} ${right._type}`,
-  );
+  return newOperatorError(operator, left, right);
+};
+
+const evaluateNullNullInfixExpression = (
+  operator: string,
+  left: objects.Null,
+  right: objects.Null,
+): objects.Boolean | objects.Error => {
+  if (operator === "==") {
+    return nativeBoolToBooleanObject(true);
+  } else if (operator === "!=") {
+    return nativeBoolToBooleanObject(false);
+  } else if (operator === "&&") {
+    return nativeBoolToBooleanObject(false);
+  } else if (operator === "||") {
+    return nativeBoolToBooleanObject(false);
+  } else if (operator === "<") {
+    return nativeBoolToBooleanObject(false);
+  } else if (operator === "<=") {
+    return nativeBoolToBooleanObject(false);
+  } else if (operator === ">") {
+    return nativeBoolToBooleanObject(false);
+  } else if (operator === ">=") {
+    return nativeBoolToBooleanObject(false);
+  }
+  return newOperatorError(operator, left, right);
+};
+
+
+const evaluateNullOtherInfixExpression = (
+  operator: string,
+  left: objects.Null,
+  right: objects.Objects,
+): objects.Boolean | objects.Error => {
+  if (operator === "==") {
+    return nativeBoolToBooleanObject(false);
+  } else if (operator === "!=") {
+    return nativeBoolToBooleanObject(true);
+  } else if (operator === "&&") {
+    return nativeBoolToBooleanObject(false);
+  } else if (operator === "||") {
+    return nativeBoolToBooleanObject(isTruthy(right));
+  } else if (operator === "<") {
+    return nativeBoolToBooleanObject(false);
+  } else if (operator === "<=") {
+    return nativeBoolToBooleanObject(false);
+  } else if (operator === ">") {
+    return nativeBoolToBooleanObject(false);
+  } else if (operator === ">=") {
+    return nativeBoolToBooleanObject(false);
+  }
+  return newOperatorError(operator, left, right);
 };
 
 const evaluateIntegerNumberInfixExpression = (
@@ -648,9 +698,7 @@ const evaluateIntegerNumberInfixExpression = (
   } else if (operator === "!=") {
     return nativeBoolToBooleanObject(left_value !== right_value);
   }
-  return newError(
-    `unknown operator: ${left._type} ${operator} ${right._type}`,
-  );
+  return newOperatorError(operator, left, right);
 };
 
 
@@ -685,9 +733,7 @@ const evaluateNumberInfixExpression = (
   } else if (operator === "!=") {
     return nativeBoolToBooleanObject(left_value !== right_value);
   }
-  return newError(
-    `unknown operator: ${left._type} ${operator} ${right._type}`,
-  );
+  return newOperatorError(operator, left, right);
 };
 
 const evaluateNumberIntegerInfixExpression = (
@@ -721,9 +767,7 @@ const evaluateNumberIntegerInfixExpression = (
   } else if (operator === "!=") {
     return nativeBoolToBooleanObject(left_value !== right_value);
   }
-  return newError(
-    `unknown operator: ${left._type} ${operator} ${right._type}`,
-  );
+  return newOperatorError(operator, left, right);
 };
 
 const evaluateStringInfixExpression = (
@@ -739,9 +783,7 @@ const evaluateStringInfixExpression = (
     return new objects.Boolean(left.value !== right.value);
   }
 
-  return newError(
-    `unknown operator: ${left._type} ${operator} ${right._type}`,
-  );
+  return newOperatorError(operator, left, right);
 };
 
 const evaluateArrayIndexExpression = (
@@ -783,6 +825,10 @@ export const isError = (obj: objects.Objects | null): boolean => {
 export const newError = (message: string): objects.Error => {
   return new objects.Error(message);
 };
+
+const newOperatorError = (operator: string, left: objects.Objects, right: objects.Objects,): objects.Error => {
+  return newError(`unknown operator: ${left._type} ${operator} ${right._type}\nleft: (${left})\n right: (${right})`)
+}
 const nativeBoolToBooleanObject = (input_: boolean): objects.Boolean => {
   return new objects.Boolean(input_);
 };
