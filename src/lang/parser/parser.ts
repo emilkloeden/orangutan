@@ -103,7 +103,6 @@ export default class Parser {
       [TokenType.ASSIGN]: this.parseAssignExpression,
       [TokenType.PERIOD]: this.parsePropertyAccessExpression,
       [TokenType.PIPE]: this.parseInfixExpression,
-      // [TokenType.DOUBLE_COLON]: this.parseModuleFunction,
     };
   }
 
@@ -217,7 +216,7 @@ export default class Parser {
     // TODO: Check definition
     if (prefix === undefined) {
       console.error(
-        `No prefix parse function found for token: ${this.currentToken.tokenType} on line ${this.currentToken.line} column ${this.currentToken.column}`,
+        `No prefix parse function found for token: ${this.currentToken.tokenType} '${this.currentToken.literal}' on line ${this.currentToken.line} column ${this.currentToken.column}`,
       );
       this.noPrefixParseFnError(this.currentToken);
       return null;
@@ -495,30 +494,6 @@ export default class Parser {
     }
 
     return lit;
-  };
-
-  parseModuleFunction = (
-    left: ast.Expression | null,
-  ): ast.Expression | null => {
-    // Create a new ModuleFunctionCallExpression with 'left' as the module part
-    const moduleFunctionExpression = new ast.ModuleFunctionCallExpression(
-      this.currentToken,
-      left, // This represents the module part
-      null, // Initialize fn as null; we'll set it after parsing
-    );
-
-    // Advance to the function part
-    this.nextToken();
-    moduleFunctionExpression.fn = this.parseExpression(Precedence.CALL);
-
-    // Parse the function call arguments if present
-    if (this.expectPeek(TokenType.LPAREN)) {
-      moduleFunctionExpression.arguments = this.parseExpressionList(
-        TokenType.RPAREN,
-      );
-    }
-
-    return moduleFunctionExpression;
   };
 
   // Helpers

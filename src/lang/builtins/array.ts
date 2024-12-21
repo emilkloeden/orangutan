@@ -38,6 +38,9 @@ export const joinFn = async (
   ) {
     const elementValues = arr.elements;
     if (elementValues.some((el) => (!(el instanceof objects.String)))) {
+      // DEBUG: elements in arr being joined
+      // arr.elements.forEach(console.log)
+      
       return newError(`Attempted to join an array that contains non-strings.`);
     }
 

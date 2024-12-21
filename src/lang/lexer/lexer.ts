@@ -132,8 +132,8 @@ export default class Lexer {
       tok = new Token(TokenType.LBRACE, this.ch, line, column);
     } else if (this.ch == "}") {
       tok = new Token(TokenType.RBRACE, this.ch, line, column);
-    } else if (this.ch == '"') {
-      tok = new Token(TokenType.STRING, this.readString(), line, column);
+    } else if (this.ch == '"' || this.ch === "'") {
+      tok = new Token(TokenType.STRING, this.readString(this.ch), line, column);
     } else if (this.ch == "[") {
       tok = new Token(TokenType.LBRACKET, this.ch, line, column);
     } else if (this.ch == "]") {
@@ -188,9 +188,9 @@ export default class Lexer {
     while (isDigit(this.ch)) {
       this.readChar();
       // TODO: This is in the python but not the golang, why?
-      // if (this.ch === "\0") {
-      //     break
-      // }
+      if (this.ch === "\0") {
+          break
+      }
     }
     if (this.ch === ".") {
       this.readChar();
@@ -207,17 +207,19 @@ export default class Lexer {
     while (true) {
       this.readChar();
       if (["\r", "\n", "\0"].includes(this.ch)) {
+        this.line++
+        this.column = 0
         break;
       }
     }
     return this.input.slice(position, this.position);
   };
 
-  private readString = (): string => {
+  private readString = (openingChar: string): string => {
     const position = this.position + 1;
     while (true) {
       this.readChar();
-      if (['"', "\0"].includes(this.ch)) {
+      if ([openingChar, "\0"].includes(this.ch)) {
         break;
       }
     }

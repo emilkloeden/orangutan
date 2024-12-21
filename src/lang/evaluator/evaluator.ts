@@ -825,7 +825,8 @@ export const isError = (obj: objects.Objects | null): boolean => {
   return false;
 };
 export const newError = (message: string): objects.Error => {
-  return new objects.Error(message);
+  const stack = new Error().stack
+  return new objects.Error(message + `\n\nDeno stack:\n${stack}`);
 };
 
 const newOperatorError = (operator: string, left: objects.Objects, right: objects.Objects,): objects.Error => {
@@ -883,7 +884,7 @@ export const applyFunction = async (
     // Pass the environment and currentFilePath to the built-in function
     return await fn.invoke(env, currentFilePath, ...args);
   }
-  return newError(`not a function ${fn!._type}`);
+  return newError(`not a function ${fn!._type}, fn: ${fn?.toString() ?? fn} args: ${args}, currentFilePath: ${currentFilePath}`);
 };
 
 const extendFunctionEnv = (
