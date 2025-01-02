@@ -42,12 +42,12 @@ export const precedences: Record<string, Precedence> = {
 };
 
 export interface IParserError {
-  message: string
-  currentToken?: Token
+  message: string;
+  currentToken?: Token;
 }
 
 export class ParserError implements IParserError {
-  constructor (public message: string, public currentToken?: Token){}
+  constructor(public message: string, public currentToken?: Token) {}
 }
 
 export default class Parser {
@@ -60,7 +60,7 @@ export default class Parser {
     (left: ast.Expression | null) => ast.Expression | null
   >;
 
-  constructor(private lexer: Lexer, private _currentDir: string) {
+  constructor(private lexer: Lexer, public filePath: string) {
     this.errors = [];
 
     this.currentToken = this.lexer.nextToken();
@@ -153,7 +153,7 @@ export default class Parser {
 
     return stmt;
   };
-  
+
   parseExpressionStatement = (): ast.ExpressionStatement | null => {
     const stmt = new ast.ExpressionStatement(this.currentToken);
     stmt.expression = this.parseExpression(Precedence.LOWEST);
@@ -216,7 +216,7 @@ export default class Parser {
     // TODO: Check definition
     if (prefix === undefined) {
       console.error(
-        `No prefix parse function found for token: ${this.currentToken.tokenType} '${this.currentToken.literal}' on line ${this.currentToken.line} column ${this.currentToken.column}`,
+        `No prefix parse function found for token: ${this.currentToken.tokenType} '${this.currentToken.literal}' in ${this.currentToken.filePath} on line ${this.currentToken.line} column ${this.currentToken.column}`,
       );
       this.noPrefixParseFnError(this.currentToken);
       return null;
@@ -271,22 +271,28 @@ export default class Parser {
       lit.value = parseInt(this.currentToken.literal);
       return lit;
     } catch (_) {
-      this.errors.push(new ParserError(
-        `Could not parse ${this.currentToken.literal} as integer.`,
-      this.currentToken));
+      this.errors.push(
+        new ParserError(
+          `Could not parse ${this.currentToken.literal} as integer.`,
+          this.currentToken,
+        ),
+      );
       return null;
     }
   };
-  
+
   parseNumberLiteral = (): ast.Expression | null => {
     const lit = new ast.NumberLiteral(this.currentToken);
     try {
       lit.value = Number(this.currentToken.literal);
       return lit;
     } catch (_) {
-      this.errors.push(new ParserError(
-        `Could not parse ${this.currentToken.literal} as number.`,
-      this.currentToken));
+      this.errors.push(
+        new ParserError(
+          `Could not parse ${this.currentToken.literal} as number.`,
+          this.currentToken,
+        ),
+      );
       return null;
     }
   };
@@ -294,7 +300,7 @@ export default class Parser {
   parseStringLiteral = (): ast.StringLiteral => {
     return new ast.StringLiteral(this.currentToken, this.currentToken.literal);
   };
-  
+
   parseNullLiteral = (): ast.NullLiteral => {
     return new ast.NullLiteral(this.currentToken, this.currentToken.literal);
   };
@@ -328,7 +334,6 @@ export default class Parser {
     expression.right = this.parseExpression(precedence);
     return expression;
   };
-
 
   parseGroupedExpression = (): ast.Expression | null => {
     this.nextToken();
@@ -530,7 +535,12 @@ export default class Parser {
   };
 
   noPrefixParseFnError = (token: Token): void => {
-    this.errors.push(new ParserError(`No prefix parse function for ${token.tokenType} found.`, this.currentToken));
+    this.errors.push(
+      new ParserError(
+        `No prefix parse function for ${token.tokenType} found.`,
+        this.currentToken,
+      ),
+    );
   };
 
   parseExpressionList = (
@@ -558,4 +568,3 @@ export default class Parser {
     return expressions;
   };
 }
-

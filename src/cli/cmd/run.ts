@@ -26,12 +26,19 @@ async function script(filePath: string) {
   const p = path.parse(resolvedPath);
   const { dir } = p;
   const text = await Deno.readTextFile(resolvedPath);
-  const l = new Lexer(text);
+  const l = new Lexer(text, resolvedPath);
   const parser = new Parser(l, dir);
   const env = new Environment({});
   const evaluated = await evaluate(parser.parseProgram(), env, resolvedPath);
   if (isError(evaluated)) {
     console.error((evaluated as objects.Error)?.message);
+    const e: objects.Error = evaluated as objects.Error;
+    const tok = e.getToken()  
+    if (tok && tok.filePath && tok.line && tok.column && tok.literal) {
+      console.error(`at ${tok.filePath}, on line ${tok.line} at column ${tok.column}: '${tok.literal}'`);
+    } else {
+      console.error("Token information is incomplete or undefined.");
+    }
   }
 }
 

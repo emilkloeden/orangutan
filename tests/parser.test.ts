@@ -41,7 +41,7 @@ Deno.test("TestLetStatements", () => {
 
 Deno.test("Number Test", async () => {
   const tt = {
-    input: '2.01 + 1',
+    input: "2.01 + 1",
     expected: 3.01,
   };
   const evaluated = await testEval<objects.NumberObj>(tt.input);
@@ -81,19 +81,22 @@ async function testEval<T>(input: string): Promise<T> {
 
 Deno.test("Test parser error prints an error with the correct line and column", () => {
   const tt = {
-    input: 'let a = fn(a, b) {a+b}\na(1,)\n',
+    input: "let a = fn(a, b) {a+b}\na(1,)\n",
     expected: [
       "No prefix parse function for ) found.",
-     "Expected next token to be ), got EOF instead."],
+      "Expected next token to be ), got EOF instead.",
+    ],
   };
   testErrors(tt.input, tt.expected);
 });
 
-
 function testErrors(input: string, expected: string[]) {
   const lexer = new Lexer(input);
   const parser = new Parser(lexer, "");
-  parser.parseProgram()
-  assertEquals(parser.errors.map(e => e.message), expected, "Expected error didn't occur.")
-
+  parser.parseProgram();
+  assertEquals(
+    parser.errors.map((e) => e.message),
+    expected,
+    "Expected error didn't occur.",
+  );
 }

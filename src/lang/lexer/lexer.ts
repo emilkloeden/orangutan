@@ -7,7 +7,7 @@ export default class Lexer {
   line: number;
   column: number;
 
-  constructor(private input: string) {
+  constructor(private input: string, public filePath: string) {
     this.position = 0;
     this.readPosition = 0;
     this.ch = "";
@@ -54,117 +54,161 @@ export default class Lexer {
         const ch = this.ch;
         this.readChar();
         const literal = ch.toString() + this.ch;
-        tok = new Token(TokenType.EQ, literal, line, column);
+        tok = new Token(TokenType.EQ, literal, line, column, this.filePath);
       } else {
-        tok = new Token(TokenType.ASSIGN, this.ch, line, column);
+        tok = new Token(TokenType.ASSIGN, this.ch, line, column, this.filePath);
       }
     } else if (this.ch == "+") {
-      tok = new Token(TokenType.PLUS, this.ch, line, column);
+      tok = new Token(TokenType.PLUS, this.ch, line, column, this.filePath);
     } else if (this.ch == "-") {
-      tok = new Token(TokenType.MINUS, this.ch, line, column);
+      tok = new Token(TokenType.MINUS, this.ch, line, column, this.filePath);
     } else if (this.ch == "!") {
       if (this.peekChar() == "=") {
         const ch = this.ch;
         this.readChar();
         const literal = `${ch}${this.ch}`;
-        tok = new Token(TokenType.NOT_EQ, literal, line, column);
+        tok = new Token(TokenType.NOT_EQ, literal, line, column, this.filePath);
       } else {
-        tok = new Token(TokenType.BANG, this.ch, line, column);
+        tok = new Token(TokenType.BANG, this.ch, line, column, this.filePath);
       }
     } else if (this.ch == "/") {
       if (this.peekChar() == "/") {
-        tok = new Token(TokenType.COMMENT, this.readLine(), line, column);
+        tok = new Token(
+          TokenType.COMMENT,
+          this.readLine(),
+          line,
+          column,
+          this.filePath,
+        );
       } else {
-        tok = new Token(TokenType.SLASH, this.ch, line, column);
+        tok = new Token(TokenType.SLASH, this.ch, line, column, this.filePath);
       }
     } else if (this.ch == "*") {
-      tok = new Token(TokenType.ASTERISK, this.ch, line, column);
+      tok = new Token(TokenType.ASTERISK, this.ch, line, column, this.filePath);
     } else if (this.ch == "%") {
-      tok = new Token(TokenType.MODULO, this.ch, line, column);
+      tok = new Token(TokenType.MODULO, this.ch, line, column, this.filePath);
     } else if (this.ch == "&") {
       if (this.peekChar() == "&") {
         const ch = this.ch;
         this.readChar();
         const literal = ch.toString() + this.ch;
-        tok = new Token(TokenType.AND, literal, line, column);
+        tok = new Token(TokenType.AND, literal, line, column, this.filePath);
       } else {
-        tok = new Token(TokenType.ILLEGAL, this.ch, line, column);
+        tok = new Token(
+          TokenType.ILLEGAL,
+          this.ch,
+          line,
+          column,
+          this.filePath,
+        );
       }
     } else if (this.ch == "|") {
       if (this.peekChar() == "|") {
         const ch = this.ch;
         this.readChar();
         const literal = ch.toString() + this.ch;
-        tok = new Token(TokenType.OR, literal, line, column);
+        tok = new Token(TokenType.OR, literal, line, column, this.filePath);
       } else if (this.peekChar() == ">") {
         this.readChar();
-        tok = new Token(TokenType.PIPE, "|>", line, column);
+        tok = new Token(TokenType.PIPE, "|>", line, column, this.filePath);
       } else {
-        tok = new Token(TokenType.ILLEGAL, this.ch, line, column);
+        tok = new Token(
+          TokenType.ILLEGAL,
+          this.ch,
+          line,
+          column,
+          this.filePath,
+        );
       }
     } else if (this.ch == "<") {
       if (this.peekChar() == "=") {
         const ch = this.ch;
         this.readChar();
         const literal = `${ch}${this.ch}`;
-        tok = new Token(TokenType.LTE, literal, line, column);
+        tok = new Token(TokenType.LTE, literal, line, column, this.filePath);
       } else {
-        tok = new Token(TokenType.LT, this.ch, line, column);
+        tok = new Token(TokenType.LT, this.ch, line, column, this.filePath);
       }
     } else if (this.ch == ">") {
       if (this.peekChar() == "=") {
         const ch = this.ch;
         this.readChar();
         const literal = `${ch}${this.ch}`;
-        tok = new Token(TokenType.GTE, literal, line, column);
+        tok = new Token(TokenType.GTE, literal, line, column, this.filePath);
       } else {
-        tok = new Token(TokenType.LT, this.ch, line, column);
+        tok = new Token(TokenType.LT, this.ch, line, column, this.filePath);
       }
     } else if (this.ch == ";") {
-      tok = new Token(TokenType.SEMICOLON, this.ch, line, column);
+      tok = new Token(
+        TokenType.SEMICOLON,
+        this.ch,
+        line,
+        column,
+        this.filePath,
+      );
     } else if (this.ch == "(") {
-      tok = new Token(TokenType.LPAREN, this.ch, line, column);
+      tok = new Token(TokenType.LPAREN, this.ch, line, column, this.filePath);
     } else if (this.ch == ")") {
-      tok = new Token(TokenType.RPAREN, this.ch, line, column);
+      tok = new Token(TokenType.RPAREN, this.ch, line, column, this.filePath);
     } else if (this.ch == ",") {
-      tok = new Token(TokenType.COMMA, this.ch, line, column);
+      tok = new Token(TokenType.COMMA, this.ch, line, column, this.filePath);
     } else if (this.ch == "{") {
-      tok = new Token(TokenType.LBRACE, this.ch, line, column);
+      tok = new Token(TokenType.LBRACE, this.ch, line, column, this.filePath);
     } else if (this.ch == "}") {
-      tok = new Token(TokenType.RBRACE, this.ch, line, column);
+      tok = new Token(TokenType.RBRACE, this.ch, line, column, this.filePath);
     } else if (this.ch == '"' || this.ch === "'") {
-      tok = new Token(TokenType.STRING, this.readString(this.ch), line, column);
+      tok = new Token(
+        TokenType.STRING,
+        this.readString(this.ch),
+        line,
+        column,
+        this.filePath,
+      );
     } else if (this.ch == "[") {
-      tok = new Token(TokenType.LBRACKET, this.ch, line, column);
+      tok = new Token(TokenType.LBRACKET, this.ch, line, column, this.filePath);
     } else if (this.ch == "]") {
-      tok = new Token(TokenType.RBRACKET, this.ch, line, column);
+      tok = new Token(TokenType.RBRACKET, this.ch, line, column, this.filePath);
     } else if (this.ch == ":") {
       if (this.peekChar() == ":") {
         const ch = this.ch;
         this.readChar();
         const literal = `${ch}${this.ch}`;
-        tok = new Token(TokenType.DOUBLE_COLON, literal, line, column);
+        tok = new Token(
+          TokenType.DOUBLE_COLON,
+          literal,
+          line,
+          column,
+          this.filePath,
+        );
       } else {
-        tok = new Token(TokenType.COLON, this.ch, line, column);
+        tok = new Token(TokenType.COLON, this.ch, line, column, this.filePath);
       }
     } else if (this.ch == ".") {
-      tok = new Token(TokenType.PERIOD, this.ch, line, column);
+      tok = new Token(TokenType.PERIOD, this.ch, line, column, this.filePath);
     } else if (this.ch == "\0") {
-      tok = new Token(TokenType.EOF, "", line, column);
+      tok = new Token(TokenType.EOF, "", line, column, this.filePath);
     } else {
       if (isLetter(this.ch)) {
         const { line, column } = this;
         const ident = this.readIdentifier();
-        tok = new Token(lookupIdent(ident), ident, line, column);
+        tok = new Token(lookupIdent(ident), ident, line, column, this.filePath);
         return tok;
       } else if (isDigit(this.ch)) {
         const { line, column } = this;
         const number = this.readNumber();
-        const tokenType = number.includes(".") ? TokenType.NUMBER : TokenType.INT
-        tok = new Token(tokenType, number, line, column);
+        const tokenType = number.includes(".")
+          ? TokenType.NUMBER
+          : TokenType.INT;
+        tok = new Token(tokenType, number, line, column, this.filePath);
         return tok;
       } else {
-        tok = new Token(TokenType.ILLEGAL, this.ch, line, column);
+        tok = new Token(
+          TokenType.ILLEGAL,
+          this.ch,
+          line,
+          column,
+          this.filePath,
+        );
       }
     }
     this.readChar();
@@ -189,15 +233,15 @@ export default class Lexer {
       this.readChar();
       // TODO: This is in the python but not the golang, why?
       if (this.ch === "\0") {
-          break
+        break;
       }
     }
     if (this.ch === ".") {
       this.readChar();
-      while(isDigit(this.ch)) {
-        this.readChar()
+      while (isDigit(this.ch)) {
+        this.readChar();
       }
-    } 
+    }
     // TODO: LOOK here for errors first
     return this.input.slice(position, this.position);
   };
@@ -207,8 +251,8 @@ export default class Lexer {
     while (true) {
       this.readChar();
       if (["\r", "\n", "\0"].includes(this.ch)) {
-        this.line++
-        this.column = 0
+        this.line++;
+        this.column = 0;
         break;
       }
     }

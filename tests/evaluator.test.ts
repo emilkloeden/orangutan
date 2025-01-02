@@ -51,8 +51,6 @@ Deno.test("TestEvalIfExpression", () => {
   });
 });
 
-
-
 Deno.test("Test reassignment", () => {
   const tests = [
     { input: "let x = 1; let x = x + 1; x", expected: 2 },

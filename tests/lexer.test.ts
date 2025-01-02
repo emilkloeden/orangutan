@@ -179,7 +179,7 @@ Deno.test("Test Use Expression tokenisation", () => {
 });
 
 Deno.test("Test Use Expression tokenisation", () => {
-  const input = 'let i = 12.05;';
+  const input = "let i = 12.05;";
 
   const tests = [
     { expectedType: TokenType.LET, expectedLiteral: "let" },

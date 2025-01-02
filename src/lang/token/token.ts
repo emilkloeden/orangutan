@@ -81,6 +81,7 @@ export default class Token {
     public literal: string,
     public line: number,
     public column: number,
+    public filePath: string,
   ) {
     this.tokenType = tokenType;
     this.literal = literal;

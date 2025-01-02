@@ -19,7 +19,7 @@ export default async function repl() {
       if (["exit()", "exit", "quit()", "quit"].includes(scanned)) {
         Deno.exit(0);
       }
-      const l = new Lexer(scanned);
+      const l = new Lexer(scanned, currentFilePath);
       const p = new Parser(l, currentFilePath);
       const program = p.parseProgram();
       if (p.errors.length) {
@@ -36,9 +36,10 @@ export default async function repl() {
 
 function printErrors(errors: ParserError[]) {
   for (const error of errors) {
-    let msg = `\t${error.message}\n`
+    let msg = `\t${error.message}\n`;
     if (error.currentToken) {
-      msg += `on line ${error.currentToken.line}, column ${error.currentToken.column}`
+      msg +=
+        `on line ${error.currentToken.line}, column ${error.currentToken.column}`;
     }
     console.log(msg);
   }
