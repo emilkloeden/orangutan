@@ -30,6 +30,9 @@ export const strFn = (
 
     return new objects.String(intermediary, integer.getToken());
   }
+  if (typeof integer["toString"] === "function") {
+    return new objects.String(integer!.toString(), integer.getToken())
+  }
 
   return wrongTypeOfArgument(integer._type, objects.ObjectType.INTEGER_OBJ, integer.getToken());
 };

@@ -1,10 +1,9 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/assert_equals.ts";
 import Lexer from "../src/lang/lexer/lexer.ts";
 import Parser from "../src/lang/parser/parser.ts";
-import { LetStatement, Program } from "../src/lang/ast/ast.ts";
 import Environment from "../src/lang/environment/environment.ts";
-import evaluate from "../src/lang/evaluator/evaluator.ts";
 import * as objects from "../src/lang/objects/objects.ts";
+import Evaluator from "../src/lang/evaluator/evaluator.ts";
 
 // Deno.test("Test Pipe Operator", async () => {
 //   const tt = {
@@ -29,10 +28,11 @@ Deno.test("Test Pipe Operator Multiple Arguments", async () => {
 });
 
 async function testEval<T>(input: string): Promise<T> {
-  const lexer = new Lexer(input);
+  const lexer = new Lexer(input, "<anonymous>");
   const parser = new Parser(lexer, "");
   const program = parser.parseProgram();
 
   const env = new Environment({});
-  return await evaluate(program, env, "") as T;
+  const evaluator = new Evaluator()
+  return await evaluator.evaluate(program, env, "") as T;
 }

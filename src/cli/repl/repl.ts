@@ -1,5 +1,5 @@
 import Environment from "../../lang/environment/environment.ts";
-import evaluate from "../../lang/evaluator/evaluator.ts";
+import Evaluator from "../../lang/evaluator/evaluator.ts";
 import Lexer from "../../lang/lexer/lexer.ts";
 import Parser, { ParserError } from "../../lang/parser/parser.ts";
 
@@ -26,7 +26,8 @@ export default async function repl() {
         printErrors(p.errors);
         continue;
       }
-      const evaluated = await evaluate(program, env, currentFilePath);
+      const evaluator = new Evaluator();
+      const evaluated = await evaluator.evaluate(program, env, currentFilePath);
       if (evaluated !== null) {
         console.log(evaluated.toString());
       }

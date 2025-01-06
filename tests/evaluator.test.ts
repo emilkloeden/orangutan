@@ -3,9 +3,9 @@ import * as objects from "../src/lang/objects/objects.ts";
 
 import Lexer from "../src/lang/lexer/lexer.ts";
 import Parser from "../src/lang/parser/parser.ts";
-import evaluate from "../src/lang/evaluator/evaluator.ts";
 import Environment from "../src/lang/environment/environment.ts";
 import { Integer } from "../src/lang/objects/objects.ts";
+import Evaluator from "../src/lang/evaluator/evaluator.ts";
 
 Deno.test("TestEvalIntegerExpression", () => {
   const tests = [
@@ -198,11 +198,12 @@ Deno.test("Test use expression", () => {
 
 // Helper functions
 async function testEval<T>(input: string): Promise<T> {
-  const lexer = new Lexer(input);
+  const lexer = new Lexer(input, "<anonymous>");
   const parser = new Parser(lexer, "");
   const program = parser.parseProgram();
   const env = new Environment({});
-  const evaluated = await evaluate(program, env, Deno.cwd()) as T;
+  const evaluator = new Evaluator()
+  const evaluated = await evaluator.evaluate(program, env, Deno.cwd()) as T;
   return evaluated;
 }
 

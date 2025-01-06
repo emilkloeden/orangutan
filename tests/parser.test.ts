@@ -3,8 +3,8 @@ import Lexer from "../src/lang/lexer/lexer.ts";
 import Parser from "../src/lang/parser/parser.ts";
 import { LetStatement, Program } from "../src/lang/ast/ast.ts";
 import Environment from "../src/lang/environment/environment.ts";
-import evaluate from "../src/lang/evaluator/evaluator.ts";
 import * as objects from "../src/lang/objects/objects.ts";
+import Evaluator from "../src/lang/evaluator/evaluator.ts";
 
 Deno.test("TestLetStatements", () => {
   const input = `
@@ -13,7 +13,7 @@ Deno.test("TestLetStatements", () => {
     let foobar = 838383;
   `;
 
-  const lexer = new Lexer(input);
+  const lexer = new Lexer(input, "<anonymous>");
   const parser = new Parser(lexer, "");
   const program: Program = parser.parseProgram();
 
@@ -71,12 +71,13 @@ Deno.test("Test Use Expression parsing", async () => {
 });
 
 async function testEval<T>(input: string): Promise<T> {
-  const lexer = new Lexer(input);
+  const lexer = new Lexer(input, "<anonymous>");
   const parser = new Parser(lexer, "");
   const program = parser.parseProgram();
 
   const env = new Environment({});
-  return await evaluate(program, env, Deno.cwd()) as T;
+  const evaluator = new Evaluator()
+  return await evaluator.evaluate(program, env, Deno.cwd()) as T;
 }
 
 Deno.test("Test parser error prints an error with the correct line and column", () => {
@@ -91,7 +92,7 @@ Deno.test("Test parser error prints an error with the correct line and column", 
 });
 
 function testErrors(input: string, expected: string[]) {
-  const lexer = new Lexer(input);
+  const lexer = new Lexer(input, "<anonymous>");
   const parser = new Parser(lexer, "");
   parser.parseProgram();
   assertEquals(

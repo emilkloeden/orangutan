@@ -1,7 +1,6 @@
 import Environment from "../environment/environment.ts";
-import {
+import Evaluator, {
   allElseFailsToken,
-  applyFunction,
   getTokenFromNullableObject,
   isError,
   isTruthy,
@@ -43,7 +42,12 @@ export const joinFn = async (
     const elementValues = arr.elements;
     if (elementValues.some((el) => (!(el instanceof objects.String)))) {
       // DEBUG: elements in arr being joined
-      // arr.elements.forEach(console.log)
+      arr.elements.forEach((el) => {
+        if (!(el instanceof objects.String)) {
+          console.log(el)
+          console.log(el?._type)
+        }
+      })
 
       return newError(`Attempted to join an array that contains non-strings.`, arr.getToken());
     }
@@ -126,8 +130,11 @@ export const mapFn = async (
   }
   if (arr instanceof objects.ArrayObj) {
     const els = [];
+    const evaluator = new Evaluator()
     for (const el of arr.elements) {
-      const res = await applyFunction(fn, [el], env, currentFilePath);
+      // NOTE: This used to just use the exported applyFunction function
+      // Refactoring to have the evaluator as a class may have messed this up.
+      const res = await evaluator.applyFunction(fn, [el], env, currentFilePath);
       els.push(res);
     }
     return new objects.ArrayObj(els, arr.getToken());
@@ -159,8 +166,9 @@ export const filterFn = async (
   }
   if (arr instanceof objects.ArrayObj) {
     const els = [];
+    const evaluator = new Evaluator()
     for (const el of arr.elements) {
-      const res = await applyFunction(fn, [el], env, currentFilePath);
+      const res = await evaluator.applyFunction(fn, [el], env, currentFilePath);
       if (isTruthy(res)) {
         els.push(el);
       }
@@ -217,8 +225,9 @@ export const reduceFn = async (
     startIdx = 1;
   }
 
+  const evaluator = new Evaluator()
   for (let i = startIdx; i < elements.length; i++) {
-    accumulator = await applyFunction(
+    accumulator = await evaluator.applyFunction(
       fn,
       [accumulator, elements[i]],
       env,
@@ -398,6 +407,7 @@ const _sortFnWithFn = async (
 
   try {
     // Create an array of indices and compute comparison results asynchronously
+    const evaluator = new Evaluator()
     const comparisonResults = await Promise.all(
       toBeSorted.map(async (a, i) => ({
         index: i,
@@ -405,7 +415,7 @@ const _sortFnWithFn = async (
           toBeSorted.map(async (b) => {
             const objA = objectTypeToObject(a[0], a[1], a[2]);
             const objB = objectTypeToObject(b[0], b[1], b[2]);
-            const result = await applyFunction(
+            const result = await evaluator.applyFunction(
               fn,
               [objA, objB],
               _env,

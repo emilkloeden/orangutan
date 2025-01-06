@@ -1,10 +1,11 @@
 import Environment from "../src/lang/environment/environment.ts";
-import evaluate from "../src/lang/evaluator/evaluator.ts";
 import Lexer from "../src/lang/lexer/lexer.ts";
 import { Integer } from "../src/lang/objects/objects.ts";
 import Parser from "../src/lang/parser/parser.ts";
 import * as objects from "../src/lang/objects/objects.ts";
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/assert_equals.ts";
+import Evaluator from "../src/lang/evaluator/evaluator.ts";
+import Token, { TokenType } from "../src/lang/token/token.ts";
 
 Deno.test("Test FFI expression", async () => {
   const tests: {
@@ -29,18 +30,18 @@ Deno.test("Test FFI expression", async () => {
     },
     {
       input: 'let i = ffi("y"); i;',
-      expected: new objects.Error("FFI Error: y is not defined"),
+      expected: new objects.Error("FFI Error: y is not defined", new Token(TokenType.ILLEGAL, "This will fail", -1, -1, "<anonymous>")),
     },
     {
       input: "let i = ffi({}); i;",
       expected: new objects.Error(
-        "wrong type of argument. expected=STRING got=HASH.",
+        "wrong type of argument. expected=STRING got=HASH.", new Token(TokenType.ILLEGAL, "This will fail", -1, -1, "<anonymous>")
       ),
     },
     {
       input: 'let i = ffi("const x = {}; x;"); i;',
       expected: new objects.Error(
-        "Unable to evaluate result of ffi call. Received: object",
+        "Unable to evaluate result of ffi call. Received: object", new Token(TokenType.ILLEGAL, "This will fail", -1, -1, "<anonymous>")
       ),
     },
   ];
@@ -70,11 +71,12 @@ Deno.test("Test FFI expression", async () => {
 
 // Helper functions
 async function testEval<T>(input: string): Promise<T> {
-  const lexer = new Lexer(input);
+  const lexer = new Lexer(input, "<anonymous>");
   const parser = new Parser(lexer, "");
   const program = parser.parseProgram();
   const env = new Environment({});
-  const evaluated = await evaluate(program, env, Deno.cwd()) as T;
+  const evaluator = new Evaluator()
+  const evaluated = await evaluator.evaluate(program, env, Deno.cwd()) as T;
   return evaluated;
 }
 
