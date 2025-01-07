@@ -107,10 +107,15 @@ export const isNullish = (obj: any): boolean => {
   return obj === null || obj === undefined || obj instanceof Null;
 }
 
-export class Hash implements Objects {
+export class Hash implements Objects, Hashable {
   public readonly _type = ObjectType.HASH_OBJ;
 
   constructor(public pairs: Map<string, HashPair>, public token: Token) {}
+  hashKey = () => {
+    const hash = crypto.createHmac("sha256", this.toString()).digest("hex");
+
+    return new HashKey(this._type, hash);
+  }
 
   get = (key: Objects) => {
     if (isHashable(key)) {

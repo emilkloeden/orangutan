@@ -46,6 +46,8 @@ class StackTrace {
   }
 }
 
+type MonkeyASTNode = objects.Hash
+
 class Evaluator {
   public stack: StackTrace;
   constructor() {
@@ -53,14 +55,39 @@ class Evaluator {
   }
 
   public evaluate = async (
-    node: ast.Node | null,
+    node: ast.Node | MonkeyASTNode | null,
     env: Environment,
     currentFilePath: string,
   ): Promise<objects.Objects | null> => {
     if (node === null) {
       return this.wrapError(newError(`node is null`, getTokenFromNullableObject(node)));
-    }
-    if (node instanceof ast.Program) {
+    } else if (node instanceof objects.Hash) {
+      const tok = getTokenFromNullableObject(node)
+      const _typeObj = node.get(new objects.String("_type", tok))
+      const value = node.get(new objects.String("value", tok))
+      if (objects.isNullish(_typeObj) || objects.isNullish(value)) {
+        return this.wrapError(newError(`Attempting to evaluate a non-Monkey object.Hash`, tok))
+      }
+      const _typeValue = (_typeObj as objects.String).value
+      if ("AST.STRINGLITERAL" === _typeValue) {
+        const valueValue = (value as objects.String).value
+        const valueASTNode = new ast.StringLiteral(tok, valueValue)
+        return await this.evaluate(valueASTNode, env, currentFilePath)
+      }
+      if ("AST.BOOLEANLITERAL" === _typeValue) {
+        const valueValue = (value as objects.Boolean).value
+        const valueASTNode = new ast.Boolean(tok, valueValue)
+        return await this.evaluate(valueASTNode, env, currentFilePath)
+      }
+      if ("AST.INTEGERLITERAL" === _typeValue) {
+        const valueValue = (value as objects.Integer).value
+        const valueASTNode = new ast.IntegerLiteral(tok)
+        valueASTNode.value = valueValue
+        return await this.evaluate(valueASTNode, env, currentFilePath)
+      }
+      return this.wrapError(newError(`Attempting to evaluate a Monkey object for not yet implement type: ${_typeValue}`, tok))
+      
+    } else if (node instanceof ast.Program) {
       return await this.evaluateProgram(node, env, currentFilePath);
     } else if (node instanceof ast.ExpressionStatement) {
       return await this.evaluate(node.expression, env, currentFilePath);
@@ -200,6 +227,7 @@ class Evaluator {
           currentFilePath,
         );
       } else if (indexed instanceof objects.Hash) { // && index instanceof objects.String) {
+        // TODO: Consider MonkeyObjects
         return await this.evaluateHashAssignment(
           indexed,
           index,
@@ -874,6 +902,7 @@ class Evaluator {
       return this.wrapError(newError(`unusable as hash key: ${index._type}`, index.getToken()));
     }
     if (hashObj._type !== ObjectType.HASH_OBJ) {
+      console.dir(hashObj)
       return this.wrapError(newError(`hashObj not a Hash Obj: ${hashObj._type}`, hashObj.getToken()));
     }
     const hashKeyString = index.hashKey().toString();
@@ -915,6 +944,7 @@ class Evaluator {
       console.dir(fn)
       console.log("FN IS NULL")
     }
+    console.log(fn)
     return this.wrapError(newError(
       `not a function: ${fn!._type}, 
       fn: ${

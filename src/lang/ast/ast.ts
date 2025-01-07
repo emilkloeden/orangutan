@@ -163,7 +163,7 @@ export class UseExpression implements Expression {
 }
 
 export class IntegerLiteral implements Expression {
-  value!: number;
+  public value!: number
   constructor(private token: Token) {}
 
   getToken(): Token {
@@ -179,7 +179,7 @@ export class IntegerLiteral implements Expression {
   }
 }
 export class NumberLiteral implements Expression {
-  value!: number;
+  public value!: number;
   constructor(private token: Token) {}
 
   getToken(): Token {

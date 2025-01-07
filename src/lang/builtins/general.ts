@@ -21,6 +21,46 @@ export const putsFn = async (
   return new objects.Null(argsTokenOrAllElseFailsToken(args));
 };
 
+export const promptFn = async (
+  _env: Environment,
+  _currentFilePath: string,
+  ...args: (objects.Objects | null)[]
+): Promise<objects.Objects> => {
+  if (args.length > 1) {
+    return wrongNumberOfArgs(args.length, [0, 1], argsTokenOrAllElseFailsToken(args));
+  }
+  let promptString = "🐵>";
+  if (args.length === 1) {
+    const arg = args[0];
+    if (arg === null) {
+      return gotHostNull(allElseFailsToken());
+    }
+    if (!(arg instanceof objects.String)) {
+      return wrongTypeOfArgument(arg._type, objects.ObjectType.STRING_OBJ, arg.getToken());
+    }
+    promptString = arg.value;
+  }
+  const response = prompt(promptString)
+  if (response === null) {
+    return new objects.Null(argsTokenOrAllElseFailsToken(args))
+  }
+  return new objects.String(response, argsTokenOrAllElseFailsToken(args));
+};
+
+
+export const argsFn = async (
+  _env: Environment,
+  _currentFilePath: string,
+  ...args: (objects.Objects | null)[]
+): Promise<objects.Objects> => {
+  if (args.length !== 0) {
+    return wrongNumberOfArgs(args.length, [0], argsTokenOrAllElseFailsToken(args));
+  }
+  const elements = Deno.args.map((arg) => new objects.String(arg, argsTokenOrAllElseFailsToken(args)))
+  
+  return new objects.ArrayObj(elements, argsTokenOrAllElseFailsToken(args));
+};
+
 export const ffiFn = async (
   _env: Environment,
   _currentFilePath: string,
