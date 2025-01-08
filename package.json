@@ -1,7 +1,7 @@
 {
   "name": "orangutan",
   "type": "module",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A typescript implementation of Thorsten Ball's&lt;a href=\"https://monkeylang.org/>Monkey&lt;/a>",
   "main": "index.js",
   "scripts": {

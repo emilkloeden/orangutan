@@ -31,13 +31,19 @@ async function script(filePath: string) {
   const parser = new Parser(l, dir);
   const env = new Environment({});
   const evaluator = new Evaluator();
-  const evaluated = await evaluator.evaluate(parser.parseProgram(), env, resolvedPath);
+  const evaluated = await evaluator.evaluate(
+    parser.parseProgram(),
+    env,
+    resolvedPath,
+  );
   if (isError(evaluated)) {
     console.error((evaluated as objects.Error)?.message);
     const e: objects.Error = evaluated as objects.Error;
-    const tok = e.getToken()  
+    const tok = e.getToken();
     if (tok && tok.filePath && tok.line && tok.column && tok.literal) {
-      console.error(`at ${tok.filePath}, on line ${tok.line} at column ${tok.column}: '${tok.literal}'`);
+      console.error(
+        `at ${tok.filePath}, on line ${tok.line} at column ${tok.column}: '${tok.literal}'`,
+      );
     } else {
       console.error("Token information is incomplete or undefined.");
     }

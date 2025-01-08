@@ -30,18 +30,23 @@ Deno.test("Test FFI expression", async () => {
     },
     {
       input: 'let i = ffi("y"); i;',
-      expected: new objects.Error("FFI Error: y is not defined", new Token(TokenType.ILLEGAL, "This will fail", -1, -1, "<anonymous>")),
+      expected: new objects.Error(
+        "FFI Error: y is not defined",
+        new Token(TokenType.ILLEGAL, "This will fail", -1, -1, "<anonymous>"),
+      ),
     },
     {
       input: "let i = ffi({}); i;",
       expected: new objects.Error(
-        "wrong type of argument. expected=STRING got=HASH.", new Token(TokenType.ILLEGAL, "This will fail", -1, -1, "<anonymous>")
+        "wrong type of argument. expected=STRING got=HASH.",
+        new Token(TokenType.ILLEGAL, "This will fail", -1, -1, "<anonymous>"),
       ),
     },
     {
       input: 'let i = ffi("const x = {}; x;"); i;',
       expected: new objects.Error(
-        "Unable to evaluate result of ffi call. Received: object", new Token(TokenType.ILLEGAL, "This will fail", -1, -1, "<anonymous>")
+        "Unable to evaluate result of ffi call. Received: object",
+        new Token(TokenType.ILLEGAL, "This will fail", -1, -1, "<anonymous>"),
       ),
     },
   ];
@@ -75,7 +80,7 @@ async function testEval<T>(input: string): Promise<T> {
   const parser = new Parser(lexer, "");
   const program = parser.parseProgram();
   const env = new Environment({});
-  const evaluator = new Evaluator()
+  const evaluator = new Evaluator();
   const evaluated = await evaluator.evaluate(program, env, Deno.cwd()) as T;
   return evaluated;
 }

@@ -98,8 +98,6 @@ export class ExpressionStatement implements Statement {
 
   toString() {
     return this.expression != null ? this.expression.toString() : "";
-    // TODO: find out why this is here statement_node(this):
-    // pass
   }
   tokenLiteral() {
     return this.token.literal;
@@ -135,8 +133,6 @@ export class Identifier implements Expression {
 
   toString() {
     return this.value;
-
-    // TODO: check why this was here?: expressionNode(this) {}
   }
 
   tokenLiteral() {
@@ -153,8 +149,6 @@ export class UseExpression implements Expression {
 
   toString() {
     return `use (${this.value?.toString()})`;
-
-    // TODO: check why this was here?: expressionNode(this) {}
   }
 
   tokenLiteral() {
@@ -163,7 +157,7 @@ export class UseExpression implements Expression {
 }
 
 export class IntegerLiteral implements Expression {
-  public value!: number
+  public value!: number;
   constructor(private token: Token) {}
 
   getToken(): Token {
@@ -204,6 +198,7 @@ export class Boolean implements Expression {
   toString() {
     return this.token.literal.toString();
   }
+
   tokenLiteral() {
     return this.token.literal;
   }
@@ -218,6 +213,7 @@ export class StringLiteral implements Expression {
   toString() {
     return `"${this.value.toString()}"`;
   }
+
   tokenLiteral() {
     return this.token.literal;
   }
@@ -430,6 +426,7 @@ export class PropertyAccessExpression implements Expression {
     return this.token.literal;
   }
 }
+// TODO: Check for removal
 export class ModuleFunctionCallExpression implements Expression {
   public arguments: (null | Expression)[] | null;
 

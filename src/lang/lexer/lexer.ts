@@ -223,7 +223,6 @@ export default class Lexer {
         break;
       }
     }
-    // TODO: LOOK here for errors first
     return this.input.slice(position, this.position);
   };
 
@@ -231,7 +230,6 @@ export default class Lexer {
     const position = this.position;
     while (isDigit(this.ch)) {
       this.readChar();
-      // TODO: This is in the python but not the golang, why?
       if (this.ch === "\0") {
         break;
       }
@@ -242,7 +240,6 @@ export default class Lexer {
         this.readChar();
       }
     }
-    // TODO: LOOK here for errors first
     return this.input.slice(position, this.position);
   };
 

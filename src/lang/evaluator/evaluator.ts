@@ -10,7 +10,6 @@ import { HashPair, ObjectType } from "../objects/objects.ts";
 import Parser from "../parser/parser.ts";
 import Token, { TokenType } from "../token/token.ts";
 
-
 interface StackFrame {
   functionName: string;
   line: number;
@@ -20,33 +19,38 @@ interface StackFrame {
 class StackTrace {
   private frames: StackFrame[] = [];
 
-  public push = (functionName: string, line: number, column: number, filePath: string|undefined) => {
+  public push = (
+    functionName: string,
+    line: number,
+    column: number,
+    filePath: string | undefined,
+  ) => {
     this.frames.push({
       functionName,
-      line, 
+      line,
       column,
-      filePath
-    })
-  }
+      filePath,
+    });
+  };
 
   public pop = () => {
     const frame = this.frames.pop();
     return frame;
-  }
+  };
 
   public toString(): string {
     return this.frames
       .map((frame) => {
-        const location = frame.filePath 
+        const location = frame.filePath
           ? `${frame.filePath}:${frame.line}:${frame.column}`
           : `<anonymous>:${frame.line}:${frame.column}`;
         return `    at ${frame.functionName} (${location})`;
       })
-      .join('\n');
+      .join("\n");
   }
 }
 
-type MonkeyASTNode = objects.Hash
+type MonkeyASTNode = objects.Hash;
 
 class Evaluator {
   public stack: StackTrace;
@@ -60,33 +64,42 @@ class Evaluator {
     currentFilePath: string,
   ): Promise<objects.Objects | null> => {
     if (node === null) {
-      return this.wrapError(newError(`node is null`, getTokenFromNullableObject(node)));
+      return this.wrapError(
+        newError(`node is null`, getTokenFromNullableObject(node)),
+      );
     } else if (node instanceof objects.Hash) {
-      const tok = getTokenFromNullableObject(node)
-      const _typeObj = node.get(new objects.String("_type", tok))
-      const value = node.get(new objects.String("value", tok))
+      const tok = getTokenFromNullableObject(node);
+      const _typeObj = node.get(new objects.String("_type", tok));
+      const value = node.get(new objects.String("value", tok));
       if (objects.isNullish(_typeObj) || objects.isNullish(value)) {
-        return this.wrapError(newError(`Attempting to evaluate a non-Monkey object.Hash`, tok))
+        return this.wrapError(
+          newError(`Attempting to evaluate a non-Monkey object.Hash`, tok),
+        );
       }
-      const _typeValue = (_typeObj as objects.String).value
+      // TODO: Is this necessary? Is this complete?
+      const _typeValue = (_typeObj as objects.String).value;
       if ("AST.STRINGLITERAL" === _typeValue) {
-        const valueValue = (value as objects.String).value
-        const valueASTNode = new ast.StringLiteral(tok, valueValue)
-        return await this.evaluate(valueASTNode, env, currentFilePath)
+        const valueValue = (value as objects.String).value;
+        const valueASTNode = new ast.StringLiteral(tok, valueValue);
+        return await this.evaluate(valueASTNode, env, currentFilePath);
       }
       if ("AST.BOOLEANLITERAL" === _typeValue) {
-        const valueValue = (value as objects.Boolean).value
-        const valueASTNode = new ast.Boolean(tok, valueValue)
-        return await this.evaluate(valueASTNode, env, currentFilePath)
+        const valueValue = (value as objects.Boolean).value;
+        const valueASTNode = new ast.Boolean(tok, valueValue);
+        return await this.evaluate(valueASTNode, env, currentFilePath);
       }
       if ("AST.INTEGERLITERAL" === _typeValue) {
-        const valueValue = (value as objects.Integer).value
-        const valueASTNode = new ast.IntegerLiteral(tok)
-        valueASTNode.value = valueValue
-        return await this.evaluate(valueASTNode, env, currentFilePath)
+        const valueValue = (value as objects.Integer).value;
+        const valueASTNode = new ast.IntegerLiteral(tok);
+        valueASTNode.value = valueValue;
+        return await this.evaluate(valueASTNode, env, currentFilePath);
       }
-      return this.wrapError(newError(`Attempting to evaluate a Monkey object for not yet implement type: ${_typeValue}`, tok))
-      
+      return this.wrapError(
+        newError(
+          `Attempting to evaluate a Monkey object for not yet implement type: ${_typeValue}`,
+          tok,
+        ),
+      );
     } else if (node instanceof ast.Program) {
       return await this.evaluateProgram(node, env, currentFilePath);
     } else if (node instanceof ast.ExpressionStatement) {
@@ -182,12 +195,14 @@ class Evaluator {
       }
       return this.evaluateIndexExpression(left, index);
     } else if (node instanceof ast.PropertyAccessExpression) {
-      return await this.evaluatePropertyAccessExpression(node, env, currentFilePath);
+      return await this.evaluatePropertyAccessExpression(
+        node,
+        env,
+        currentFilePath,
+      );
     }
     return null;
   };
-
-
 
   evaluateAssignment = async (
     left: ast.Expression | null,
@@ -198,7 +213,12 @@ class Evaluator {
     if (left instanceof ast.Identifier) {
       const got = env.get(left.value);
       if (got === null) {
-        return this.wrapError(newError(`identifier not found ${left.value}`, getTokenFromNullableObject(left)));
+        return this.wrapError(
+          newError(
+            `identifier not found ${left.value}`,
+            getTokenFromNullableObject(left),
+          ),
+        );
       }
       const originalEnv = got.env;
       const value = await this.evaluate(right, env, currentFilePath);
@@ -236,12 +256,18 @@ class Evaluator {
           currentFilePath,
         );
       } else {
-        return this.wrapError(newError(`index operator not supported: ${left}`, getTokenFromNullableObject(left)));
+        return this.wrapError(
+          newError(
+            `index operator not supported: ${left}`,
+            getTokenFromNullableObject(left),
+          ),
+        );
       }
       // return new objects.Null();
     } else {
       return this.wrapError(newError(
-        `Cannot assign to something that is not an identifier or an index expression. left: ${left?.toString()} right: ${right?.toString()}`, getTokenFromNullableObject(left)
+        `Cannot assign to something that is not an identifier or an index expression. left: ${left?.toString()} right: ${right?.toString()}`,
+        getTokenFromNullableObject(left),
       ));
     }
   };
@@ -265,8 +291,6 @@ class Evaluator {
     return value;
   };
 
-  
-
   evaluateHashAssignment = async (
     hash: objects.Hash,
     index: objects.Objects | null,
@@ -275,7 +299,12 @@ class Evaluator {
     currentFilePath: string,
   ): Promise<objects.Objects | null> => {
     if (!(isHashable(index))) {
-      return this.wrapError(newError(`Unusable as hash key: ${index}`, getTokenFromNullableObject(index)));
+      return this.wrapError(
+        newError(
+          `Unusable as hash key: ${index}`,
+          getTokenFromNullableObject(index),
+        ),
+      );
     }
     const hashObj = hash as objects.Hash;
     const hashKeyString = index.hashKey().toString();
@@ -284,7 +313,12 @@ class Evaluator {
       return value;
     }
     if (value === null) {
-      return this.wrapError(newError("RHS of hash assignment expression evaluate to host null", getTokenFromNullableObject(index)));
+      return this.wrapError(
+        newError(
+          "RHS of hash assignment expression evaluate to host null",
+          getTokenFromNullableObject(index),
+        ),
+      );
     }
     const hashPair = new HashPair(index, value);
     hashObj.pairs.set(hashKeyString, hashPair);
@@ -298,28 +332,32 @@ class Evaluator {
     currentFilePath: string,
   ): Promise<objects.Objects | null> => {
     const functionName = node.fn?.toString() ?? "<Unknown Function>";
-    const currentToken = node.getToken()
+    const currentToken = node.getToken();
     this.stack.push(
       functionName,
       currentToken.line,
       currentToken.column,
-      currentToken.filePath
-    )
+      currentToken.filePath,
+    );
     const fn = await this.evaluate(node.fn, env, currentFilePath);
     if (isError(fn)) {
-      const errResult = this.wrapError((fn as objects.Error))
-      this.stack.pop()
-      return errResult
+      const errResult = this.wrapError(fn as objects.Error);
+      this.stack.pop();
+      return errResult;
     }
     // console.log('---call expression---')
     // console.log(fn)
     // console.log('---call expression---')
-    const args = await this.evaluateExpressions(node.arguments, env, currentFilePath);
+    const args = await this.evaluateExpressions(
+      node.arguments,
+      env,
+      currentFilePath,
+    );
     if (args.length === 1 && isError(args[0])) {
       const error = args[0];
-      const errResult = this.wrapError((error as objects.Error))
-      this.stack.pop()
-      return errResult
+      const errResult = this.wrapError(error as objects.Error);
+      this.stack.pop();
+      return errResult;
     }
 
     const result = await this.applyFunction(fn, args, env, currentFilePath);
@@ -344,11 +382,17 @@ class Evaluator {
     while (currentNode instanceof ast.PropertyAccessExpression) {
       // Resolve the current property key (e.g., 'person' in 'a.person')
       const propertyKey = new objects.String(
-        currentNode?.property?.tokenLiteral() ?? "", node.getToken()
+        currentNode?.property?.tokenLiteral() ?? "",
+        node.getToken(),
       );
 
       if (!isHashable(propertyKey)) {
-        return this.wrapError(newError(`unusable as hash key: ${propertyKey}`, getTokenFromNullableObject(propertyKey))); //TODO: fix${propertyKey?._type}`);
+        return this.wrapError(
+          newError(
+            `unusable as hash key: ${propertyKey}`,
+            getTokenFromNullableObject(propertyKey),
+          ),
+        ); //TODO: fix${propertyKey?._type}`);
       }
 
       // Evaluate this step, like 'a["person"]'
@@ -393,7 +437,8 @@ class Evaluator {
       result = await this.evaluate(statement, env, currentFilePath);
       if (result !== null) {
         if (
-          result instanceof objects.ReturnValue || result instanceof objects.Error
+          result instanceof objects.ReturnValue ||
+          result instanceof objects.Error
         ) {
           return result;
         }
@@ -461,7 +506,12 @@ class Evaluator {
       }
 
       if (!isHashable(key)) {
-        return this.wrapError(newError(`unusable as hash key: ${key?._type}`, getTokenFromNullableObject(key)));
+        return this.wrapError(
+          newError(
+            `unusable as hash key: ${key?._type}`,
+            getTokenFromNullableObject(key),
+          ),
+        );
       }
 
       const value = await this.evaluate(valueNode, env, currentFilePath);
@@ -480,14 +530,24 @@ class Evaluator {
     right: objects.Objects | null,
   ): objects.Objects => {
     if (right === null) {
-      return this.wrapError(newError("evaluatePrefixExpression has a null right object", getTokenFromNullableObject(right)));
+      return this.wrapError(
+        newError(
+          "evaluatePrefixExpression has a null right object",
+          getTokenFromNullableObject(right),
+        ),
+      );
     }
     if (operator === "!") {
       return this.evaluateBangOperatorExpression(right);
     } else if (operator === "-") {
       return this.evaluateMinusPrefixOperatorExpression(right);
     } else {
-      return this.wrapError(newError(`unknown operator: ${operator}${right._type}`, getTokenFromNullableObject(right)));
+      return this.wrapError(
+        newError(
+          `unknown operator: ${operator}${right._type}`,
+          getTokenFromNullableObject(right),
+        ),
+      );
     }
   };
 
@@ -499,7 +559,12 @@ class Evaluator {
     currentFilePath: string,
   ): Promise<objects.Objects | null> => {
     if (left === null || right === null) {
-      return this.wrapError(newError("Issue with infixExpression", getTokenFromNullableObject(left)));
+      return this.wrapError(
+        newError(
+          "Issue with infixExpression",
+          getTokenFromNullableObject(left),
+        ),
+      );
     }
     if (
       left instanceof objects.Integer && right instanceof objects.Integer
@@ -552,18 +617,23 @@ class Evaluator {
       return this.evaluateNullOtherInfixExpression(operator, left, right);
     } else if (right instanceof objects.Null) {
       return this.evaluateNullOtherInfixExpression(operator, right, left);
-    } else if(left instanceof objects.Boolean && right instanceof objects.Boolean) {
-      return this.evaluateBooleanInfixExpression(operator, left, right)
+    } else if (
+      left instanceof objects.Boolean && right instanceof objects.Boolean
+    ) {
+      return this.evaluateBooleanInfixExpression(operator, left, right);
     } else if (operator === "|>") {
-      if (right instanceof objects.Function || right instanceof objects.BuiltIn) {
+      if (
+        right instanceof objects.Function || right instanceof objects.BuiltIn
+      ) {
         return await this.applyFunction(right, [left], env, currentFilePath);
       }
     } else if (left._type !== right._type) {
       return this.wrapError(newError(
-        `type mismatch: ${left._type} ${operator} ${right._type} - (left: ${left.toString()}\nright: ${right.toString()})}`, left.getToken()
+        `type mismatch: ${left._type} ${operator} ${right._type} - (left: ${left.toString()}\nright: ${right.toString()})}`,
+        left.getToken(),
       ));
     }
-    
+
     return this.wrapError(newOperatorError(operator, left, right));
   };
 
@@ -578,26 +648,34 @@ class Evaluator {
     if (operator === "==") {
       return nativeBoolToBooleanObject(leftValue === rightValue, tok);
     } else if (operator === "!=") {
-      return nativeBoolToBooleanObject(leftValue !== rightValue, left.getToken());
+      return nativeBoolToBooleanObject(
+        leftValue !== rightValue,
+        left.getToken(),
+      );
     } else if (operator === "&&") {
       return nativeBoolToBooleanObject(
-        leftValue && rightValue, left.getToken()
-        );
-      
+        leftValue && rightValue,
+        left.getToken(),
+      );
     } else if (operator === "||") {
       return nativeBoolToBooleanObject(
-        leftValue || rightValue, left.getToken()
-        ); 
+        leftValue || rightValue,
+        left.getToken(),
+      );
     }
-    return this.wrapError(newOperatorError(operator, left, right))
-  }
+    return this.wrapError(newOperatorError(operator, left, right));
+  };
 
   evaluateIfExpression = async (
     expression: ast.IfExpression,
     env: Environment,
     currentFilePath: string,
   ): Promise<objects.Objects | null> => {
-    const condition = await this.evaluate(expression.condition, env, currentFilePath);
+    const condition = await this.evaluate(
+      expression.condition,
+      env,
+      currentFilePath,
+    );
     if (isError(condition)) {
       return condition;
     }
@@ -628,7 +706,9 @@ class Evaluator {
       return builtin;
     }
 
-    return this.wrapError(newError(`identifier not found: ${node.value}`, node.getToken()));
+    return this.wrapError(
+      newError(`identifier not found: ${node.value}`, node.getToken()),
+    );
   };
 
   evaluateIndexExpression = (
@@ -636,9 +716,13 @@ class Evaluator {
     index: objects.Objects | null,
   ): objects.Objects | null => {
     if (left === null) {
-      return this.wrapError(newError(`left object is null`, getTokenFromNullableObject(left)));
+      return this.wrapError(
+        newError(`left object is null`, getTokenFromNullableObject(left)),
+      );
     } else if (index === null) {
-      return this.wrapError(newError(`index object is null`, getTokenFromNullableObject(index)));
+      return this.wrapError(
+        newError(`index object is null`, getTokenFromNullableObject(index)),
+      );
     }
     if (
       left instanceof objects.ArrayObj &&
@@ -651,7 +735,9 @@ class Evaluator {
     } else if (left instanceof objects.Hash) {
       return this.evaluateHashIndexExpression(left, index);
     }
-    return this.wrapError(newError(`index operator not supported: ${left._type}`, left.getToken()));
+    return this.wrapError(
+      newError(`index operator not supported: ${left._type}`, left.getToken()),
+    );
   };
 
   evaluateBangOperatorExpression = (
@@ -669,7 +755,9 @@ class Evaluator {
     if (
       !(right instanceof objects.Integer || right instanceof objects.NumberObj)
     ) {
-      return this.wrapError(newError(`unknown operator: -${right._type}`, right.getToken()));
+      return this.wrapError(
+        newError(`unknown operator: -${right._type}`, right.getToken()),
+      );
     }
     if (right instanceof objects.Integer) {
       return new objects.Integer(-right.value, right.getToken());
@@ -696,17 +784,35 @@ class Evaluator {
     } else if (operator === "%") {
       return new objects.Integer(left_value % right_value, left.getToken());
     } else if (operator === "<") {
-      return nativeBoolToBooleanObject(left_value < right_value, left.getToken());
+      return nativeBoolToBooleanObject(
+        left_value < right_value,
+        left.getToken(),
+      );
     } else if (operator === "<=") {
-      return nativeBoolToBooleanObject(left_value <= right_value, left.getToken());
+      return nativeBoolToBooleanObject(
+        left_value <= right_value,
+        left.getToken(),
+      );
     } else if (operator === ">") {
-      return nativeBoolToBooleanObject(left_value > right_value, left.getToken());
+      return nativeBoolToBooleanObject(
+        left_value > right_value,
+        left.getToken(),
+      );
     } else if (operator === ">=") {
-      return nativeBoolToBooleanObject(left_value >= right_value, left.getToken());
+      return nativeBoolToBooleanObject(
+        left_value >= right_value,
+        left.getToken(),
+      );
     } else if (operator === "==") {
-      return nativeBoolToBooleanObject(left_value === right_value, left.getToken());
+      return nativeBoolToBooleanObject(
+        left_value === right_value,
+        left.getToken(),
+      );
     } else if (operator === "!=") {
-      return nativeBoolToBooleanObject(left_value !== right_value, left.getToken());
+      return nativeBoolToBooleanObject(
+        left_value !== right_value,
+        left.getToken(),
+      );
     }
     return this.wrapError(newOperatorError(operator, left, right));
   };
@@ -782,17 +888,35 @@ class Evaluator {
     } else if (operator === "%") {
       return new objects.NumberObj(left_value % right_value, left.getToken());
     } else if (operator === "<") {
-      return nativeBoolToBooleanObject(left_value < right_value, left.getToken());
+      return nativeBoolToBooleanObject(
+        left_value < right_value,
+        left.getToken(),
+      );
     } else if (operator === "<=") {
-      return nativeBoolToBooleanObject(left_value <= right_value, left.getToken());
+      return nativeBoolToBooleanObject(
+        left_value <= right_value,
+        left.getToken(),
+      );
     } else if (operator === ">") {
-      return nativeBoolToBooleanObject(left_value > right_value, left.getToken());
+      return nativeBoolToBooleanObject(
+        left_value > right_value,
+        left.getToken(),
+      );
     } else if (operator === ">=") {
-      return nativeBoolToBooleanObject(left_value >= right_value, left.getToken());
+      return nativeBoolToBooleanObject(
+        left_value >= right_value,
+        left.getToken(),
+      );
     } else if (operator === "==") {
-      return nativeBoolToBooleanObject(left_value === right_value, left.getToken());
+      return nativeBoolToBooleanObject(
+        left_value === right_value,
+        left.getToken(),
+      );
     } else if (operator === "!=") {
-      return nativeBoolToBooleanObject(left_value !== right_value, left.getToken());
+      return nativeBoolToBooleanObject(
+        left_value !== right_value,
+        left.getToken(),
+      );
     }
     return this.wrapError(newOperatorError(operator, left, right));
   };
@@ -816,17 +940,35 @@ class Evaluator {
     } else if (operator === "%") {
       return new objects.NumberObj(left_value % right_value, left.getToken());
     } else if (operator === "<") {
-      return nativeBoolToBooleanObject(left_value < right_value, left.getToken());
+      return nativeBoolToBooleanObject(
+        left_value < right_value,
+        left.getToken(),
+      );
     } else if (operator === "<=") {
-      return nativeBoolToBooleanObject(left_value <= right_value, left.getToken());
+      return nativeBoolToBooleanObject(
+        left_value <= right_value,
+        left.getToken(),
+      );
     } else if (operator === ">") {
-      return nativeBoolToBooleanObject(left_value > right_value, left.getToken());
+      return nativeBoolToBooleanObject(
+        left_value > right_value,
+        left.getToken(),
+      );
     } else if (operator === ">=") {
-      return nativeBoolToBooleanObject(left_value >= right_value, left.getToken());
+      return nativeBoolToBooleanObject(
+        left_value >= right_value,
+        left.getToken(),
+      );
     } else if (operator === "==") {
-      return nativeBoolToBooleanObject(left_value === right_value, left.getToken());
+      return nativeBoolToBooleanObject(
+        left_value === right_value,
+        left.getToken(),
+      );
     } else if (operator === "!=") {
-      return nativeBoolToBooleanObject(left_value !== right_value, left.getToken());
+      return nativeBoolToBooleanObject(
+        left_value !== right_value,
+        left.getToken(),
+      );
     }
     return this.wrapError(newOperatorError(operator, left, right));
   };
@@ -850,17 +992,35 @@ class Evaluator {
     } else if (operator === "%") {
       return new objects.NumberObj(left_value % right_value, left.getToken());
     } else if (operator === "<") {
-      return nativeBoolToBooleanObject(left_value < right_value, left.getToken());
+      return nativeBoolToBooleanObject(
+        left_value < right_value,
+        left.getToken(),
+      );
     } else if (operator === "<=") {
-      return nativeBoolToBooleanObject(left_value <= right_value, left.getToken());
+      return nativeBoolToBooleanObject(
+        left_value <= right_value,
+        left.getToken(),
+      );
     } else if (operator === ">") {
-      return nativeBoolToBooleanObject(left_value > right_value, left.getToken());
+      return nativeBoolToBooleanObject(
+        left_value > right_value,
+        left.getToken(),
+      );
     } else if (operator === ">=") {
-      return nativeBoolToBooleanObject(left_value >= right_value, left.getToken());
+      return nativeBoolToBooleanObject(
+        left_value >= right_value,
+        left.getToken(),
+      );
     } else if (operator === "==") {
-      return nativeBoolToBooleanObject(left_value === right_value, left.getToken());
+      return nativeBoolToBooleanObject(
+        left_value === right_value,
+        left.getToken(),
+      );
     } else if (operator === "!=") {
-      return nativeBoolToBooleanObject(left_value !== right_value, left.getToken());
+      return nativeBoolToBooleanObject(
+        left_value !== right_value,
+        left.getToken(),
+      );
     }
     return this.wrapError(newOperatorError(operator, left, right));
   };
@@ -899,11 +1059,18 @@ class Evaluator {
   ): objects.Objects | null => {
     if (!isHashable(index)) {
       // console.dir(index)
-      return this.wrapError(newError(`unusable as hash key: ${index._type}`, index.getToken()));
+      return this.wrapError(
+        newError(`unusable as hash key: ${index._type}`, index.getToken()),
+      );
     }
     if (hashObj._type !== ObjectType.HASH_OBJ) {
-      console.dir(hashObj)
-      return this.wrapError(newError(`hashObj not a Hash Obj: ${hashObj._type}`, hashObj.getToken()));
+      console.dir(hashObj);
+      return this.wrapError(
+        newError(
+          `hashObj not a Hash Obj: ${hashObj._type}`,
+          hashObj.getToken(),
+        ),
+      );
     }
     const hashKeyString = index.hashKey().toString();
     const pair = (hashObj as objects.Hash).pairs.get(hashKeyString);
@@ -923,48 +1090,51 @@ class Evaluator {
     // console.log(fn)
     // console.log('---applyFunction---')
     if (fn instanceof objects.Function) {
-      
       const extendedEnv = extendFunctionEnv(fn, args);
       if (extendedEnv instanceof objects.Error) {
         return extendedEnv;
       }
-  
-      const evaluated = await this.evaluate(fn.body, extendedEnv, currentFilePath); // Pass the currentFilePath
+
+      const evaluated = await this.evaluate(
+        fn.body,
+        extendedEnv,
+        currentFilePath,
+      ); // Pass the currentFilePath
       if (evaluated === null) {
         return evaluated;
       }
-  
+
       return unwrapReturnValue(evaluated);
     } else if (fn instanceof objects.BuiltIn) {
       // Pass the environment and currentFilePath to the built-in function
       return await fn.invoke(env, currentFilePath, ...args);
     }
-    const tok: Token = fn?.getToken()  || new Token(TokenType.ILLEGAL, "UNKNOWN token", -1, -1, currentFilePath)
+    const tok: Token = fn?.getToken() ||
+      new Token(TokenType.ILLEGAL, "UNKNOWN token", -1, -1, currentFilePath);
     if (fn!._type == "NULL") {
-      console.dir(fn)
-      console.log("FN IS NULL")
+      console.dir(fn);
+      console.log("FN IS NULL");
     }
-    console.log(fn)
+    console.log(fn);
     return this.wrapError(newError(
       `not a function: ${fn!._type}, 
-      fn: ${
-        fn?.toString() ?? fn
-      } 
+      fn: ${fn?.toString() ?? fn} 
       args: [${args}], 
       currentFilePath: ${currentFilePath},
       token: ${fn?.getToken().literal}.
       filePath: ${fn?.getToken().filePath},
       line: ${fn?.getToken().line},
       column: ${fn?.getToken().column}.`,
-      tok
+      tok,
     ));
   };
 
   wrapError = (error: objects.Error) => {
-    const {token, message} = error;
-    const wrappedMessage = `${message}\n\nORANGUTAN STACK:\n${this.stack.toString()}`
-    return new objects.Error(wrappedMessage, token)
-  }
+    const { token, message } = error;
+    const wrappedMessage =
+      `${message}\n\nORANGUTAN STACK:\n${this.stack.toString()}`;
+    return new objects.Error(wrappedMessage, token);
+  };
 }
 export const isError = (obj: objects.Objects | null): boolean => {
   if (obj !== null) {
@@ -974,7 +1144,10 @@ export const isError = (obj: objects.Objects | null): boolean => {
 };
 export const newError = (message: string, token: Token): objects.Error => {
   const denoStack = new Error().stack;
-  return new objects.Error(`\nORANGUTAN EVALUATION ERROR:\n${message}\n\nDeno stack:\n${denoStack}`,token);
+  return new objects.Error(
+    `\nORANGUTAN EVALUATION ERROR:\n${message}\n\nDeno stack:\n${denoStack}`,
+    token,
+  );
 };
 
 const newOperatorError = (
@@ -983,10 +1156,14 @@ const newOperatorError = (
   right: objects.Objects,
 ): objects.Error => {
   return newError(
-    `unknown operator: ${left._type} ${operator} ${right._type}\nleft: (${left})\n right: (${right})`, left.getToken()
+    `unknown operator: ${left._type} ${operator} ${right._type}\nleft: (${left})\n right: (${right})`,
+    left.getToken(),
   );
 };
-const nativeBoolToBooleanObject = (input_: boolean, token: Token): objects.Boolean => {
+const nativeBoolToBooleanObject = (
+  input_: boolean,
+  token: Token,
+): objects.Boolean => {
   return new objects.Boolean(input_, token);
 };
 
@@ -1016,8 +1193,6 @@ const isHashable = (obj: any): obj is objects.Hashable => {
   return obj !== null && typeof obj.hashKey === "function";
 };
 
-
-
 const extendFunctionEnv = (
   fn: objects.Function,
   args: (objects.Objects | null)[],
@@ -1028,7 +1203,10 @@ const extendFunctionEnv = (
     try {
       env.set(fn.parameters![i].value, args[i]);
     } catch {
-      return new objects.Error(`${fn.parameters![i].value} not supplied`, fn.getToken());
+      return new objects.Error(
+        `${fn.parameters![i].value} not supplied`,
+        fn.getToken(),
+      );
     }
   }
   return env;
@@ -1068,14 +1246,20 @@ const unpackArrayIndex = (
   ];
 };
 
-export const getTokenFromNullableObject = (obj: objects.Objects | ast.Expression | null): Token => {
+export const getTokenFromNullableObject = (
+  obj: objects.Objects | ast.Expression | null,
+): Token => {
   return obj?.getToken() || allElseFailsToken();
-}
+};
 
 export const allElseFailsToken = () => {
-  return  new Token(TokenType.ILLEGAL, "OBJECT OR EXPRESSION WAS NULL", -1, -1, "unknown file path");
-}
-
-
+  return new Token(
+    TokenType.ILLEGAL,
+    "OBJECT OR EXPRESSION WAS NULL",
+    -1,
+    -1,
+    "unknown file path",
+  );
+};
 
 export default Evaluator;

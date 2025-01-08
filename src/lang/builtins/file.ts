@@ -10,7 +10,10 @@ export const readFileFn = (
   ...args: (objects.Objects | null)[]
 ) => {
   if (args.length === 0 || !(args[0] instanceof objects.String)) {
-    return new objects.Error("readFile requires a string argument", argsTokenOrAllElseFailsToken(args));
+    return new objects.Error(
+      "readFile requires a string argument",
+      argsTokenOrAllElseFailsToken(args),
+    );
   }
 
   const currentDir = path.parse(currentFilePath).dir;
@@ -24,7 +27,10 @@ export const readFileFn = (
       err instanceof Deno.errors.NotFound ||
       err instanceof Deno.errors.PermissionDenied
     ) {
-      return new objects.Error(`Error reading file: ${(err as Error).message}`, argsTokenOrAllElseFailsToken(args));
+      return new objects.Error(
+        `Error reading file: ${(err as Error).message}`,
+        argsTokenOrAllElseFailsToken(args),
+      );
     }
     throw err;
   }
@@ -42,7 +48,8 @@ export const writeFileFn = (
     !(args[1] instanceof objects.String)
   ) {
     return new objects.Error(
-      "writeFile requires two string arguments: file path and content", argsTokenOrAllElseFailsToken(args)
+      "writeFile requires two string arguments: file path and content",
+      argsTokenOrAllElseFailsToken(args),
     );
   }
 
@@ -53,14 +60,18 @@ export const writeFileFn = (
 
   try {
     Deno.writeTextFileSync(filePath, content);
-    return new objects.String("File written successfully", argsTokenOrAllElseFailsToken(args));
+    return new objects.String(
+      "File written successfully",
+      argsTokenOrAllElseFailsToken(args),
+    );
   } catch (err) {
     if (
       err instanceof Deno.errors.NotFound ||
       err instanceof Deno.errors.PermissionDenied
     ) {
       return new objects.Error(
-        `Error writing to file: ${(err as Error).message}`, argsTokenOrAllElseFailsToken(args)
+        `Error writing to file: ${(err as Error).message}`,
+        argsTokenOrAllElseFailsToken(args),
       );
     }
     throw err;

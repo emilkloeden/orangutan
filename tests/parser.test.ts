@@ -76,7 +76,7 @@ async function testEval<T>(input: string): Promise<T> {
   const program = parser.parseProgram();
 
   const env = new Environment({});
-  const evaluator = new Evaluator()
+  const evaluator = new Evaluator();
   return await evaluator.evaluate(program, env, Deno.cwd()) as T;
 }
 

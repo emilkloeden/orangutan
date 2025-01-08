@@ -202,7 +202,7 @@ async function testEval<T>(input: string): Promise<T> {
   const parser = new Parser(lexer, "");
   const program = parser.parseProgram();
   const env = new Environment({});
-  const evaluator = new Evaluator()
+  const evaluator = new Evaluator();
   const evaluated = await evaluator.evaluate(program, env, Deno.cwd()) as T;
   return evaluated;
 }

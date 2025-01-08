@@ -1,6 +1,6 @@
 import Environment from "../environment/environment.ts";
 import {
-argsTokenOrAllElseFailsToken,
+  argsTokenOrAllElseFailsToken,
   gotHostNull,
   wrongNumberOfArgs,
   wrongTypeOfArgument,
@@ -14,7 +14,11 @@ export const strFn = (
   ...args: (objects.Objects | null)[]
 ): objects.Error | objects.String => {
   if (args.length !== 1) {
-    return wrongNumberOfArgs(args.length, [1], argsTokenOrAllElseFailsToken(args));
+    return wrongNumberOfArgs(
+      args.length,
+      [1],
+      argsTokenOrAllElseFailsToken(args),
+    );
   }
   const integer = args[0];
   if (integer === null) {
@@ -31,8 +35,12 @@ export const strFn = (
     return new objects.String(intermediary, integer.getToken());
   }
   if (typeof integer["toString"] === "function") {
-    return new objects.String(integer!.toString(), integer.getToken())
+    return new objects.String(integer!.toString(), integer.getToken());
   }
 
-  return wrongTypeOfArgument(integer._type, objects.ObjectType.INTEGER_OBJ, integer.getToken());
+  return wrongTypeOfArgument(
+    integer._type,
+    objects.ObjectType.INTEGER_OBJ,
+    integer.getToken(),
+  );
 };

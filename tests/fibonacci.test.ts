@@ -29,7 +29,7 @@ async function testEval(input: string): Promise<Integer> {
   const parser = new Parser(lexer, "");
   const program = parser.parseProgram();
   const env = new Environment({});
-  const evaluator = new Evaluator()
+  const evaluator = new Evaluator();
   return await evaluator.evaluate(program, env, Deno.cwd()) as Integer;
 }
 

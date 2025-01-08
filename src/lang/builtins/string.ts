@@ -1,12 +1,15 @@
 import * as objects from "../objects/objects.ts";
 import Environment from "../environment/environment.ts";
 import {
-argsTokenOrAllElseFailsToken,
+  argsTokenOrAllElseFailsToken,
   gotHostNull,
   wrongNumberOfArgs,
   wrongTypeOfArgument,
 } from "./_helpers.ts";
-import { getTokenFromNullableObject, newError } from "../evaluator/evaluator.ts";
+import {
+  getTokenFromNullableObject,
+  newError,
+} from "../evaluator/evaluator.ts";
 
 export const intFn = async (
   _env: Environment,
@@ -14,7 +17,11 @@ export const intFn = async (
   ...args: (objects.Objects | null)[]
 ): Promise<objects.Error | objects.Integer> => {
   if (args.length !== 1) {
-    return wrongNumberOfArgs(args.length, [1], argsTokenOrAllElseFailsToken(args));
+    return wrongNumberOfArgs(
+      args.length,
+      [1],
+      argsTokenOrAllElseFailsToken(args),
+    );
   }
   const str = args[0];
   if (str === null) {
@@ -30,12 +37,19 @@ export const intFn = async (
   ) {
     const intermediary = parseInt(str.value);
     if (isNaN(intermediary)) {
-      return newError(`Cannot convert string to integer: ${str.value}`, str.getToken());
+      return newError(
+        `Cannot convert string to integer: ${str.value}`,
+        str.getToken(),
+      );
     }
     return new objects.Integer(intermediary, str.getToken());
   }
 
-  return wrongTypeOfArgument(str._type, objects.ObjectType.STRING_OBJ, str.getToken());
+  return wrongTypeOfArgument(
+    str._type,
+    objects.ObjectType.STRING_OBJ,
+    str.getToken(),
+  );
 };
 
 export const numberFn = async (
@@ -44,7 +58,11 @@ export const numberFn = async (
   ...args: (objects.Objects | null)[]
 ): Promise<objects.Error | objects.NumberObj> => {
   if (args.length !== 1) {
-    return wrongNumberOfArgs(args.length, [1], argsTokenOrAllElseFailsToken(args));
+    return wrongNumberOfArgs(
+      args.length,
+      [1],
+      argsTokenOrAllElseFailsToken(args),
+    );
   }
   const str = args[0];
   if (str === null) {
@@ -60,12 +78,19 @@ export const numberFn = async (
   ) {
     const intermediary = Number(str.value);
     if (isNaN(intermediary)) {
-      return newError(`Cannot convert string to integer: ${str.value}`, str.getToken());
+      return newError(
+        `Cannot convert string to integer: ${str.value}`,
+        str.getToken(),
+      );
     }
     return new objects.NumberObj(intermediary, str.getToken());
   }
 
-  return wrongTypeOfArgument(str._type, objects.ObjectType.STRING_OBJ, str.getToken());
+  return wrongTypeOfArgument(
+    str._type,
+    objects.ObjectType.STRING_OBJ,
+    str.getToken(),
+  );
 };
 
 export const splitFn = async (
@@ -74,7 +99,11 @@ export const splitFn = async (
   ...args: (objects.Objects | null)[]
 ): Promise<objects.Error | objects.ArrayObj> => {
   if (args.length !== 2) {
-    return wrongNumberOfArgs(args.length, [2], argsTokenOrAllElseFailsToken(args));
+    return wrongNumberOfArgs(
+      args.length,
+      [2],
+      argsTokenOrAllElseFailsToken(args),
+    );
   }
   const item = args[0];
   const splitter = args[1];
@@ -88,10 +117,16 @@ export const splitFn = async (
     const elementStrings = item.value.split(
       splitter.value,
     );
-    const elementObjects = elementStrings.map((s) => new objects.String(s, item.getToken()));
+    const elementObjects = elementStrings.map((s) =>
+      new objects.String(s, item.getToken())
+    );
 
     return new objects.ArrayObj(elementObjects, item.getToken());
   }
   // TODO: Fix to handle both arguments
-  return wrongTypeOfArgument(item._type, objects.ObjectType.STRING_OBJ, item.getToken());
+  return wrongTypeOfArgument(
+    item._type,
+    objects.ObjectType.STRING_OBJ,
+    item.getToken(),
+  );
 };

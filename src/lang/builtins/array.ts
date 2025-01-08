@@ -10,7 +10,7 @@ import * as objects from "../objects/objects.ts";
 import { ObjectType } from "../objects/objects.ts";
 import Token from "../token/token.ts";
 import {
-argsTokenOrAllElseFailsToken,
+  argsTokenOrAllElseFailsToken,
   gotHostNull,
   wrongNumberOfArgs,
   wrongTypeOfArgument,
@@ -27,7 +27,11 @@ export const joinFn = async (
   ...args: (objects.Objects | null)[]
 ): Promise<objects.String | objects.Error> => {
   if (args.length !== 2) {
-    return wrongNumberOfArgs(args.length, [2], argsTokenOrAllElseFailsToken(args));
+    return wrongNumberOfArgs(
+      args.length,
+      [2],
+      argsTokenOrAllElseFailsToken(args),
+    );
   }
   const arr = args[0];
   const joiner = args[1];
@@ -42,14 +46,17 @@ export const joinFn = async (
     const elementValues = arr.elements;
     if (elementValues.some((el) => (!(el instanceof objects.String)))) {
       // DEBUG: elements in arr being joined
-      arr.elements.forEach((el) => {
-        if (!(el instanceof objects.String)) {
-          console.log(el)
-          console.log(el?._type)
-        }
-      })
+      // arr.elements.forEach((el) => {
+      //   if (!(el instanceof objects.String)) {
+      //     console.log(el);
+      //     console.log(el?._type);
+      //   }
+      // });
 
-      return newError(`Attempted to join an array that contains non-strings.`, arr.getToken());
+      return newError(
+        `Attempted to join an array that contains non-strings.`,
+        arr.getToken(),
+      );
     }
 
     const elementStrings = elementValues.map(
@@ -60,7 +67,8 @@ export const joinFn = async (
     return new objects.String(joined, arr.getToken());
   }
   return newError(
-    `wrong type of argument. Got ${arr._type}, ${joiner._type} expected ${objects.ObjectType.ARRAY_OBJ}, ${objects.ObjectType.STRING_OBJ}`, arr.getToken()
+    `wrong type of argument. Got ${arr._type}, ${joiner._type} expected ${objects.ObjectType.ARRAY_OBJ}, ${objects.ObjectType.STRING_OBJ}`,
+    arr.getToken(),
   );
 };
 
@@ -70,7 +78,11 @@ export const appendFn = (
   ...args: (objects.Objects | null)[]
 ): objects.ArrayObj | objects.Error => {
   if (args.length !== 2) {
-    return wrongNumberOfArgs(args.length, [2], argsTokenOrAllElseFailsToken(args));
+    return wrongNumberOfArgs(
+      args.length,
+      [2],
+      argsTokenOrAllElseFailsToken(args),
+    );
   }
   const arr = args[0];
   const el = args[1];
@@ -82,7 +94,11 @@ export const appendFn = (
     return new objects.ArrayObj(intermediate, arr.getToken());
   }
 
-  return wrongTypeOfArgument(arr._type, objects.ObjectType.ARRAY_OBJ, arr.getToken());
+  return wrongTypeOfArgument(
+    arr._type,
+    objects.ObjectType.ARRAY_OBJ,
+    arr.getToken(),
+  );
 };
 
 export const prependFn = (
@@ -91,7 +107,11 @@ export const prependFn = (
   ...args: (objects.Objects | null)[]
 ): objects.ArrayObj | objects.Error => {
   if (args.length !== 2) {
-    return wrongNumberOfArgs(args.length, [2], argsTokenOrAllElseFailsToken(args));
+    return wrongNumberOfArgs(
+      args.length,
+      [2],
+      argsTokenOrAllElseFailsToken(args),
+    );
   }
   const arr = args[0];
   const el = args[1];
@@ -103,7 +123,11 @@ export const prependFn = (
     return new objects.ArrayObj(intermediate, arr.getToken());
   }
 
-  return wrongTypeOfArgument(arr._type, objects.ObjectType.ARRAY_OBJ, arr.getToken());
+  return wrongTypeOfArgument(
+    arr._type,
+    objects.ObjectType.ARRAY_OBJ,
+    arr.getToken(),
+  );
 };
 
 export const mapFn = async (
@@ -112,7 +136,11 @@ export const mapFn = async (
   ...args: (objects.Objects | null)[]
 ): Promise<objects.Error | objects.ArrayObj> => {
   if (args.length !== 2) {
-    return wrongNumberOfArgs(args.length, [2], argsTokenOrAllElseFailsToken(args));
+    return wrongNumberOfArgs(
+      args.length,
+      [2],
+      argsTokenOrAllElseFailsToken(args),
+    );
   }
   const arr = args[0];
   const fn = args[1];
@@ -122,15 +150,20 @@ export const mapFn = async (
   if (!(fn instanceof objects.Function)) {
     return wrongTypeOfArgument(
       fn._type,
-      objects.ObjectType.FUNCTION_OBJ, fn.getToken()
+      objects.ObjectType.FUNCTION_OBJ,
+      fn.getToken(),
     );
   } else if (!(arr instanceof objects.ArrayObj)) {
     console.log(arr);
-    return wrongTypeOfArgument(arr._type, objects.ObjectType.ARRAY_OBJ, argsTokenOrAllElseFailsToken(args));
+    return wrongTypeOfArgument(
+      arr._type,
+      objects.ObjectType.ARRAY_OBJ,
+      argsTokenOrAllElseFailsToken(args),
+    );
   }
   if (arr instanceof objects.ArrayObj) {
     const els = [];
-    const evaluator = new Evaluator()
+    const evaluator = new Evaluator();
     for (const el of arr.elements) {
       // NOTE: This used to just use the exported applyFunction function
       // Refactoring to have the evaluator as a class may have messed this up.
@@ -149,7 +182,11 @@ export const filterFn = async (
   ...args: (objects.Objects | null)[]
 ): Promise<objects.Error | objects.ArrayObj> => {
   if (args.length !== 2) {
-    return wrongNumberOfArgs(args.length, [2], argsTokenOrAllElseFailsToken(args));
+    return wrongNumberOfArgs(
+      args.length,
+      [2],
+      argsTokenOrAllElseFailsToken(args),
+    );
   }
   const arr = args[0];
   const fn = args[1];
@@ -159,14 +196,19 @@ export const filterFn = async (
   if (!(fn instanceof objects.Function)) {
     return wrongTypeOfArgument(
       fn._type,
-      objects.ObjectType.FUNCTION_OBJ, fn.getToken()
+      objects.ObjectType.FUNCTION_OBJ,
+      fn.getToken(),
     );
   } else if (!(arr instanceof objects.ArrayObj)) {
-    return wrongTypeOfArgument(arr._type, objects.ObjectType.ARRAY_OBJ, arr.getToken());
+    return wrongTypeOfArgument(
+      arr._type,
+      objects.ObjectType.ARRAY_OBJ,
+      arr.getToken(),
+    );
   }
   if (arr instanceof objects.ArrayObj) {
     const els = [];
-    const evaluator = new Evaluator()
+    const evaluator = new Evaluator();
     for (const el of arr.elements) {
       const res = await evaluator.applyFunction(fn, [el], env, currentFilePath);
       if (isTruthy(res)) {
@@ -175,7 +217,7 @@ export const filterFn = async (
     }
     return new objects.ArrayObj(
       els,
-      arr.getToken()
+      arr.getToken(),
     );
   }
   // TODO: This is technically unreachable
@@ -188,7 +230,11 @@ export const reduceFn = async (
   ...args: (objects.Objects | null)[]
 ): Promise<objects.Objects | objects.Error> => {
   if (args.length < 2 || args.length > 3) {
-    return wrongNumberOfArgs(args.length, [2], argsTokenOrAllElseFailsToken(args));
+    return wrongNumberOfArgs(
+      args.length,
+      [2],
+      argsTokenOrAllElseFailsToken(args),
+    );
   }
 
   const arr = args[0];
@@ -202,10 +248,15 @@ export const reduceFn = async (
   if (!(fn instanceof objects.Function)) {
     return wrongTypeOfArgument(
       fn._type,
-      objects.ObjectType.FUNCTION_OBJ,fn.getToken()
+      objects.ObjectType.FUNCTION_OBJ,
+      fn.getToken(),
     );
   } else if (!(arr instanceof objects.ArrayObj)) {
-    return wrongTypeOfArgument(arr._type, objects.ObjectType.ARRAY_OBJ, arr.getToken());
+    return wrongTypeOfArgument(
+      arr._type,
+      objects.ObjectType.ARRAY_OBJ,
+      arr.getToken(),
+    );
   }
 
   const elements = arr.elements;
@@ -218,14 +269,14 @@ export const reduceFn = async (
     if (elements.length === 0) {
       return new objects.Error(
         "Cannot reduce an empty array without an initial value",
-        arr.getToken()
+        arr.getToken(),
       );
     }
     accumulator = elements[0];
     startIdx = 1;
   }
 
-  const evaluator = new Evaluator()
+  const evaluator = new Evaluator();
   for (let i = startIdx; i < elements.length; i++) {
     accumulator = await evaluator.applyFunction(
       fn,
@@ -247,7 +298,11 @@ export const firstFn = (
   ...args: (objects.Objects | null)[]
 ): objects.Objects | objects.Null | objects.Error => {
   if (args.length !== 1) {
-    return wrongNumberOfArgs(args.length, [1], argsTokenOrAllElseFailsToken(args));
+    return wrongNumberOfArgs(
+      args.length,
+      [1],
+      argsTokenOrAllElseFailsToken(args),
+    );
   }
   const arr = args[0];
   if (arr === null) {
@@ -258,15 +313,21 @@ export const firstFn = (
       const first = arr.elements[0];
       if (first === null) {
         return new objects.Null(
-          arr.getToken());
+          arr.getToken(),
+        );
       }
       return first;
     }
     return new objects.Null(
-      arr.getToken());
+      arr.getToken(),
+    );
   }
 
-  return wrongTypeOfArgument(arr._type, objects.ObjectType.ARRAY_OBJ, arr.getToken());
+  return wrongTypeOfArgument(
+    arr._type,
+    objects.ObjectType.ARRAY_OBJ,
+    arr.getToken(),
+  );
 };
 
 export const lastFn = (
@@ -275,7 +336,11 @@ export const lastFn = (
   ...args: (objects.Objects | null)[]
 ): objects.Objects | objects.Null | objects.Error => {
   if (args.length !== 1) {
-    return wrongNumberOfArgs(args.length, [1], argsTokenOrAllElseFailsToken(args));
+    return wrongNumberOfArgs(
+      args.length,
+      [1],
+      argsTokenOrAllElseFailsToken(args),
+    );
   }
   const arr = args[0];
   if (arr === null) {
@@ -286,15 +351,21 @@ export const lastFn = (
       const first = arr.elements[arr.elements.length - 1];
       if (first === null) {
         return new objects.Null(
-          arr.getToken());
+          arr.getToken(),
+        );
       }
       return first;
     }
     return new objects.Null(
-      arr.getToken());
+      arr.getToken(),
+    );
   }
 
-  return wrongTypeOfArgument(arr._type, objects.ObjectType.ARRAY_OBJ, arr.getToken());
+  return wrongTypeOfArgument(
+    arr._type,
+    objects.ObjectType.ARRAY_OBJ,
+    arr.getToken(),
+  );
 };
 
 export const restFn = (
@@ -303,7 +374,11 @@ export const restFn = (
   ...args: (objects.Objects | null)[]
 ): objects.Objects | objects.Null | objects.Error => {
   if (args.length !== 1) {
-    return wrongNumberOfArgs(args.length, [1], argsTokenOrAllElseFailsToken(args));
+    return wrongNumberOfArgs(
+      args.length,
+      [1],
+      argsTokenOrAllElseFailsToken(args),
+    );
   }
   const arr = args[0];
   if (arr === null) {
@@ -314,8 +389,11 @@ export const restFn = (
     if (arr.elements.length > 1) {
       for (let i = 1; i < arr.elements.length; i++) {
         if (arr.elements[i] === null) {
-          out_elements.push(new objects.Null(
-            arr.getToken()));
+          out_elements.push(
+            new objects.Null(
+              arr.getToken(),
+            ),
+          );
         } else {
           out_elements.push(arr.elements[i]);
         }
@@ -324,7 +402,11 @@ export const restFn = (
     return new objects.ArrayObj(out_elements, arr.getToken());
   }
 
-  return wrongTypeOfArgument(arr._type, objects.ObjectType.ARRAY_OBJ, arr.getToken());
+  return wrongTypeOfArgument(
+    arr._type,
+    objects.ObjectType.ARRAY_OBJ,
+    arr.getToken(),
+  );
 };
 
 export const naiveIntegerSortFn = (
@@ -333,7 +415,11 @@ export const naiveIntegerSortFn = (
   ...args: (objects.Objects | null)[]
 ): objects.Objects | objects.Null | objects.Error => {
   if (args.length !== 1) {
-    return wrongNumberOfArgs(args.length, [1], argsTokenOrAllElseFailsToken(args));
+    return wrongNumberOfArgs(
+      args.length,
+      [1],
+      argsTokenOrAllElseFailsToken(args),
+    );
   }
   const arr = args[0];
   if (arr === null) {
@@ -347,16 +433,26 @@ export const naiveIntegerSortFn = (
       } else if (el === null) {
         return gotHostNull(getTokenFromNullableObject(arr));
       } else {
-        return wrongTypeOfArgument(el._type, objects.ObjectType.INTEGER_OBJ, el.getToken());
+        return wrongTypeOfArgument(
+          el._type,
+          objects.ObjectType.INTEGER_OBJ,
+          el.getToken(),
+        );
       }
     }
     return new objects.ArrayObj(
-      toBeSorted.sort().map((value) => new objects.Integer(value, arr.getToken())),
-      arr.getToken()
+      toBeSorted.sort().map((value) =>
+        new objects.Integer(value, arr.getToken())
+      ),
+      arr.getToken(),
     );
   }
 
-  return wrongTypeOfArgument(arr._type, objects.ObjectType.ARRAY_OBJ, arr.getToken());
+  return wrongTypeOfArgument(
+    arr._type,
+    objects.ObjectType.ARRAY_OBJ,
+    arr.getToken(),
+  );
 };
 
 const _sortFnWithFn = async (
@@ -372,16 +468,25 @@ const _sortFnWithFn = async (
   }
 
   if (!(arr instanceof objects.ArrayObj)) {
-    return wrongTypeOfArgument(arr?._type, objects.ObjectType.ARRAY_OBJ, arr.getToken());
+    return wrongTypeOfArgument(
+      arr?._type,
+      objects.ObjectType.ARRAY_OBJ,
+      arr.getToken(),
+    );
   }
 
   if (!(fn instanceof objects.Function)) {
-    return wrongTypeOfArgument(fn._type, objects.ObjectType.FUNCTION_OBJ, fn.getToken());
+    return wrongTypeOfArgument(
+      fn._type,
+      objects.ObjectType.FUNCTION_OBJ,
+      fn.getToken(),
+    );
   }
 
   if (!fn.parameters || fn.parameters.length !== 2) {
     return newError(
-      "Function passed to sort(arr, fn) must have exactly 2 parameters.",fn.getToken()
+      "Function passed to sort(arr, fn) must have exactly 2 parameters.",
+      fn.getToken(),
     );
   }
 
@@ -401,13 +506,17 @@ const _sortFnWithFn = async (
     } else if (el === null) {
       return gotHostNull(getTokenFromNullableObject(arr));
     } else {
-      return wrongTypeOfArgument(el._type, objects.ObjectType.INTEGER_OBJ, el.getToken());
+      return wrongTypeOfArgument(
+        el._type,
+        objects.ObjectType.INTEGER_OBJ,
+        el.getToken(),
+      );
     }
   }
 
   try {
     // Create an array of indices and compute comparison results asynchronously
-    const evaluator = new Evaluator()
+    const evaluator = new Evaluator();
     const comparisonResults = await Promise.all(
       toBeSorted.map(async (a, i) => ({
         index: i,
@@ -450,15 +559,16 @@ const _sortFnWithFn = async (
     // Convert sorted results back to ArrayObj
     return new objects.ArrayObj(
       sorted.map(([value, type, tok]) => objectTypeToObject(value, type, tok)),
-      arr.getToken()
+      arr.getToken(),
     );
   } catch (error) {
     if (error instanceof Error) {
-      return newError(`Error while sorting: ${error.message}`,
-      arr.getToken());
+      return newError(`Error while sorting: ${error.message}`, arr.getToken());
     }
-    return newError(`Unhandled error encountered while sorting: ${error}`,
-      arr.getToken());
+    return newError(
+      `Unhandled error encountered while sorting: ${error}`,
+      arr.getToken(),
+    );
   }
 };
 
@@ -489,7 +599,11 @@ const _sortFnWithoutFn = (
         return gotHostNull(getTokenFromNullableObject(arr));
       } else {
         // Can't handle collection types
-        return wrongTypeOfArgument(el._type, objects.ObjectType.INTEGER_OBJ, el.getToken());
+        return wrongTypeOfArgument(
+          el._type,
+          objects.ObjectType.INTEGER_OBJ,
+          el.getToken(),
+        );
       }
     }
     const sorted = toBeSorted.sort((a, b) => {
@@ -499,19 +613,25 @@ const _sortFnWithoutFn = (
       return valA < valB ? -1 : valA > valB ? 1 : 0;
     });
 
-    return new objects.ArrayObj(sorted.map((l) => {
-      return objectTypeToObject(l[0], l[1], l[2]);
-    }),
-    arr.getToken());
+    return new objects.ArrayObj(
+      sorted.map((l) => {
+        return objectTypeToObject(l[0], l[1], l[2]);
+      }),
+      arr.getToken(),
+    );
   }
 
-  return wrongTypeOfArgument(arr._type, objects.ObjectType.ARRAY_OBJ, arr.getToken());
+  return wrongTypeOfArgument(
+    arr._type,
+    objects.ObjectType.ARRAY_OBJ,
+    arr.getToken(),
+  );
 };
 
 const objectTypeToObject = (
   item: string | boolean | number | null,
   objectType: ObjectType,
-  tok: Token
+  tok: Token,
 ) => {
   switch (objectType) {
     case objects.ObjectType.INTEGER_OBJ:
@@ -526,7 +646,8 @@ const objectTypeToObject = (
       return new objects.String(item as string, tok);
     default:
       return new objects.Error(
-        `wrong type of argument. expected=a primitive got=${objectType}.`,tok
+        `wrong type of argument. expected=a primitive got=${objectType}.`,
+        tok,
       );
   }
 };
@@ -537,7 +658,11 @@ export const sortFn = async (
   ...args: (objects.Objects | null)[]
 ): Promise<objects.Objects | objects.Error | objects.Null> => {
   if (args.length < 1 || args.length > 2) {
-    return wrongNumberOfArgs(args.length, [1, 2], argsTokenOrAllElseFailsToken(args));
+    return wrongNumberOfArgs(
+      args.length,
+      [1, 2],
+      argsTokenOrAllElseFailsToken(args),
+    );
   }
   if (args.length == 2) {
     return await _sortFnWithFn(_env, _currentFilePath, ...args);
@@ -551,7 +676,11 @@ export const zipFn = (
   ...args: (objects.Objects | null)[]
 ): objects.Objects | objects.Null | objects.Error => {
   if (args.length !== 2) {
-    return wrongNumberOfArgs(args.length, [2], argsTokenOrAllElseFailsToken(args));
+    return wrongNumberOfArgs(
+      args.length,
+      [2],
+      argsTokenOrAllElseFailsToken(args),
+    );
   }
   const left = args[0];
   const right = args[1];
@@ -559,10 +688,18 @@ export const zipFn = (
     return gotHostNull(getTokenFromNullableObject(left));
   }
   if (!(left instanceof objects.ArrayObj)) {
-    return wrongTypeOfArgument(left._type, objects.ObjectType.ARRAY_OBJ, left.getToken());
+    return wrongTypeOfArgument(
+      left._type,
+      objects.ObjectType.ARRAY_OBJ,
+      left.getToken(),
+    );
   }
   if (!(right instanceof objects.ArrayObj)) {
-    return wrongTypeOfArgument(right._type, objects.ObjectType.ARRAY_OBJ, right.getToken());
+    return wrongTypeOfArgument(
+      right._type,
+      objects.ObjectType.ARRAY_OBJ,
+      right.getToken(),
+    );
   }
 
   const short = left.elements.length < right.elements.length ? left : right;
@@ -581,22 +718,36 @@ export const zipLongestFn = (
   ...args: (objects.Objects | null)[]
 ): objects.Objects | objects.Null | objects.Error => {
   if (args.length !== 2 && args.length !== 3) {
-    return wrongNumberOfArgs(args.length, [2], argsTokenOrAllElseFailsToken(args));
+    return wrongNumberOfArgs(
+      args.length,
+      [2],
+      argsTokenOrAllElseFailsToken(args),
+    );
   }
   const left = args[0];
   const right = args[1];
   // Allow for an optional third argument to use as a filler, default to null otherwise
 
-  const defaultValue = (args.length === 3) ? args[2] : new objects.Null(getTokenFromNullableObject(left));
+  const defaultValue = (args.length === 3)
+    ? args[2]
+    : new objects.Null(getTokenFromNullableObject(left));
 
   if (left === null || right === null) {
     return gotHostNull(getTokenFromNullableObject(left));
   }
   if (!(left instanceof objects.ArrayObj)) {
-    return wrongTypeOfArgument(left._type, objects.ObjectType.ARRAY_OBJ, left.getToken());
+    return wrongTypeOfArgument(
+      left._type,
+      objects.ObjectType.ARRAY_OBJ,
+      left.getToken(),
+    );
   }
   if (!(right instanceof objects.ArrayObj)) {
-    return wrongTypeOfArgument(right._type, objects.ObjectType.ARRAY_OBJ, right.getToken());
+    return wrongTypeOfArgument(
+      right._type,
+      objects.ObjectType.ARRAY_OBJ,
+      right.getToken(),
+    );
   }
 
   const longer = left.elements.length > right.elements.length ? left : right;
@@ -613,5 +764,3 @@ export const zipLongestFn = (
   }
   return new objects.ArrayObj(out_elements, left.getToken());
 };
-
-

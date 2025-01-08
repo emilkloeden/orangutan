@@ -39,7 +39,7 @@ export class Boolean implements Objects, Hashable {
 
   constructor(public value: boolean, public token: Token) {}
   getToken = () => this.token;
-    
+
   toString = () => this.value.toString().toLowerCase();
   hashKey = () => {
     const val = this.value ? "1" : "0";
@@ -105,7 +105,7 @@ export class HashPair {
 
 export const isNullish = (obj: any): boolean => {
   return obj === null || obj === undefined || obj instanceof Null;
-}
+};
 
 export class Hash implements Objects, Hashable {
   public readonly _type = ObjectType.HASH_OBJ;
@@ -115,32 +115,29 @@ export class Hash implements Objects, Hashable {
     const hash = crypto.createHmac("sha256", this.toString()).digest("hex");
 
     return new HashKey(this._type, hash);
-  }
+  };
 
   get = (key: Objects) => {
     if (isHashable(key)) {
-      const result = this.pairs.get(key.hashKey().toString())
+      const result = this.pairs.get(key.hashKey().toString());
       if (result === undefined) {
         return new Null(this.token);
       }
-      return result.value
+      return result.value;
     }
-  }
+  };
 
   set = (key: Objects, value: Objects) => {
     if (!isHashable(key)) {
-          // console.dir(index)
-          return new Error(`unusable as hash key: ${key._type}`, key.getToken());
-        }
-        const hashKeyString = key.hashKey().toString();
-        // MAKE value into a HashPair
-        const pair = new HashPair(key, value);
-        
-        this.pairs.set(hashKeyString, pair)
+      return new Error(`unusable as hash key: ${key._type}`, key.getToken());
+    }
+    const hashKeyString = key.hashKey().toString();
+    const pair = new HashPair(key, value);
 
-        return new Hash(this.pairs, this.token)
-        
-  }
+    this.pairs.set(hashKeyString, pair);
+
+    return new Hash(this.pairs, this.token);
+  };
 
   getToken = () => this.token;
   toString = () => {
@@ -212,8 +209,8 @@ type BuiltinFunction = (
   ...args: (Objects | null)[]
 ) => Promise<Objects> | Objects;
 
-
-export const builtinToken = (): Token => new Token(TokenType.ILLEGAL, "builtin function", -1, -1, "UNKNOWN ORIGIN")
+export const builtinToken = (): Token =>
+  new Token(TokenType.ILLEGAL, "builtin function", -1, -1, "UNKNOWN ORIGIN");
 export class BuiltIn implements Objects {
   // TODO: Confirm signature
   public readonly _type = ObjectType.BUILTIN_OBJ;

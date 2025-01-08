@@ -1,7 +1,7 @@
 import * as objects from "../objects/objects.ts";
 import Environment from "../environment/environment.ts";
 import {
-argsTokenOrAllElseFailsToken,
+  argsTokenOrAllElseFailsToken,
   gotHostNull,
   wrongNumberOfArgs,
   wrongTypeOfArgument,
@@ -14,7 +14,11 @@ export const lenFn = async (
   ...args: (objects.Objects | null)[]
 ): Promise<objects.Integer | objects.Error> => {
   if (args.length !== 1) {
-    return wrongNumberOfArgs(args.length, [1], argsTokenOrAllElseFailsToken(args));
+    return wrongNumberOfArgs(
+      args.length,
+      [1],
+      argsTokenOrAllElseFailsToken(args),
+    );
   }
   const arg = args[0];
   if (arg === null) {
@@ -28,5 +32,9 @@ export const lenFn = async (
     return new objects.Integer(arg.pairs.size, arg.getToken());
   }
   // TODO: Fix to allow expected to be String | Array
-  return wrongTypeOfArgument(arg._type, objects.ObjectType.ARRAY_OBJ, arg.getToken());
+  return wrongTypeOfArgument(
+    arg._type,
+    objects.ObjectType.ARRAY_OBJ,
+    arg.getToken(),
+  );
 };
