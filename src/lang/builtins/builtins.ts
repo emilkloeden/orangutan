@@ -9,18 +9,22 @@ import {
   prependFn,
   reduceFn,
   restFn,
-  naiveIntegerSortFn,
+  sortFn,
   zipFn,
-  zipLongestFn
+  zipLongestFn,
 } from "./array.ts";
 import { readFileFn, writeFileFn } from "./file.ts";
-import { ffiFn, putsFn, typeFn } from "./general.ts";
+import { argsFn, ffiFn, promptFn, putsFn, typeFn } from "./general.ts";
+import { entriesFn, keysFn, valuesFn } from "./hash.ts";
 import { getAsyncFn, postAsyncFn } from "./http.ts";
-import { intFn, splitFn } from "./string.ts";
+import { strFn } from "./integer.ts";
+import { intFn, numberFn, splitFn } from "./string.ts";
 import { lenFn } from "./string_and_array.ts";
 
 const BUILTINS: Record<string, objects.BuiltIn> = {
   // general
+  args: new objects.BuiltIn(argsFn),
+  prompt: new objects.BuiltIn(promptFn),
   puts: new objects.BuiltIn(putsFn),
   type: new objects.BuiltIn(typeFn),
   ffi: new objects.BuiltIn(ffiFn),
@@ -30,6 +34,10 @@ const BUILTINS: Record<string, objects.BuiltIn> = {
   // string
   split: new objects.BuiltIn(splitFn),
   int: new objects.BuiltIn(intFn),
+  number: new objects.BuiltIn(numberFn),
+
+  // int
+  str: new objects.BuiltIn(strFn),
 
   // array
   join: new objects.BuiltIn(joinFn),
@@ -41,11 +49,16 @@ const BUILTINS: Record<string, objects.BuiltIn> = {
   first: new objects.BuiltIn(firstFn),
   last: new objects.BuiltIn(lastFn),
   rest: new objects.BuiltIn(restFn),
-  sort: new objects.BuiltIn(naiveIntegerSortFn),
+  sort: new objects.BuiltIn(sortFn),
   zip: new objects.BuiltIn(zipFn),
   zipLongest: new objects.BuiltIn(zipLongestFn),
 
-  //file
+  // hash
+  keys: new objects.BuiltIn(keysFn),
+  values: new objects.BuiltIn(valuesFn),
+  entries: new objects.BuiltIn(entriesFn),
+
+  // file
   readFile: new objects.BuiltIn(readFileFn),
   writeFile: new objects.BuiltIn(writeFileFn),
 

@@ -1,6 +1,7 @@
-import Token from "../token/token.ts";
+import Token, { TokenType } from "../token/token.ts";
 
 export interface Node {
+  getToken(): Token;
   tokenLiteral(): string;
   toString(): string;
 }
@@ -12,6 +13,13 @@ export class Program implements Node {
   statements: Statement[];
   constructor() {
     this.statements = [];
+  }
+
+  getToken() {
+    if (this.statements.length) {
+      return this.statements[0].getToken();
+    }
+    return new Token(TokenType.ILLEGAL, "NO TOKEN FOUND", -1, -1, "unknown");
   }
 
   tokenLiteral() {
@@ -30,6 +38,10 @@ export class LetStatement implements Statement {
   name!: Identifier;
   public value!: Expression | null;
   constructor(private token: Token) {}
+
+  getToken(): Token {
+    return this.token;
+  }
 
   tokenLiteral() {
     return this.token.literal;
@@ -50,6 +62,10 @@ export class ReturnStatement implements Statement {
   public returnValue!: Expression | null;
   constructor(private token: Token) {}
 
+  getToken(): Token {
+    return this.token;
+  }
+
   tokenLiteral() {
     return this.token.literal;
   }
@@ -57,21 +73,13 @@ export class ReturnStatement implements Statement {
     return `${this.token.literal} ${this.returnValue};`;
   }
 }
-export class WhileStatement implements Statement {
-  public condition!: Expression | null;
-  public body!: Expression;
 
-  constructor(private token: Token) {}
-
-  tokenLiteral() {
-    return this.token.literal;
-  }
-  toString() {
-    return `${this.token.literal} (${this.condition}) {{${this.body.toString()}}};`;
-  }
-}
 export class Comment implements Statement {
   constructor(private token: Token, public value: string) {}
+
+  getToken(): Token {
+    return this.token;
+  }
 
   tokenLiteral() {
     return this.token.literal;
@@ -84,10 +92,12 @@ export class ExpressionStatement implements Statement {
   public expression!: Expression | null;
   constructor(private token: Token) {}
 
+  getToken(): Token {
+    return this.token;
+  }
+
   toString() {
     return this.expression != null ? this.expression.toString() : "";
-    // TODO: find out why this is here statement_node(this):
-    // pass
   }
   tokenLiteral() {
     return this.token.literal;
@@ -98,6 +108,10 @@ export class BlockStatement implements Statement {
   constructor(private token: Token) {
     this.statements = [];
   }
+  getToken(): Token {
+    return this.token;
+  }
+
   toString() {
     return this.statements.map((stmt) => stmt.toString()).join("");
   }
@@ -113,10 +127,12 @@ export class BlockStatement implements Statement {
 export class Identifier implements Expression {
   constructor(private token: Token, public value: string) {}
 
+  getToken(): Token {
+    return this.token;
+  }
+
   toString() {
     return this.value;
-
-    // TODO: check why this was here?: expressionNode(this) {}
   }
 
   tokenLiteral() {
@@ -127,10 +143,12 @@ export class Identifier implements Expression {
 export class UseExpression implements Expression {
   constructor(private token: Token, public value: Expression | null) {}
 
+  getToken(): Token {
+    return this.token;
+  }
+
   toString() {
     return `use (${this.value?.toString()})`;
-
-    // TODO: check why this was here?: expressionNode(this) {}
   }
 
   tokenLiteral() {
@@ -139,8 +157,28 @@ export class UseExpression implements Expression {
 }
 
 export class IntegerLiteral implements Expression {
-  value!: number;
+  public value!: number;
   constructor(private token: Token) {}
+
+  getToken(): Token {
+    return this.token;
+  }
+
+  toString() {
+    // TODO: Check definition
+    return this.value != null ? this.value.toString() : "";
+  }
+  tokenLiteral() {
+    return this.token.literal;
+  }
+}
+export class NumberLiteral implements Expression {
+  public value!: number;
+  constructor(private token: Token) {}
+
+  getToken(): Token {
+    return this.token;
+  }
 
   toString() {
     // TODO: Check definition
@@ -151,34 +189,67 @@ export class IntegerLiteral implements Expression {
   }
 }
 export class Boolean implements Expression {
-  constructor(private token: Token, public value: boolean) {
+  constructor(private token: Token, public value: boolean) {}
+
+  getToken(): Token {
+    return this.token;
   }
+
   toString() {
     return this.token.literal.toString();
   }
+
   tokenLiteral() {
     return this.token.literal;
   }
 }
 export class StringLiteral implements Expression {
   constructor(private token: Token, public value: string) {}
+
+  getToken(): Token {
+    return this.token;
+  }
+
   toString() {
     return `"${this.value.toString()}"`;
+  }
+
+  tokenLiteral() {
+    return this.token.literal;
+  }
+}
+
+export class NullLiteral implements Expression {
+  constructor(private token: Token, public value: string) {}
+  getToken(): Token {
+    return this.token;
+  }
+
+  toString() {
+    return "null";
   }
   tokenLiteral() {
     return this.token.literal;
   }
 }
+
 export class FunctionLiteral implements Expression {
   public parameters: Identifier[] | null;
   public body!: BlockStatement;
   constructor(private token: Token) {
     this.parameters = [];
   }
+  getToken(): Token {
+    return this.token;
+  }
+
   // TODO: Triple check this
   toString() {
-    return `${this.tokenLiteral()}(${(this.parameters?.map((p) => p.toString())
-      .join(", "))}) {${this.body.toString()}}`;
+    return `${this.tokenLiteral()}(${
+      this.parameters
+        ?.map((p) => p.toString())
+        .join(", ")
+    }) {${this.body.toString()}}`;
   }
   tokenLiteral() {
     return this.token.literal;
@@ -188,6 +259,9 @@ export class ArrayLiteral implements Expression {
   public elements: (Expression | null)[] | null;
   constructor(private token: Token) {
     this.elements = [];
+  }
+  getToken(): Token {
+    return this.token;
   }
   toString() {
     return `[${this.elements?.map((e) => e?.toString()).join(", ")}]`;
@@ -204,10 +278,13 @@ export class HashLiteral implements Expression {
   constructor(private token: Token) {
     this.pairs = new Map();
   }
+  getToken(): Token {
+    return this.token;
+  }
 
   toString() {
-    const pairs = Array.from(this.pairs.entries()).map(([key, val]) =>
-      `${key?.toString()}:${val?.toString()}`
+    const pairs = Array.from(this.pairs.entries()).map(
+      ([key, val]) => `${key?.toString()}:${val?.toString()}`,
     );
     return `{${pairs.join(", ")}}`;
   }
@@ -218,7 +295,9 @@ export class HashLiteral implements Expression {
 export class PrefixExpression implements Expression {
   public right!: Expression | null;
   constructor(private token: Token, public operator: string) {}
-
+  getToken(): Token {
+    return this.token;
+  }
   toString() {
     return `(${this.operator}${
       this.right?.toString() ?? "ERROR WITH PREFIXEXPRESSION"
@@ -237,7 +316,9 @@ export class InfixExpression implements Expression {
     public operator: string,
     public left: Expression | null,
   ) {}
-
+  getToken(): Token {
+    return this.token;
+  }
   toString() {
     return `(${this.left?.toString()} ${this.operator} ${this.right?.toString()})`;
   }
@@ -252,7 +333,9 @@ export class IfExpression implements Expression {
   public alternative!: BlockStatement;
 
   constructor(private token: Token) {}
-
+  getToken(): Token {
+    return this.token;
+  }
   toString() {
     let out =
       `"if${this.condition?.toString()} {{ ${this.consequence.toString()} }}`;
@@ -272,7 +355,9 @@ export class CallExpression implements Expression {
   constructor(private token: Token, public fn: Expression | null) {
     this.arguments = [];
   }
-
+  getToken(): Token {
+    return this.token;
+  }
   toString() {
     const args = this.arguments?.map((arg) => arg?.toString());
     return `${this.fn?.toString()}(${args?.join(", ")})`;
@@ -289,7 +374,9 @@ export class IndexExpression implements Expression {
     public left: Expression | null,
     public index: Expression | null,
   ) {}
-
+  getToken(): Token {
+    return this.token;
+  }
   toString() {
     // TODO: Check definition
     if (this.index == null) {
@@ -307,7 +394,9 @@ export class AssignExpression implements Expression {
     public target: Expression | null,
     public value: Expression | null,
   ) {}
-
+  getToken(): Token {
+    return this.token;
+  }
   toString() {
     // TODO: Check definition
     if (this.value == null) {
@@ -326,7 +415,9 @@ export class PropertyAccessExpression implements Expression {
     public left: Expression | null,
     public property: Expression | null,
   ) {}
-
+  getToken(): Token {
+    return this.token;
+  }
   toString(): string {
     return `${this.left?.toString()}.${this.property?.toString()}`;
   }
@@ -335,6 +426,7 @@ export class PropertyAccessExpression implements Expression {
     return this.token.literal;
   }
 }
+// TODO: Check for removal
 export class ModuleFunctionCallExpression implements Expression {
   public arguments: (null | Expression)[] | null;
 
@@ -345,11 +437,15 @@ export class ModuleFunctionCallExpression implements Expression {
   ) {
     this.arguments = [];
   }
-
+  getToken(): Token {
+    return this.token;
+  }
   toString() {
     const args = this.arguments?.map((arg) => arg?.toString());
     return `${this.module?.toString()}.${this.fn?.toString()}(${
-      args?.join(", ")
+      args?.join(
+        ", ",
+      )
     })`;
   }
 

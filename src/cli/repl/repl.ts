@@ -1,7 +1,7 @@
 import Environment from "../../lang/environment/environment.ts";
-import evaluate from "../../lang/evaluator/evaluator.ts";
+import Evaluator from "../../lang/evaluator/evaluator.ts";
 import Lexer from "../../lang/lexer/lexer.ts";
-import Parser from "../../lang/parser/parser.ts";
+import Parser, { ParserError } from "../../lang/parser/parser.ts";
 
 export default async function repl() {
   console.log("Orangutan REPL. Press Ctrl+c or type exit() to quit.");
@@ -19,14 +19,15 @@ export default async function repl() {
       if (["exit()", "exit", "quit()", "quit"].includes(scanned)) {
         Deno.exit(0);
       }
-      const l = new Lexer(scanned);
+      const l = new Lexer(scanned, currentFilePath);
       const p = new Parser(l, currentFilePath);
       const program = p.parseProgram();
       if (p.errors.length) {
         printErrors(p.errors);
         continue;
       }
-      const evaluated = await evaluate(program, env, currentFilePath);
+      const evaluator = new Evaluator();
+      const evaluated = await evaluator.evaluate(program, env, currentFilePath);
       if (evaluated !== null) {
         console.log(evaluated.toString());
       }
@@ -34,8 +35,13 @@ export default async function repl() {
   }
 }
 
-function printErrors(errors: string[]) {
+function printErrors(errors: ParserError[]) {
   for (const error of errors) {
-    console.log(`\t${error}`);
+    let msg = `\t${error.message}\n`;
+    if (error.currentToken) {
+      msg +=
+        `on line ${error.currentToken.line}, column ${error.currentToken.column}`;
+    }
+    console.log(msg);
   }
 }

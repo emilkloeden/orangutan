@@ -4,17 +4,18 @@ import * as ast from "../ast/ast.ts";
 
 export enum Precedence {
   LOWEST = 0,
-  OR = 1,
-  AND = 2,
-  ASSIGN = 3,
-  EQUALS = 4,
-  LESSGREATER = 5,
-  SUM = 6,
-  PRODUCT = 7,
-  MODULO = 8,
-  PREFIX = 9,
-  CALL = 10,
-  INDEX = 11,
+  PIPE = 1, // TODO: confirm this
+  OR = 2,
+  AND = 3,
+  ASSIGN = 4,
+  EQUALS = 5,
+  LESSGREATER = 6,
+  SUM = 7,
+  PRODUCT = 8,
+  MODULO = 9,
+  PREFIX = 10,
+  CALL = 11,
+  INDEX = 12,
 }
 
 export const precedences: Record<string, Precedence> = {
@@ -37,10 +38,20 @@ export const precedences: Record<string, Precedence> = {
   [TokenType.PERIOD]: Precedence.INDEX,
   [TokenType.USE]: Precedence.CALL,
   [TokenType.ASSIGN]: Precedence.ASSIGN,
+  [TokenType.PIPE]: Precedence.PIPE,
 };
 
+export interface IParserError {
+  message: string;
+  currentToken?: Token;
+}
+
+export class ParserError implements IParserError {
+  constructor(public message: string, public currentToken?: Token) {}
+}
+
 export default class Parser {
-  public errors: string[];
+  public errors: ParserError[];
   private currentToken: Token;
   private peekToken: Token;
   private prefixParseFns: Record<string, () => ast.Expression | null>;
@@ -49,7 +60,7 @@ export default class Parser {
     (left: ast.Expression | null) => ast.Expression | null
   >;
 
-  constructor(private lexer: Lexer, private _currentDir: string) {
+  constructor(private lexer: Lexer, public filePath: string) {
     this.errors = [];
 
     this.currentToken = this.lexer.nextToken();
@@ -58,6 +69,7 @@ export default class Parser {
     this.prefixParseFns = {
       [TokenType.IDENT]: this.parseIdentifier,
       [TokenType.INT]: this.parseIntegerLiteral,
+      [TokenType.NUMBER]: this.parseNumberLiteral,
       [TokenType.BANG]: this.parsePrefixExpression,
       [TokenType.MINUS]: this.parsePrefixExpression,
       [TokenType.TRUE]: this.parseBoolean,
@@ -66,10 +78,10 @@ export default class Parser {
       [TokenType.IF]: this.parseIfExpression,
       [TokenType.FUNCTION]: this.parseFunctionLiteral,
       [TokenType.STRING]: this.parseStringLiteral,
+      [TokenType.NULL]: this.parseNullLiteral,
       [TokenType.LBRACKET]: this.parseArrayLiteral,
       [TokenType.LBRACE]: this.parseHashLiteral,
       [TokenType.USE]: this.parseUseExpression,
-      [TokenType.WHILE]: this.parseWhileStatement,
     };
 
     this.infixParseFns = {
@@ -90,7 +102,7 @@ export default class Parser {
       [TokenType.LBRACKET]: this.parseIndexExpression,
       [TokenType.ASSIGN]: this.parseAssignExpression,
       [TokenType.PERIOD]: this.parsePropertyAccessExpression,
-      // [TokenType.DOUBLE_COLON]: this.parseModuleFunction,
+      [TokenType.PIPE]: this.parseInfixExpression,
     };
   }
 
@@ -123,9 +135,6 @@ export default class Parser {
     }
     if (this.currentToken.tokenType === TokenType.RETURN) {
       return this.parseReturnStatement();
-    }
-    if (this.currentToken.tokenType === TokenType.WHILE) {
-      return this.parseWhileStatement();
     } else {
       return this.parseExpressionStatement();
     }
@@ -144,26 +153,7 @@ export default class Parser {
 
     return stmt;
   };
-  parseWhileStatement = (): ast.WhileStatement | null => {
-    const stmt = new ast.WhileStatement(this.currentToken);
-    if (!this.expectPeek(TokenType.LPAREN)) {
-      return null;
-    }
 
-    this.nextToken();
-    stmt.condition = this.parseExpression(Precedence.LOWEST);
-    if (!this.expectPeek(TokenType.RPAREN)) {
-      return null;
-    }
-
-    if (!this.expectPeek(TokenType.LBRACE)) {
-      return null;
-    }
-
-    stmt.body = this.parseBlockStatement();
-
-    return stmt;
-  };
   parseExpressionStatement = (): ast.ExpressionStatement | null => {
     const stmt = new ast.ExpressionStatement(this.currentToken);
     stmt.expression = this.parseExpression(Precedence.LOWEST);
@@ -226,7 +216,7 @@ export default class Parser {
     // TODO: Check definition
     if (prefix === undefined) {
       console.error(
-        `No prefix parse function found for token: ${this.currentToken.tokenType}`,
+        `No prefix parse function found for token: ${this.currentToken.tokenType} '${this.currentToken.literal}' in ${this.currentToken.filePath} on line ${this.currentToken.line} column ${this.currentToken.column}`,
       );
       this.noPrefixParseFnError(this.currentToken);
       return null;
@@ -280,15 +270,39 @@ export default class Parser {
     try {
       lit.value = parseInt(this.currentToken.literal);
       return lit;
-    } catch (e) {
+    } catch (_) {
       this.errors.push(
-        `Could not parse ${this.currentToken.literal} as integer. ${printLineAndColumn(this.currentToken)}`,
+        new ParserError(
+          `Could not parse ${this.currentToken.literal} as integer.`,
+          this.currentToken,
+        ),
       );
       return null;
     }
   };
+
+  parseNumberLiteral = (): ast.Expression | null => {
+    const lit = new ast.NumberLiteral(this.currentToken);
+    try {
+      lit.value = Number(this.currentToken.literal);
+      return lit;
+    } catch (_) {
+      this.errors.push(
+        new ParserError(
+          `Could not parse ${this.currentToken.literal} as number.`,
+          this.currentToken,
+        ),
+      );
+      return null;
+    }
+  };
+
   parseStringLiteral = (): ast.StringLiteral => {
     return new ast.StringLiteral(this.currentToken, this.currentToken.literal);
+  };
+
+  parseNullLiteral = (): ast.NullLiteral => {
+    return new ast.NullLiteral(this.currentToken, this.currentToken.literal);
   };
 
   parseArrayLiteral = (): ast.Expression => {
@@ -487,30 +501,6 @@ export default class Parser {
     return lit;
   };
 
-  parseModuleFunction = (
-    left: ast.Expression | null,
-  ): ast.Expression | null => {
-    // Create a new ModuleFunctionCallExpression with 'left' as the module part
-    const moduleFunctionExpression = new ast.ModuleFunctionCallExpression(
-      this.currentToken,
-      left, // This represents the module part
-      null, // Initialize fn as null; we'll set it after parsing
-    );
-
-    // Advance to the function part
-    this.nextToken();
-    moduleFunctionExpression.fn = this.parseExpression(Precedence.CALL);
-
-    // Parse the function call arguments if present
-    if (this.expectPeek(TokenType.LPAREN)) {
-      moduleFunctionExpression.arguments = this.parseExpressionList(
-        TokenType.RPAREN,
-      );
-    }
-
-    return moduleFunctionExpression;
-  };
-
   // Helpers
   currentTokenIs = (tokenType: TokenType): boolean => {
     return this.currentToken.tokenType == tokenType;
@@ -536,8 +526,8 @@ export default class Parser {
 
   peekError = (tokenType: TokenType): void => {
     const errorMessage =
-      `Expected next token to be ${tokenType}, got ${this.peekToken.tokenType} instead. ${printLineAndColumn(this.peekToken)}`;
-    this.errors.push(errorMessage);
+      `Expected next token to be ${tokenType}, got ${this.peekToken.tokenType} instead.`;
+    this.errors.push(new ParserError(errorMessage, this.currentToken));
   };
 
   peekPrecedence = (): Precedence => {
@@ -545,7 +535,12 @@ export default class Parser {
   };
 
   noPrefixParseFnError = (token: Token): void => {
-    this.errors.push(`No prefix parse function for ${token.tokenType} found. ${printLineAndColumn(token)}`);
+    this.errors.push(
+      new ParserError(
+        `No prefix parse function for ${token.tokenType} found.`,
+        this.currentToken,
+      ),
+    );
   };
 
   parseExpressionList = (
@@ -572,8 +567,4 @@ export default class Parser {
 
     return expressions;
   };
-}
-
-const printLineAndColumn = (token: Token) => {
-  return `Found on Line: ${token.line} and Column: ${token.column}.`
 }

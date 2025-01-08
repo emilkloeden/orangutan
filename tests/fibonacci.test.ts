@@ -4,6 +4,7 @@ import Environment from "../src/lang/environment/environment.ts";
 import Parser from "../src/lang/parser/parser.ts";
 import Lexer from "../src/lang/lexer/lexer.ts";
 import { Integer } from "../src/lang/objects/objects.ts";
+import Evaluator from "../src/lang/evaluator/evaluator.ts";
 
 const fibonacciDefinition =
   "let fibonacci = fn(x) {     if (x == 0) {      return 0;     } else {       if (x == 1) {         return 1;       } else {         fibonacci(x - 1) + fibonacci(x - 2);       }     }   };";
@@ -24,11 +25,12 @@ Deno.test("fibonacci", () => {
 });
 
 async function testEval(input: string): Promise<Integer> {
-  const lexer = new Lexer(fibonacciDefinition + " " + input);
+  const lexer = new Lexer(fibonacciDefinition + " " + input, "<anonymous>");
   const parser = new Parser(lexer, "");
   const program = parser.parseProgram();
   const env = new Environment({});
-  return await evaluate(program, env, Deno.cwd()) as Integer;
+  const evaluator = new Evaluator();
+  return await evaluator.evaluate(program, env, Deno.cwd()) as Integer;
 }
 
 function assertIntegerObject(
