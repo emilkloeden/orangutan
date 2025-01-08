@@ -64,8 +64,18 @@ _Orangutan_ deviates from the canonical implementation of _Monkey_ as follows:
 
 #### Array manipulation
 
-- `join(arr, using)` joins an array `arr` of strings using `using` between array
-  items.
+- `join(arr, using)` joins an array `arr` of strings using `using` between array items.
+- `map(arr, fn)`
+- `filter(arr, fn)`
+- `reduce(arr, fn)`
+- `zip(arrOne, arrTwo)` joins items from two arrays, joining on index, returning an array of two-item arrays as long as the shortest of `arrOne` and `arrTwo`
+- `zipLongest(arrOne, arrTwo, optionalDefaultValue)` same as zip but returns an array the same length as the longer of `arrOne` and `arrTwo` with holes filled with `null` or `optionalDefaultValue` if supplied.
+
+#### Hash manipulation
+
+- `entries(hash)` returns an array of two-item arrays each representing the key, and value of each entry in `hash`.
+- `keys(hash)` returns an array comprised of each key in `hash`.
+- `values(hash)` returns an array comprised of each value in `hash`.
 - `map(arr, fn)`
 - `filter(arr, fn)`
 - `reduce(arr, fn)`
@@ -83,29 +93,55 @@ _Orangutan_ deviates from the canonical implementation of _Monkey_ as follows:
 #### General operations
 
 - `type(obj)` returns the type of `obj`
+- `prompt()` prompts user for input
 - `ffi(javascriptString)` is an experimental feature that passes
   `javascriptString` down to the Deno runtime to evaluate.
+
+### Other differences
+
+- A `Number` type, distinct from the basic `Monkey` type (which ultimately resolves to a javascript `Number` type)
+- Variable reassignment across scopes
+- The `use(filePath)` function for importing code from other files
+- Hashes can be used as indices to Hashes (this was added as a requirement to realise [Orangutan Monkey Interpreter](https://github.com/emilkloeden/orangutan-monkey-interpreter))
 
 ## Installation
 
 - First ensure Deno is installed. Last tested on
-  `deno 1.46.3 (stable, release, x86_64-pc-windows-msvc)`
+  `deno 2.0.6  (stable, release, x86_64-pc-windows-msvc)`
 - Then just clone the repository:
   `git clone https://github.com/emilkloeden/orangutan.git`
+- (Optionally) compile the binary with:
+  `deno compile -A -o <destination_path> .\src\index.ts`
 
 ## Usage
 
-    $ deno run --allow-all=. .\index.ts
-    Orangutan REPL. Press Ctrl+c or type exit() to quit.
+### REPL
 
-## Project goals
+```bash
+$ deno run --allow-all=. .\index.ts
+Orangutan REPL. Press Ctrl+c or type exit() to quit.
+>
+```
 
-- A float type - Currently integers are the only allowed numeric type
-- File execution - Currently the _Orangutan_ interpreter only provides a Read
-  Evaluate Print Loop (REPL)
-- A module system
+(or if `orangutan` is compiled and added to your PATH variable)
 
-## Stretch goals
+```bash
+$ orangutan
+```
+
+### Execute scripts
+
+```bash
+$ deno run --allow-all=. .\index.ts run <my_script.utan>
+```
+
+(or if `orangutan` is compiled and added to your PATH variable)
+
+```bash
+$ orangutan run
+```
+
+## Project stretch goals
 
 - A language server
 - A package manager
