@@ -76,9 +76,6 @@ _Orangutan_ deviates from the canonical implementation of _Monkey_ as follows:
 - `entries(hash)` returns an array of two-item arrays each representing the key, and value of each entry in `hash`.
 - `keys(hash)` returns an array comprised of each key in `hash`.
 - `values(hash)` returns an array comprised of each value in `hash`.
-- `map(arr, fn)`
-- `filter(arr, fn)`
-- `reduce(arr, fn)`
 
 #### Text file operations
 
